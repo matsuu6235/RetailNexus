@@ -1,0 +1,65 @@
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #0f172a;
+    border-bottom: 1px solid #1e293b;
+  }
+  
+  .inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 14px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  
+  .logo {
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: 0.4px;
+  }
+  
+  .right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .userName {
+    color: #e2e8f0;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  .logoutButton {
+    padding: 8px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  @media (max-width: 768px) {
+    .inner {
+      padding: 12px 20px;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    .right {
+      width: 100%;
+      justify-content: space-between;
+    }
+  
+    .logo {
+      font-size: 20px;
+    }
+  }

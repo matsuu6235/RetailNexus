@@ -1,0 +1,100 @@
+using Microsoft.EntityFrameworkCore;
+using RetailNexus.Application.Interfaces;
+using RetailNexus.Domain.Entities;
+using RetailNexus.Infrastructure.Persistence;
+
+namespace RetailNexus.Infrastructure.Repositories;
+
+public sealed class SupplierRepository : ISupplierRepository
+{
+    private readonly RetailNexusDbContext _db;
+
+    public SupplierRepository(RetailNexusDbContext db)
+    {
+        _db = db;
+    }
+
+    public Task<Supplier?> GetByIdAsync(Guid supplierId, CancellationToken ct)
+        => _db.Suppliers.FirstOrDefaultAsync(x => x.SupplierId == supplierId, ct);
+
+    public Task<Supplier?> GetBySupplierCodeAsync(string supplierCode, CancellationToken ct)
+        => _db.Suppliers.FirstOrDefaultAsync(x => x.SupplierCode == supplierCode, ct);
+
+    public async Task<IReadOnlyList<Supplier>> ListAsync(
+        string? supplierCode,
+        string? supplierName,
+        string? phoneNumber,
+        string? email,
+        bool? isActive,
+        int skip,
+        int take,
+        CancellationToken ct)
+    {
+        var q = BuildQuery(supplierCode, supplierName, phoneNumber, email, isActive);
+
+        return await q
+            .OrderBy(x => x.SupplierCode)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(ct);
+    }
+
+    public async Task<int> CountAsync(
+        string? supplierCode,
+        string? supplierName,
+        string? phoneNumber,
+        string? email,
+        bool? isActive,
+        CancellationToken ct)
+    {
+        var q = BuildQuery(supplierCode, supplierName, phoneNumber, email, isActive);
+        return await q.CountAsync(ct);
+    }
+
+    public async Task AddAsync(Supplier supplier, CancellationToken ct)
+        => await _db.Suppliers.AddAsync(supplier, ct);
+
+    public Task SaveChangesAsync(CancellationToken ct)
+        => _db.SaveChangesAsync(ct);
+
+    private IQueryable<Supplier> BuildQuery(
+        string? supplierCode,
+        string? supplierName,
+        string? phoneNumber,
+        string? email,
+        bool? isActive)
+    {
+        var q = _db.Suppliers.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(supplierCode))
+        {
+            var value = supplierCode.Trim();
+            q = q.Where(x => x.SupplierCode.Contains(value));
+        }
+
+        if (!string.IsNullOrWhiteSpace(supplierName))
+        {
+            var value = supplierName.Trim();
+            q = q.Where(x => x.SupplierName.Contains(value));
+        }
+
+        if (!string.IsNullOrWhiteSpace(phoneNumber))
+        {
+            var value = phoneNumber.Trim();
+            q = q.Where(x => x.PhoneNumber != null && x.PhoneNumber.Contains(value));
+        }
+
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            var value = email.Trim();
+            q = q.Where(x => x.Email != null && x.Email.Contains(value));
+        }
+
+        if (isActive.HasValue)
+        {
+            q = q.Where(x => x.IsActive == isActive.Value);
+        }
+
+        return q;
+    }
+}

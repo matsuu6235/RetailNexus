@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RetailNexus.Api", "RetailNexus.Api\RetailNexus.Api.csproj", "{07C0F3F8-01EE-4370-A41E-761C55E8BB6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RetailNexus.Domain", "RetailNexus.Domain\RetailNexus.Domain.csproj", "{B6CE0DDF-D036-48E6-BE96-3398E8A31DBB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RetailNexus.Application", "RetailNexus.Application\RetailNexus.Application.csproj", "{C832C9F0-0076-45DA-AC13-720303C0C3C1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RetailNexus.Infrastructure", "RetailNexus.Infrastructure\RetailNexus.Infrastructure.csproj", "{B7B421F6-3583-4D79-830E-FDC891AF8AA6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{07C0F3F8-01EE-4370-A41E-761C55E8BB6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07C0F3F8-01EE-4370-A41E-761C55E8BB6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07C0F3F8-01EE-4370-A41E-761C55E8BB6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07C0F3F8-01EE-4370-A41E-761C55E8BB6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6CE0DDF-D036-48E6-BE96-3398E8A31DBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6CE0DDF-D036-48E6-BE96-3398E8A31DBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6CE0DDF-D036-48E6-BE96-3398E8A31DBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6CE0DDF-D036-48E6-BE96-3398E8A31DBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C832C9F0-0076-45DA-AC13-720303C0C3C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C832C9F0-0076-45DA-AC13-720303C0C3C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C832C9F0-0076-45DA-AC13-720303C0C3C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C832C9F0-0076-45DA-AC13-720303C0C3C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7B421F6-3583-4D79-830E-FDC891AF8AA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7B421F6-3583-4D79-830E-FDC891AF8AA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7B421F6-3583-4D79-830E-FDC891AF8AA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7B421F6-3583-4D79-830E-FDC891AF8AA6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

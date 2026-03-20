@@ -1,0 +1,44 @@
+# General
+.DS_Store
+Thumbs.db
+
+# JetBrains / Rider
+.idea/
+*.iml
+*.sln.iml
+*.DotSettings.user
+*.user
+*.suo
+
+# .NET backend
+**/bin/
+**/obj/
+/packages/
+/_ReSharper.Caches/
+
+# Backend local config / secrets
+backend/.idea/
+backend/RetailNexus.Api/appsettings.Development.json
+backend/**/appsettings.*.local.json
+backend/**/*.pfx
+backend/**/*.snk
+backend/**/*.pem
+backend/**/*.key
+backend/**/*.crt
+
+# Frontend / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/coverage/
+frontend/tsconfig.tsbuildinfo
+
+# Frontend env
+frontend/.env.local
+frontend/.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

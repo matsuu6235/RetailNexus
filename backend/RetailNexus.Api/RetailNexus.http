@@ -1,0 +1,6 @@
+@RetailNexus_HostAddress = http://localhost:5150
+
+GET {{RetailNexus_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
