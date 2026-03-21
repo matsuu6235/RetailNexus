@@ -23,6 +23,9 @@ export default function AppShell({ children }: AppShellProps) {
   const isProductMasterActive = pathname.startsWith("/products");
   const isSupplierMasterActive = pathname.startsWith("/suppliers");
   const isProductCategoryMasterActive = pathname.startsWith("/product-categories");
+  const isAreaMasterActive = pathname.startsWith("/areas");
+  const isStoreMasterActive = pathname.startsWith("/stores");
+  const isStoreTypeMasterActive = pathname.startsWith("/store-types");
 
   const handleLogout = () => {
     logout();
@@ -59,25 +62,23 @@ export default function AppShell({ children }: AppShellProps) {
       <div className={styles.body}>
         <aside className={styles.sidebar}>
           <nav className={styles.nav}>
-            <Link
-              href="/products"
-              className={`${styles.navItem} ${isProductMasterActive ? styles.navItemActive : ""}`}
-            >
+            <Link href="/products" className={`${styles.navItem} ${isProductMasterActive ? styles.navItemActive : ""}`}>
               商品マスタ
             </Link>
-
-            <Link
-              href="/suppliers"
-              className={`${styles.navItem} ${isSupplierMasterActive ? styles.navItemActive : ""}`}
-            >
+            <Link href="/suppliers" className={`${styles.navItem} ${isSupplierMasterActive ? styles.navItemActive : ""}`}>
               仕入先マスタ
             </Link>
-
-            <Link
-              href="/product-categories"
-              className={`${styles.navItem} ${isProductCategoryMasterActive ? styles.navItemActive : ""}`}
-            >
+            <Link href="/product-categories" className={`${styles.navItem} ${isProductCategoryMasterActive ? styles.navItemActive : ""}`}>
               商品カテゴリマスタ
+            </Link>
+            <Link href="/areas" className={`${styles.navItem} ${isAreaMasterActive ? styles.navItemActive : ""}`}>
+              エリアマスタ
+            </Link>
+            <Link href="/stores" className={`${styles.navItem} ${isStoreMasterActive ? styles.navItemActive : ""}`}>
+              店舗マスタ
+            </Link>
+            <Link href="/store-types" className={`${styles.navItem} ${isStoreTypeMasterActive ? styles.navItemActive : ""}`}>
+              店舗種別マスタ
             </Link>
           </nav>
         </aside>
