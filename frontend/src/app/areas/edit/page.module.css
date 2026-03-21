@@ -1,0 +1,99 @@
+.page {
+    padding: 32px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  
+  .title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: #0f172a;
+  }
+  
+  .description {
+    margin: 0 0 24px;
+    color: #64748b;
+    font-size: 14px;
+  }
+  
+  .form {
+    display: grid;
+    gap: 16px;
+    max-width: 720px;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+  }
+  
+  .field {
+    display: grid;
+    gap: 6px;
+  }
+  
+  .input,
+  .select {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    font-size: 14px;
+  }
+  
+  .errorText {
+    color: #b91c1c;
+    font-size: 12px;
+  }
+  
+  .errorBox {
+    padding: 12px;
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+    border-radius: 8px;
+  }
+  
+  .checkboxField {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  
+  .cancelButton {
+    padding: 10px 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #ffffff;
+    cursor: pointer;
+  }
+  
+  .submitButton {
+    padding: 10px 18px;
+    border: 1px solid #0f172a;
+    border-radius: 10px;
+    background: #0f172a;
+    color: #ffffff;
+    cursor: pointer;
+  }
+  
+  @media (max-width: 768px) {
+    .page {
+      padding: 20px;
+    }
+  
+    .form {
+      padding: 16px;
+    }
+  
+    .actions {
+      flex-direction: column;
+    }
+  }

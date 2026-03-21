@@ -11,6 +11,9 @@ public class RetailNexusDbContext : DbContext
     public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
     public DbSet<Supplier> Suppliers => Set<Supplier>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<Area> Areas => Set<Area>();
+    public DbSet<Store> Stores => Set<Store>();
+    public DbSet<StoreType> StoreTypes => Set<StoreType>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
