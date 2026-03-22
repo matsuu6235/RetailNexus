@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createArea, type CreateAreaRequest } from "../../lib/api/areas";
+import { validateArea, type AreaFieldErrors } from "../../lib/validators/areaValidator";
 import styles from "./page.module.css";
-
-type FieldErrors = Partial<Record<keyof CreateAreaRequest, string>>;
 
 export default function NewAreaPage() {
   const router = useRouter();
@@ -16,17 +15,17 @@ export default function NewAreaPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [fieldErrors, setFieldErrors] = useState<AreaFieldErrors>({});
 
   const handleChange = (field: keyof CreateAreaRequest, value: string | boolean) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+    const updatedForm = { ...form, [field]: value };
+    setForm(updatedForm);
+    const errors = validateArea(updatedForm);
+    setFieldErrors((prev) => ({ ...prev, [field]: errors[field as keyof AreaFieldErrors] }));
   };
 
   const validate = () => {
-    const errors: FieldErrors = {};
-    if (!form.areaCd.trim()) errors.areaCd = "エリアコードは必須です";
-    if (!form.areaName.trim()) errors.areaName = "エリア名は必須です";
+    const errors = validateArea(form);
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -60,12 +59,14 @@ export default function NewAreaPage() {
         <label className={styles.field}>
           <span>エリアコード *</span>
           <input value={form.areaCd} onChange={(e) => handleChange("areaCd", e.target.value)} className={styles.input} />
+          <small className={styles.hint}>2文字以内で入力してください。</small>
           {fieldErrors.areaCd && <small className={styles.errorText}>{fieldErrors.areaCd}</small>}
         </label>
 
         <label className={styles.field}>
           <span>エリア名 *</span>
           <input value={form.areaName} onChange={(e) => handleChange("areaName", e.target.value)} className={styles.input} />
+          <small className={styles.hint}>20文字以内で入力してください。</small>
           {fieldErrors.areaName && <small className={styles.errorText}>{fieldErrors.areaName}</small>}
         </label>
 

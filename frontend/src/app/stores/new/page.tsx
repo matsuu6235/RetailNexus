@@ -7,9 +7,8 @@ import { getAllAreas } from "../../lib/api/areas";
 import { getStoreTypes } from "../../lib/api/storeTypes";
 import type { Area } from "../../types/areas";
 import type { StoreType } from "../../types/storeTypes";
+import { validateStore, type StoreFieldErrors } from "../../lib/validators/storeValidator";
 import styles from "./page.module.css";
-
-type FieldErrors = Partial<Record<keyof CreateStoreRequest, string>>;
 
 export default function NewStorePage() {
   const router = useRouter();
@@ -27,7 +26,7 @@ export default function NewStorePage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [fieldErrors, setFieldErrors] = useState<StoreFieldErrors>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -60,16 +59,14 @@ export default function NewStorePage() {
   }, []);
 
   const handleChange = (field: keyof CreateStoreRequest, value: string | boolean) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+    const updatedForm = { ...form, [field]: value };
+    setForm(updatedForm);
+    const errors = validateStore(updatedForm);
+    setFieldErrors((prev) => ({ ...prev, [field]: errors[field as keyof StoreFieldErrors] }));
   };
 
   const validate = () => {
-    const errors: FieldErrors = {};
-    if (!form.storeCd.trim()) errors.storeCd = "店舗コードは必須です";
-    if (!form.storeName.trim()) errors.storeName = "店舗名は必須です";
-    if (!form.areaId) errors.areaId = "エリアは必須です";
-    if (!form.storeTypeId) errors.storeTypeId = "店舗種別は必須です";
+    const errors = validateStore(form);
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -105,12 +102,14 @@ export default function NewStorePage() {
         <label className={styles.field}>
           <span>店舗コード *</span>
           <input value={form.storeCd} onChange={(e) => handleChange("storeCd", e.target.value)} className={styles.input} />
+          <small className={styles.hint}>6文字以内で入力してください。</small>
           {fieldErrors.storeCd && <small className={styles.errorText}>{fieldErrors.storeCd}</small>}
         </label>
 
         <label className={styles.field}>
           <span>店舗名 *</span>
           <input value={form.storeName} onChange={(e) => handleChange("storeName", e.target.value)} className={styles.input} />
+          <small className={styles.hint}>100文字以内で入力してください。</small>
           {fieldErrors.storeName && <small className={styles.errorText}>{fieldErrors.storeName}</small>}
         </label>
 

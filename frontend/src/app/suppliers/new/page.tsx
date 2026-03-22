@@ -3,10 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupplier, type CreateSupplierRequest } from "../../lib/api/suppliers";
-import { formatPhoneNumber, normalizePhoneNumber } from "../../lib/utils/phoneNumber";
+import { validateSupplier, type SupplierFieldErrors } from "../../lib/validators/supplierValidator";
 import styles from "./page.module.css";
-
-type FieldErrors = Partial<Record<keyof CreateSupplierRequest, string>>;
 
 export default function NewSupplierPage() {
     const router = useRouter();
@@ -19,17 +17,17 @@ export default function NewSupplierPage() {
     });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+    const [fieldErrors, setFieldErrors] = useState<SupplierFieldErrors>({});
 
     const handleChange = (field: keyof CreateSupplierRequest, value: string | boolean) => {
-        setForm((prev) => ({ ...prev, [field]: value }));
-        setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+        const updatedForm = { ...form, [field]: value };
+        setForm(updatedForm);
+        const errors = validateSupplier(updatedForm);
+        setFieldErrors((prev) => ({ ...prev, [field]: errors[field as keyof SupplierFieldErrors] }));
     };
 
     const validate = () => {
-        const errors: FieldErrors = {};
-        if (!form.supplierCode.trim()) errors.supplierCode = "仕入先コードは必須です";
-        if (!form.supplierName.trim()) errors.supplierName = "仕入先名は必須です";
+        const errors = validateSupplier(form);
         setFieldErrors(errors);
         return Object.keys(errors).length === 0;
     };
@@ -45,7 +43,7 @@ export default function NewSupplierPage() {
             await createSupplier({
                 supplierCode: form.supplierCode.trim(),
                 supplierName: form.supplierName.trim(),
-                phoneNumber: normalizePhoneNumber(form.phoneNumber ?? ""),
+                phoneNumber: form.phoneNumber?.trim() ?? "",
                 email: form.email?.trim() ?? "",
                 isActive: form.isActive,
             });
@@ -70,6 +68,7 @@ export default function NewSupplierPage() {
                         onChange={(e) => handleChange("supplierCode", e.target.value)}
                         className={styles.input}
                     />
+                    <small className={styles.hint}>30文字以内で入力してください。</small>
                     {fieldErrors.supplierCode && <small className={styles.errorText}>{fieldErrors.supplierCode}</small>}
                 </label>
 
@@ -80,16 +79,19 @@ export default function NewSupplierPage() {
                         onChange={(e) => handleChange("supplierName", e.target.value)}
                         className={styles.input}
                     />
+                    <small className={styles.hint}>100文字以内で入力してください。</small>
                     {fieldErrors.supplierName && <small className={styles.errorText}>{fieldErrors.supplierName}</small>}
                 </label>
 
                 <label className={styles.field}>
                     <span>電話番号</span>
                     <input
-                        value={formatPhoneNumber(form.phoneNumber)}
-                        onChange={(e) => handleChange("phoneNumber", normalizePhoneNumber(e.target.value))}
+                        value={form.phoneNumber}
+                        onChange={(e) => handleChange("phoneNumber", e.target.value)}
                         className={styles.input}
                     />
+                    <small className={styles.hint}>20文字以内で入力してください。</small>
+                    {fieldErrors.phoneNumber && <small className={styles.errorText}>{fieldErrors.phoneNumber}</small>}
                 </label>
 
                 <label className={styles.field}>
@@ -100,6 +102,8 @@ export default function NewSupplierPage() {
                         onChange={(e) => handleChange("email", e.target.value)}
                         className={styles.input}
                     />
+                    <small className={styles.hint}>255文字以内で入力してください。</small>
+                    {fieldErrors.email && <small className={styles.errorText}>{fieldErrors.email}</small>}
                 </label>
 
                 <label className={styles.checkboxField}>

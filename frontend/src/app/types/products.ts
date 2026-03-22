@@ -3,7 +3,7 @@ export type Product = {
   productCode: string;
   productName: string;
   janCode: string;
-  categoryCode: string;
+  productCategoryCode: string;
   categoryName?: string | null;
   price: number;
   cost: number;

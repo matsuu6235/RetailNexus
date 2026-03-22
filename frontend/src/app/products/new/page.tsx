@@ -1,13 +1,12 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createProduct, type CreateProductRequest } from "../../lib/api/products";
 import { getAllProductCategories } from "../../lib/api/productCategories";
 import type { ProductCategory } from "../../types/productCategories";
+import { validateProduct, type ProductFieldErrors } from "../../lib/validators/productValidator";
 import styles from "./page.module.css";
-
-type FieldErrors = Partial<Record<keyof CreateProductRequest, string>>;
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -24,7 +23,7 @@ export default function NewProductPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [fieldErrors, setFieldErrors] = useState<ProductFieldErrors>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -58,28 +57,16 @@ export default function NewProductPage() {
     };
   }, []);
 
-  const selectedCategory = useMemo(
-    () => categories.find((c) => c.productCategoryCd === form.productCategoryCode) ?? null,
-    [categories, form.productCategoryCode]
-  );
-
   const handleChange = (field: keyof CreateProductRequest, value: string) => {
-    setForm((prev) => ({
-      ...prev,
-      [field]: field === "price" || field === "cost" ? (value === "" ? 0 : Number(value)) : value,
-    }));
-    setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+    const numericValue = field === "price" || field === "cost" ? (value === "" ? 0 : Number(value)) : value;
+    const updatedForm = { ...form, [field]: numericValue };
+    setForm(updatedForm);
+    const errors = validateProduct(updatedForm);
+    setFieldErrors((prev) => ({ ...prev, [field]: errors[field as keyof ProductFieldErrors] }));
   };
 
   const validate = () => {
-    const errors: FieldErrors = {};
-
-    if (!form.productCode.trim()) errors.productCode = "SKU は必須です";
-    if (!form.productName.trim()) errors.productName = "商品名は必須です";
-    if (form.price <= 0) errors.price = "売価は 0 より大きい値を指定してください";
-    if (form.cost < 0) errors.cost = "原価は 0 以上で指定してください";
-    if (!form.productCategoryCode.trim()) errors.productCategoryCode = "カテゴリは必須です";
-
+    const errors = validateProduct(form);
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -119,6 +106,7 @@ export default function NewProductPage() {
             onChange={(e) => handleChange("productCode", e.target.value)}
             className={styles.input}
           />
+          <small className={styles.hint}>50文字以内で入力してください。</small>
           {fieldErrors.productCode && <small className={styles.errorText}>{fieldErrors.productCode}</small>}
         </label>
 
@@ -129,6 +117,8 @@ export default function NewProductPage() {
             onChange={(e) => handleChange("janCode", e.target.value)}
             className={styles.input}
           />
+          <small className={styles.hint}>13文字以内で入力してください。</small>
+          {fieldErrors.janCode && <small className={styles.errorText}>{fieldErrors.janCode}</small>}
         </label>
 
         <label className={styles.field}>

@@ -14,7 +14,7 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         b.Property(x => x.ProductCode).HasMaxLength(50).IsRequired();
         b.HasIndex(x => x.ProductCode).IsUnique();
-        b.Property(x => x.JanCode).HasMaxLength(32);
+        b.Property(x => x.JanCode).HasMaxLength(13);
         b.Property(x => x.ProductName).HasMaxLength(200).IsRequired();
         b.Property(x => x.ProductCategoryCode).HasMaxLength(50);
 

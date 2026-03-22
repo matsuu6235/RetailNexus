@@ -1,5 +1,6 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Application.Interfaces;
@@ -13,10 +14,20 @@ namespace RetailNexus.Controllers;
 public sealed class ProductCategoriesController : ControllerBase
 {
     private readonly IProductCategoryRepository _repo;
+    private readonly IValidator<CreateProductCategoryRequest> _createValidator;
+    private readonly IValidator<UpdateProductCategoryRequest> _updateValidator;
+    private readonly IValidator<ReorderProductCategoriesRequest> _reorderValidator;
 
-    public ProductCategoriesController(IProductCategoryRepository repo)
+    public ProductCategoriesController(
+        IProductCategoryRepository repo,
+        IValidator<CreateProductCategoryRequest> createValidator,
+        IValidator<UpdateProductCategoryRequest> updateValidator,
+        IValidator<ReorderProductCategoriesRequest> reorderValidator)
     {
         _repo = repo;
+        _createValidator = createValidator;
+        _updateValidator = updateValidator;
+        _reorderValidator = reorderValidator;
     }
 
     public sealed record CreateProductCategoryRequest(string ProductCategoryCd, string ProductCategoryName, bool IsActive = true);
@@ -32,7 +43,7 @@ public sealed class ProductCategoriesController : ControllerBase
         Guid UpdatedBy,
         DateTimeOffset CreatedAt,
         Guid CreatedBy);
-    
+
     [HttpGet]
     public async Task<IActionResult> List(
         [FromQuery] string? productCategoryCd,
@@ -65,16 +76,12 @@ public sealed class ProductCategoriesController : ControllerBase
         if (!TryGetCurrentUserId(out var userId))
             return Unauthorized();
 
+        var validation = await _createValidator.ValidateAsync(req, ct);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
+
         var code = req.ProductCategoryCd.Trim();
         var name = req.ProductCategoryName.Trim();
-
-        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(name))
-            return BadRequest("ProductCategoryCd and ProductCategoryName are required.");
-
-        var duplicate = await _repo.GetByCodeAsync(code, ct);
-        if (duplicate is not null)
-            return Conflict("ProductCategoryCd already exists.");
-
         var nextDisplayOrder = await _repo.GetNextDisplayOrderAsync(ct);
         var entity = new ProductCategory(code, name, nextDisplayOrder, req.IsActive, userId);
 
@@ -90,21 +97,17 @@ public sealed class ProductCategoriesController : ControllerBase
         if (!TryGetCurrentUserId(out var userId))
             return Unauthorized();
 
+        var ctx = new ValidationContext<UpdateProductCategoryRequest>(req);
+        ctx.RootContextData["EntityId"] = id;
+        var validation = await _updateValidator.ValidateAsync(ctx, ct);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
+
         var entity = await _repo.GetByIdAsync(id, ct);
         if (entity is null)
             return NotFound();
 
-        var code = req.ProductCategoryCd.Trim();
-        var name = req.ProductCategoryName.Trim();
-
-        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(name))
-            return BadRequest("ProductCategoryCd and ProductCategoryName are required.");
-
-        var duplicate = await _repo.GetByCodeAsync(code, ct);
-        if (duplicate is not null && duplicate.ProductCategoryId != id)
-            return Conflict("ProductCategoryCd already exists.");
-
-        entity.Update(code, name, req.IsActive, userId);
+        entity.Update(req.ProductCategoryCd.Trim(), req.ProductCategoryName.Trim(), req.IsActive, userId);
         await _repo.SaveChangesAsync(ct);
 
         return Ok(Map(entity));
@@ -116,16 +119,12 @@ public sealed class ProductCategoriesController : ControllerBase
         if (!TryGetCurrentUserId(out var userId))
             return Unauthorized();
 
-        if (req.ProductCategoryIds is null || req.ProductCategoryIds.Count == 0)
-            return BadRequest("ProductCategoryIds is required.");
+        var validation = await _reorderValidator.ValidateAsync(req, ct);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
 
         var distinctIds = req.ProductCategoryIds.Distinct().ToArray();
-        if (distinctIds.Length != req.ProductCategoryIds.Count)
-            return BadRequest("ProductCategoryIds contains duplicates.");
-
         var entities = await _repo.GetByIdsAsync(distinctIds, ct);
-        if (entities.Count != distinctIds.Length)
-            return BadRequest("Some product categories were not found.");
 
         var orderMap = req.ProductCategoryIds
             .Select((id, index) => new { id, displayOrder = index + 1 })
@@ -138,12 +137,10 @@ public sealed class ProductCategoriesController : ControllerBase
 
         await _repo.SaveChangesAsync(ct);
 
-        var response = entities
+        return Ok(entities
             .OrderBy(x => x.DisplayOrder)
             .ThenBy(x => x.ProductCategoryCd)
-            .Select(Map);
-
-        return Ok(response);
+            .Select(Map));
     }
 
     private bool TryGetCurrentUserId(out Guid userId)
