@@ -1,5 +1,6 @@
-﻿﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Application.Interfaces;
@@ -13,14 +14,17 @@ namespace RetailNexus.Controllers;
 public sealed class StoresController : ControllerBase
 {
     private readonly IStoreRepository _storeRepo;
-    private readonly IAreaRepository _areaRepo;
-    private readonly IStoreTypeRepository _storeTypeRepo;
+    private readonly IValidator<CreateStoreRequest> _createValidator;
+    private readonly IValidator<UpdateStoreRequest> _updateValidator;
 
-    public StoresController(IStoreRepository storeRepo, IAreaRepository areaRepo, IStoreTypeRepository storeTypeRepo)
+    public StoresController(
+        IStoreRepository storeRepo,
+        IValidator<CreateStoreRequest> createValidator,
+        IValidator<UpdateStoreRequest> updateValidator)
     {
         _storeRepo = storeRepo;
-        _areaRepo = areaRepo;
-        _storeTypeRepo = storeTypeRepo;
+        _createValidator = createValidator;
+        _updateValidator = updateValidator;
     }
 
     public sealed record CreateStoreRequest(string StoreCd, string StoreName, Guid AreaId, Guid StoreTypeId, bool IsActive = true);
@@ -75,29 +79,11 @@ public sealed class StoresController : ControllerBase
         if (!TryGetCurrentUserId(out var userId))
             return Unauthorized();
 
-        var code = req.StoreCd.Trim();
-        var name = req.StoreName.Trim();
+        var validation = await _createValidator.ValidateAsync(req, ct);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
 
-        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(name))
-            return BadRequest("StoreCd and StoreName are required.");
-
-        var duplicate = await _storeRepo.GetByCodeAsync(code, ct);
-        if (duplicate is not null)
-            return Conflict("StoreCd already exists.");
-
-        var area = await _areaRepo.GetByIdAsync(req.AreaId, ct);
-        if (area is null)
-            return BadRequest("AreaId not found.");
-        if (!area.IsActive)
-            return BadRequest("AreaId is inactive.");
-
-        var storeType = await _storeTypeRepo.GetByIdAsync(req.StoreTypeId, ct);
-        if (storeType is null)
-            return BadRequest("StoreTypeId not found.");
-        if (!storeType.IsActive)
-            return BadRequest("StoreTypeId is inactive.");
-
-        var entity = new Store(code, name, req.AreaId, req.StoreTypeId, req.IsActive, userId);
+        var entity = new Store(req.StoreCd.Trim(), req.StoreName.Trim(), req.AreaId, req.StoreTypeId, req.IsActive, userId);
 
         await _storeRepo.AddAsync(entity, ct);
         await _storeRepo.SaveChangesAsync(ct);
@@ -112,29 +98,17 @@ public sealed class StoresController : ControllerBase
         if (!TryGetCurrentUserId(out var userId))
             return Unauthorized();
 
+        var ctx = new ValidationContext<UpdateStoreRequest>(req);
+        ctx.RootContextData["EntityId"] = id;
+        var validation = await _updateValidator.ValidateAsync(ctx, ct);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
+
         var entity = await _storeRepo.GetByIdAsync(id, ct);
         if (entity is null)
             return NotFound();
 
-        var code = req.StoreCd.Trim();
-        var name = req.StoreName.Trim();
-
-        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(name))
-            return BadRequest("StoreCd and StoreName are required.");
-
-        var duplicate = await _storeRepo.GetByCodeAsync(code, ct);
-        if (duplicate is not null && duplicate.StoreId != id)
-            return Conflict("StoreCd already exists.");
-
-        var area = await _areaRepo.GetByIdAsync(req.AreaId, ct);
-        if (area is null)
-            return BadRequest("AreaId not found.");
-
-        var storeType = await _storeTypeRepo.GetByIdAsync(req.StoreTypeId, ct);
-        if (storeType is null)
-            return BadRequest("StoreTypeId not found.");
-
-        entity.Update(code, name, req.AreaId, req.StoreTypeId, req.IsActive, userId);
+        entity.Update(req.StoreCd.Trim(), req.StoreName.Trim(), req.AreaId, req.StoreTypeId, req.IsActive, userId);
         await _storeRepo.SaveChangesAsync(ct);
 
         var updated = await _storeRepo.GetByIdAsync(entity.StoreId, ct);

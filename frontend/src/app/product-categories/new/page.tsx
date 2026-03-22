@@ -6,9 +6,8 @@ import {
   createProductCategory,
   type CreateProductCategoryRequest,
 } from "../../lib/api/productCategories";
+import { validateProductCategory, type ProductCategoryFieldErrors } from "../../lib/validators/productCategoryValidator";
 import styles from "./page.module.css";
-
-type FieldErrors = Partial<Record<keyof CreateProductCategoryRequest, string>>;
 
 export default function NewProductCategoryPage() {
   const router = useRouter();
@@ -19,27 +18,20 @@ export default function NewProductCategoryPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [fieldErrors, setFieldErrors] = useState<ProductCategoryFieldErrors>({});
 
   const handleChange = (
     field: keyof CreateProductCategoryRequest,
     value: string | boolean
   ) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+    const updatedForm = { ...form, [field]: value };
+    setForm(updatedForm);
+    const errors = validateProductCategory(updatedForm);
+    setFieldErrors((prev) => ({ ...prev, [field]: errors[field as keyof ProductCategoryFieldErrors] }));
   };
 
   const validate = () => {
-    const errors: FieldErrors = {};
-
-    if (!form.productCategoryCd.trim()) {
-      errors.productCategoryCd = "商品カテゴリコードは必須です。";
-    }
-
-    if (!form.productCategoryName.trim()) {
-      errors.productCategoryName = "商品カテゴリ名は必須です。";
-    }
-
+    const errors = validateProductCategory(form);
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -82,6 +74,7 @@ export default function NewProductCategoryPage() {
             onChange={(e) => handleChange("productCategoryCd", e.target.value)}
             className={styles.input}
           />
+          <small className={styles.hint}>30文字以内で入力してください。</small>
           {fieldErrors.productCategoryCd && (
             <small className={styles.errorText}>{fieldErrors.productCategoryCd}</small>
           )}
@@ -94,6 +87,7 @@ export default function NewProductCategoryPage() {
             onChange={(e) => handleChange("productCategoryName", e.target.value)}
             className={styles.input}
           />
+          <small className={styles.hint}>100文字以内で入力してください。</small>
           {fieldErrors.productCategoryName && (
             <small className={styles.errorText}>{fieldErrors.productCategoryName}</small>
           )}

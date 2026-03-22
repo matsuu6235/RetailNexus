@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getStoreTypeById, updateStoreType, type UpdateStoreTypeRequest } from "../../lib/api/storeTypes";
+import { validateStoreType, type StoreTypeFieldErrors } from "../../lib/validators/storeTypeValidator";
 import styles from "./page.module.css";
-
-type FieldErrors = Partial<Record<keyof UpdateStoreTypeRequest, string>>;
 
 export default function EditStoreTypePage() {
   const router = useRouter();
@@ -21,7 +20,7 @@ export default function EditStoreTypePage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [fieldErrors, setFieldErrors] = useState<StoreTypeFieldErrors>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -61,14 +60,14 @@ export default function EditStoreTypePage() {
   }, [id]);
 
   const handleChange = (field: keyof UpdateStoreTypeRequest, value: string | boolean) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+    const updatedForm = { ...form, [field]: value };
+    setForm(updatedForm);
+    const errors = validateStoreType(updatedForm);
+    setFieldErrors((prev) => ({ ...prev, [field]: errors[field as keyof StoreTypeFieldErrors] }));
   };
 
   const validate = () => {
-    const errors: FieldErrors = {};
-    if (!form.storeTypeCd.trim()) errors.storeTypeCd = "店舗種別コードは必須です";
-    if (!form.storeTypeName.trim()) errors.storeTypeName = "店舗種別名は必須です";
+    const errors = validateStoreType(form);
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -109,12 +108,14 @@ export default function EditStoreTypePage() {
         <label className={styles.field}>
           <span>店舗種別コード *</span>
           <input value={form.storeTypeCd} onChange={(e) => handleChange("storeTypeCd", e.target.value)} className={styles.input} />
+          <small className={styles.hint}>2文字以内で入力してください。</small>
           {fieldErrors.storeTypeCd && <small className={styles.errorText}>{fieldErrors.storeTypeCd}</small>}
         </label>
 
         <label className={styles.field}>
           <span>店舗種別名 *</span>
           <input value={form.storeTypeName} onChange={(e) => handleChange("storeTypeName", e.target.value)} className={styles.input} />
+          <small className={styles.hint}>50文字以内で入力してください。</small>
           {fieldErrors.storeTypeName && <small className={styles.errorText}>{fieldErrors.storeTypeName}</small>}
         </label>
 

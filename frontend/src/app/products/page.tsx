@@ -67,7 +67,7 @@ export default function ProductsPage() {
           setProducts(
             productRes.items.map((product) => ({
               ...product,
-              categoryName: categoryMap.get(product.categoryCode) ?? null,
+              categoryName: categoryMap.get(product.productCategoryCode) ?? null,
             }))
           );
           setTotal(productRes.total);

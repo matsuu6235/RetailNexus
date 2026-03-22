@@ -45,6 +45,11 @@
     background: #fff;
   }
   
+  .hint {
+    color: #475569;
+    font-size: 12px;
+  }
+
   .errorText {
     color: #b91c1c;
     font-size: 12px;

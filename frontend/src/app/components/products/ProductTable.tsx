@@ -49,7 +49,7 @@ export function ProductTable({ products, total, page, pageSize }: ProductTablePr
                   <td className={`${styles.td} ${styles.tdJan}`}>{p.janCode}</td>
                   <td className={`${styles.td} ${styles.tdProductName}`}>{p.productName}</td>
                   <td className={`${styles.td} ${styles.tdCategory}`}>
-                    {p.categoryName ? `${p.categoryName} (${p.categoryCode})` : p.categoryCode}
+                    {p.categoryName ? `${p.categoryName} (${p.productCategoryCode})` : p.productCategoryCode}
                   </td>
                   <td className={`${styles.td} ${styles.tdPrice}`}>{formatYen(p.price)}</td>
                   <td className={`${styles.td} ${styles.tdCost}`}>{formatYen(p.cost)}</td>

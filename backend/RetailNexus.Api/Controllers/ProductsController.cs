@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
@@ -11,12 +12,14 @@ namespace RetailNexus.Api.Controllers;
 public sealed class ProductsController : ControllerBase
 {
     private readonly IProductRepository _productRepo;
-    private readonly IProductCategoryRepository _productCategoryRepo;
+    private readonly IValidator<CreateProductRequest> _createValidator;
 
-    public ProductsController(IProductRepository productRepo, IProductCategoryRepository productCategoryRepo)
+    public ProductsController(
+        IProductRepository productRepo,
+        IValidator<CreateProductRequest> createValidator)
     {
         _productRepo = productRepo;
-        _productCategoryRepo = productCategoryRepo;
+        _createValidator = createValidator;
     }
 
     public sealed record CreateProductRequest(string ProductCode, string JanCode, string ProductName, decimal Price, decimal Cost, string ProductCategoryCode);
@@ -35,40 +38,17 @@ public sealed class ProductsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateProductRequest req, CancellationToken ct)
     {
-        var productCode = req.ProductCode.Trim();
-        var janCode = req.JanCode.Trim();
-        var productName = req.ProductName.Trim();
-        var producCategoryCode = req.ProductCategoryCode.Trim();
-
-        if (string.IsNullOrWhiteSpace(productCode) || string.IsNullOrWhiteSpace(productName))
-        {
-            return BadRequest("ProductCode and ProductName are required.");
-        }
-
-        var existing = await _productRepo.GetByProductCodeAsync(productCode, ct);
-        if (existing is not null)
-        {
-            return Conflict("ProductCode already exists.");
-        }
-
-        var productCategory = await _productCategoryRepo.GetByCodeAsync(producCategoryCode, ct);
-        if (productCategory is null)
-        {
-            return BadRequest("ProductCategoryCode not found.");
-        }
-
-        if (!productCategory.IsActive)
-        {
-            return BadRequest("ProductCategoryCode is inactive.");
-        }
+        var validation = await _createValidator.ValidateAsync(req, ct);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
 
         var product = new Product(
-            productCode,
-            janCode,
-            productName,
+            req.ProductCode.Trim(),
+            req.JanCode.Trim(),
+            req.ProductName.Trim(),
             req.Price,
             req.Cost,
-            producCategoryCode);
+            req.ProductCategoryCode.Trim());
 
         await _productRepo.AddAsync(product, ct);
         await _productRepo.SaveChangesAsync(ct);
@@ -81,9 +61,7 @@ public sealed class ProductsController : ControllerBase
     {
         var product = await _productRepo.GetByIdAsync(id, ct);
         if (product is null)
-        {
             return NotFound();
-        }
 
         return Ok(Map(product));
     }

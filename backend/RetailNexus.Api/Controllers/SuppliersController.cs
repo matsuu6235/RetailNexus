@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Application.Interfaces;
@@ -13,10 +14,17 @@ namespace RetailNexus.Api.Controllers;
 public sealed class SuppliersController : ControllerBase
 {
     private readonly ISupplierRepository _repo;
+    private readonly IValidator<CreateSupplierRequest> _createValidator;
+    private readonly IValidator<UpdateSupplierRequest> _updateValidator;
 
-    public SuppliersController(ISupplierRepository repo)
+    public SuppliersController(
+        ISupplierRepository repo,
+        IValidator<CreateSupplierRequest> createValidator,
+        IValidator<UpdateSupplierRequest> updateValidator)
     {
         _repo = repo;
+        _createValidator = createValidator;
+        _updateValidator = updateValidator;
     }
 
     public sealed record CreateSupplierRequest(
@@ -25,7 +33,7 @@ public sealed class SuppliersController : ControllerBase
         string? PhoneNumber,
         string? Email,
         bool IsActive = true);
-    
+
     public sealed record UpdateSupplierRequest(
         string SupplierCode,
         string SupplierName,
@@ -93,62 +101,38 @@ public sealed class SuppliersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateSupplierRequest req, CancellationToken ct)
     {
-        var code = req.SupplierCode.Trim();
-        var name = req.SupplierName.Trim();
-
-        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(name))
-        {
-            return BadRequest("SupplierCode and SupplierName are required.");
-        }
-
-        var existing = await _repo.GetBySupplierCodeAsync(code, ct);
-        if (existing is not null)
-        {
-            return Conflict("SupplierCode already exists.");
-        }
-
         if (!TryGetCurrentUserId(out var actorUserId))
-        {
             return Unauthorized();
-        }
 
-        var supplier = new Supplier(code, name, req.PhoneNumber, req.Email, req.IsActive, actorUserId);
+        var validation = await _createValidator.ValidateAsync(req, ct);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
+
+        var supplier = new Supplier(req.SupplierCode.Trim(), req.SupplierName.Trim(), req.PhoneNumber, req.Email, req.IsActive, actorUserId);
 
         await _repo.AddAsync(supplier, ct);
         await _repo.SaveChangesAsync(ct);
 
         return CreatedAtAction(nameof(GetById), new { id = supplier.SupplierId }, Map(supplier));
     }
-    
+
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateSupplierRequest req, CancellationToken ct)
     {
+        if (!TryGetCurrentUserId(out var actorUserId))
+            return Unauthorized();
+
+        var ctx = new ValidationContext<UpdateSupplierRequest>(req);
+        ctx.RootContextData["EntityId"] = id;
+        var validation = await _updateValidator.ValidateAsync(ctx, ct);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
+
         var supplier = await _repo.GetByIdAsync(id, ct);
         if (supplier is null)
-        {
             return NotFound();
-        }
 
-        var code = req.SupplierCode.Trim();
-        var name = req.SupplierName.Trim();
-
-        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(name))
-        {
-            return BadRequest("SupplierCode and SupplierName are required.");
-        }
-
-        var duplicate = await _repo.GetBySupplierCodeAsync(code, ct);
-        if (duplicate is not null && duplicate.SupplierId != id)
-        {
-            return Conflict("SupplierCode already exists.");
-        }
-
-        if (!TryGetCurrentUserId(out var actorUserId))
-        {
-            return Unauthorized();
-        }
-
-        supplier.Update(code, name, req.PhoneNumber, req.Email, req.IsActive, actorUserId);
+        supplier.Update(req.SupplierCode.Trim(), req.SupplierName.Trim(), req.PhoneNumber, req.Email, req.IsActive, actorUserId);
         await _repo.SaveChangesAsync(ct);
 
         return Ok(Map(supplier));

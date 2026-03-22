@@ -12,7 +12,15 @@ function getAccessToken(): string | null {
 async function handleJsonResponse<T>(path: string, res: Response, method: string): Promise<T> {
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`${method} ${path} failed: ${res.status} ${res.statusText} ${text}`);
+    try {
+      const json = JSON.parse(text);
+      const source = json.errors ?? json;
+      const messages = (Object.values(source) as unknown[]).flat().filter(Boolean) as string[];
+      if (messages.length > 0) throw new Error(messages.join("\n"));
+    } catch (e) {
+      if (e instanceof Error && e.message !== text) throw e;
+    }
+    throw new Error(text || `エラーが発生しました。(${res.status})`);
   }
   if (res.status === 204) {
     // No Content

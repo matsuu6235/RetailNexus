@@ -1,5 +1,6 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Application.Interfaces;
@@ -13,10 +14,20 @@ namespace RetailNexus.Controllers;
 public sealed class AreasController : ControllerBase
 {
     private readonly IAreaRepository _repo;
+    private readonly IValidator<CreateAreaRequest> _createValidator;
+    private readonly IValidator<UpdateAreaRequest> _updateValidator;
+    private readonly IValidator<ReorderAreasRequest> _reorderValidator;
 
-    public AreasController(IAreaRepository repo)
+    public AreasController(
+        IAreaRepository repo,
+        IValidator<CreateAreaRequest> createValidator,
+        IValidator<UpdateAreaRequest> updateValidator,
+        IValidator<ReorderAreasRequest> reorderValidator)
     {
         _repo = repo;
+        _createValidator = createValidator;
+        _updateValidator = updateValidator;
+        _reorderValidator = reorderValidator;
     }
 
     public sealed record CreateAreaRequest(string AreaCd, string AreaName, bool IsActive = true);
@@ -65,16 +76,12 @@ public sealed class AreasController : ControllerBase
         if (!TryGetCurrentUserId(out var userId))
             return Unauthorized();
 
+        var validation = await _createValidator.ValidateAsync(req, ct);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
+
         var code = req.AreaCd.Trim();
         var name = req.AreaName.Trim();
-
-        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(name))
-            return BadRequest("AreaCd and AreaName are required.");
-
-        var duplicate = await _repo.GetByCodeAsync(code, ct);
-        if (duplicate is not null)
-            return Conflict("AreaCd already exists.");
-
         var nextDisplayOrder = await _repo.GetNextDisplayOrderAsync(ct);
         var entity = new Area(code, name, nextDisplayOrder, req.IsActive, userId);
 
@@ -90,21 +97,17 @@ public sealed class AreasController : ControllerBase
         if (!TryGetCurrentUserId(out var userId))
             return Unauthorized();
 
+        var ctx = new ValidationContext<UpdateAreaRequest>(req);
+        ctx.RootContextData["EntityId"] = id;
+        var validation = await _updateValidator.ValidateAsync(ctx, ct);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
+
         var entity = await _repo.GetByIdAsync(id, ct);
         if (entity is null)
             return NotFound();
 
-        var code = req.AreaCd.Trim();
-        var name = req.AreaName.Trim();
-
-        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(name))
-            return BadRequest("AreaCd and AreaName are required.");
-
-        var duplicate = await _repo.GetByCodeAsync(code, ct);
-        if (duplicate is not null && duplicate.AreaId != id)
-            return Conflict("AreaCd already exists.");
-
-        entity.Update(code, name, req.IsActive, userId);
+        entity.Update(req.AreaCd.Trim(), req.AreaName.Trim(), req.IsActive, userId);
         await _repo.SaveChangesAsync(ct);
 
         return Ok(Map(entity));
@@ -116,16 +119,12 @@ public sealed class AreasController : ControllerBase
         if (!TryGetCurrentUserId(out var userId))
             return Unauthorized();
 
-        if (req.AreaIds is null || req.AreaIds.Count == 0)
-            return BadRequest("AreaIds is required.");
+        var validation = await _reorderValidator.ValidateAsync(req, ct);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
 
         var distinctIds = req.AreaIds.Distinct().ToArray();
-        if (distinctIds.Length != req.AreaIds.Count)
-            return BadRequest("AreaIds contains duplicates.");
-
         var entities = await _repo.GetByIdsAsync(distinctIds, ct);
-        if (entities.Count != distinctIds.Length)
-            return BadRequest("Some areas were not found.");
 
         var orderMap = req.AreaIds
             .Select((id, index) => new { id, displayOrder = index + 1 })

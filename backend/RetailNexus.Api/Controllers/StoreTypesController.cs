@@ -1,5 +1,6 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Application.Interfaces;
@@ -11,10 +12,20 @@ using RetailNexus.Domain.Entities;
 public sealed class StoreTypesController : ControllerBase
 {
     private readonly IStoreTypeRepository _repo;
+    private readonly IValidator<CreateStoreTypeRequest> _createValidator;
+    private readonly IValidator<UpdateStoreTypeRequest> _updateValidator;
+    private readonly IValidator<ReorderStoreTypesRequest> _reorderValidator;
 
-    public StoreTypesController(IStoreTypeRepository repo)
+    public StoreTypesController(
+        IStoreTypeRepository repo,
+        IValidator<CreateStoreTypeRequest> createValidator,
+        IValidator<UpdateStoreTypeRequest> updateValidator,
+        IValidator<ReorderStoreTypesRequest> reorderValidator)
     {
         _repo = repo;
+        _createValidator = createValidator;
+        _updateValidator = updateValidator;
+        _reorderValidator = reorderValidator;
     }
 
     public sealed record CreateStoreTypeRequest(string StoreTypeCd, string StoreTypeName, bool IsActive = true);
@@ -56,19 +67,12 @@ public sealed class StoreTypesController : ControllerBase
         if (!TryGetCurrentUserId(out var userId))
             return Unauthorized();
 
+        var validation = await _createValidator.ValidateAsync(req, ct);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
+
         var code = req.StoreTypeCd.Trim();
         var name = req.StoreTypeName.Trim();
-
-        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(name))
-            return BadRequest("StoreTypeCd and StoreTypeName are required.");
-        
-        if (code.Length > 2)
-            return BadRequest("StoreTypeCd must be 2 characters or less.");
-
-        var duplicate = await _repo.GetByCodeAsync(code, ct);
-        if (duplicate is not null)
-            return Conflict("StoreTypeCd already exists.");
-
         var nextDisplayOrder = await _repo.GetNextDisplayOrderAsync(ct);
         var entity = new StoreType(code, name, nextDisplayOrder, req.IsActive, userId);
 
@@ -84,24 +88,17 @@ public sealed class StoreTypesController : ControllerBase
         if (!TryGetCurrentUserId(out var userId))
             return Unauthorized();
 
+        var ctx = new ValidationContext<UpdateStoreTypeRequest>(req);
+        ctx.RootContextData["EntityId"] = id;
+        var validation = await _updateValidator.ValidateAsync(ctx, ct);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
+
         var entity = await _repo.GetByIdAsync(id, ct);
         if (entity is null)
             return NotFound();
 
-        var code = req.StoreTypeCd.Trim();
-        var name = req.StoreTypeName.Trim();
-
-        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(name))
-            return BadRequest("StoreTypeCd and StoreTypeName are required.");
-        
-        if (code.Length > 2)
-            return BadRequest("StoreTypeCd must be 2 characters or less.");
-
-        var duplicate = await _repo.GetByCodeAsync(code, ct);
-        if (duplicate is not null && duplicate.StoreTypeId != id)
-            return Conflict("StoreTypeCd already exists.");
-
-        entity.Update(code, name, req.IsActive, userId);
+        entity.Update(req.StoreTypeCd.Trim(), req.StoreTypeName.Trim(), req.IsActive, userId);
         await _repo.SaveChangesAsync(ct);
 
         return Ok(Map(entity));
@@ -113,16 +110,12 @@ public sealed class StoreTypesController : ControllerBase
         if (!TryGetCurrentUserId(out var userId))
             return Unauthorized();
 
-        if (req.StoreTypeIds is null || req.StoreTypeIds.Count == 0)
-            return BadRequest("StoreTypeIds is required.");
+        var validation = await _reorderValidator.ValidateAsync(req, ct);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
 
         var distinctIds = req.StoreTypeIds.Distinct().ToArray();
-        if (distinctIds.Length != req.StoreTypeIds.Count)
-            return BadRequest("StoreTypeIds contains duplicates.");
-
         var entities = await _repo.GetByIdsAsync(distinctIds, ct);
-        if (entities.Count != distinctIds.Length)
-            return BadRequest("Some store types were not found.");
 
         var orderMap = req.StoreTypeIds
             .Select((id, index) => new { id, displayOrder = index + 1 })
