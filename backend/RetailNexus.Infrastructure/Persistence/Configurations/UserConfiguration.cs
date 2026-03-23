@@ -21,9 +21,6 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(50)
             .IsRequired();
 
-        b.HasIndex(x => x.LoginId)
-            .IsUnique();
-
         b.Property(x => x.UserName)
             .HasColumnName("user_name")
             .HasMaxLength(100)
@@ -32,9 +29,6 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         b.Property(x => x.Email)
             .HasColumnName("email")
             .HasMaxLength(255);
-
-        b.HasIndex(x => x.Email)
-            .IsUnique();
 
         b.Property(x => x.PasswordHash)
             .HasColumnName("password_hash")
@@ -45,8 +39,6 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .HasColumnName("is_active")
             .HasDefaultValue(true)
             .IsRequired();
-
-        b.HasIndex(x => x.IsActive);
 
         b.Property(x => x.LastLoginAt)
             .HasColumnName("last_login_at");

@@ -20,14 +20,11 @@ public sealed class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
             .HasColumnName("supplier_code")
             .HasMaxLength(30)
             .IsRequired();
-        b.HasIndex(x => x.SupplierCode)
-            .IsUnique();
 
         b.Property(x => x.SupplierName)
             .HasColumnName("supplier_name")
             .HasMaxLength(100)
             .IsRequired();
-        b.HasIndex(x => x.SupplierName);
 
         b.Property(x => x.PhoneNumber)
             .HasColumnName("phone_number")
@@ -41,7 +38,6 @@ public sealed class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
             .HasColumnName("is_active")
             .HasDefaultValue(true)
             .IsRequired();
-        b.HasIndex(x => x.IsActive);
 
         b.Property(x => x.CreatedAt)
             .HasColumnName("created_at")

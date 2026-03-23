@@ -20,7 +20,6 @@ public sealed class StoreTypeConfiguration : IEntityTypeConfiguration<StoreType>
             .HasColumnName("store_type_cd")
             .HasMaxLength(2)
             .IsRequired();
-        b.HasIndex(x => x.StoreTypeCd).IsUnique();
 
         b.Property(x => x.StoreTypeName)
             .HasColumnName("store_type_name")
@@ -35,7 +34,6 @@ public sealed class StoreTypeConfiguration : IEntityTypeConfiguration<StoreType>
             .HasColumnName("is_active")
             .HasDefaultValue(true)
             .IsRequired();
-        b.HasIndex(x => x.IsActive);
 
         b.Property(x => x.UpdatedAt)
             .HasColumnName("updated_at")

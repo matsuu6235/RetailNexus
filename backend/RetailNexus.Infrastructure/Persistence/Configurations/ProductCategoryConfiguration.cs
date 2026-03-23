@@ -20,7 +20,6 @@ public sealed class ProductCategoryConfiguration : IEntityTypeConfiguration<Prod
             .HasColumnName("product_category_cd")
             .HasMaxLength(30)
             .IsRequired();
-        b.HasIndex(x => x.ProductCategoryCd).IsUnique();
 
         b.Property(x => x.ProductCategoryName)
             .HasColumnName("product_category_name")

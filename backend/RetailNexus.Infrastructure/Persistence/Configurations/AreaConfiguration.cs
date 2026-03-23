@@ -20,7 +20,6 @@ public sealed class AreaConfiguration : IEntityTypeConfiguration<Area>
             .HasColumnName("area_cd")
             .HasMaxLength(2)
             .IsRequired();
-        b.HasIndex(x => x.AreaCd).IsUnique();
 
         b.Property(x => x.AreaName)
             .HasColumnName("area_name")
@@ -35,7 +34,6 @@ public sealed class AreaConfiguration : IEntityTypeConfiguration<Area>
             .HasColumnName("is_active")
             .HasDefaultValue(true)
             .IsRequired();
-        b.HasIndex(x => x.IsActive);
 
         b.Property(x => x.UpdatedAt)
             .HasColumnName("updated_at")

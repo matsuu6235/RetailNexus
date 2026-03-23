@@ -74,11 +74,6 @@ namespace RetailNexus.Infrastructure.Migrations
 
                     b.HasKey("AreaId");
 
-                    b.HasIndex("AreaCd")
-                        .IsUnique();
-
-                    b.HasIndex("IsActive");
-
                     b.ToTable("areas", (string)null);
                 });
 
@@ -144,9 +139,6 @@ namespace RetailNexus.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductCode")
-                        .IsUnique();
-
                     b.ToTable("products", (string)null);
                 });
 
@@ -201,9 +193,6 @@ namespace RetailNexus.Infrastructure.Migrations
                         .HasColumnName("updated_by");
 
                     b.HasKey("ProductCategoryId");
-
-                    b.HasIndex("ProductCategoryCd")
-                        .IsUnique();
 
                     b.ToTable("product_categories", (string)null);
                 });
@@ -264,15 +253,6 @@ namespace RetailNexus.Infrastructure.Migrations
 
                     b.HasKey("StoreId");
 
-                    b.HasIndex("AreaId");
-
-                    b.HasIndex("IsActive");
-
-                    b.HasIndex("StoreCd")
-                        .IsUnique();
-
-                    b.HasIndex("StoreTypeId");
-
                     b.ToTable("stores", (string)null);
                 });
 
@@ -327,11 +307,6 @@ namespace RetailNexus.Infrastructure.Migrations
                         .HasColumnName("updated_by");
 
                     b.HasKey("StoreTypeId");
-
-                    b.HasIndex("IsActive");
-
-                    b.HasIndex("StoreTypeCd")
-                        .IsUnique();
 
                     b.ToTable("store_types", (string)null);
                 });
@@ -393,13 +368,6 @@ namespace RetailNexus.Infrastructure.Migrations
                         .HasColumnName("updated_by");
 
                     b.HasKey("SupplierId");
-
-                    b.HasIndex("IsActive");
-
-                    b.HasIndex("SupplierCode")
-                        .IsUnique();
-
-                    b.HasIndex("SupplierName");
 
                     b.ToTable("suppliers", (string)null);
                 });
@@ -466,14 +434,6 @@ namespace RetailNexus.Infrastructure.Migrations
                         .HasColumnName("user_name");
 
                     b.HasKey("UserId");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.HasIndex("IsActive");
-
-                    b.HasIndex("LoginId")
-                        .IsUnique();
 
                     b.ToTable("users", (string)null);
                 });
