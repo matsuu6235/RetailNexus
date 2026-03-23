@@ -20,6 +20,9 @@ public sealed class ProductRepository : IProductRepository
     public Task<Product?> GetByProductCodeAsync(string productCode, CancellationToken ct)
         => _db.Products.FirstOrDefaultAsync(x => x.ProductCode == productCode, ct);
 
+    public Task<Product?> GetByProductCodeExcludingAsync(string productCode, Guid excludeId, CancellationToken ct)
+        => _db.Products.FirstOrDefaultAsync(x => x.ProductCode == productCode && x.Id != excludeId, ct);
+
     public async Task<IReadOnlyList<Product>> ListAsync(
         string? productCode,
         string? janCode,

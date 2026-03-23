@@ -1,4 +1,4 @@
-﻿import { apiGet, apiPost } from "./client";
+﻿import { apiGet, apiPost, apiPut } from "./client";
 import type { Product } from "../../types/products";
 
 export type ProductListResponse = {
@@ -15,6 +15,16 @@ export type CreateProductRequest = {
   price: number;
   cost: number;
   productCategoryCode: string;
+};
+
+export type UpdateProductRequest = {
+  productCode: string;
+  janCode: string;
+  productName: string;
+  price: number;
+  cost: number;
+  productCategoryCode: string;
+  isActive: boolean;
 };
 
 export type ProductSearchParams = {
@@ -61,6 +71,14 @@ export async function getProducts(
   return apiGet<ProductListResponse>(`/api/products?${params.toString()}`);
 }
 
+export async function getProductById(id: string): Promise<Product> {
+  return apiGet<Product>(`/api/products/${id}`);
+}
+
 export async function createProduct(body: CreateProductRequest): Promise<Product> {
   return apiPost<CreateProductRequest, Product>("/api/products", body);
+}
+
+export async function updateProduct(id: string, body: UpdateProductRequest): Promise<Product> {
+  return apiPut<UpdateProductRequest, Product>(`/api/products/${id}`, body);
 }

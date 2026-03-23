@@ -13,9 +13,10 @@ type ProductTableProps = {
   total: number;
   page: number;
   pageSize: number;
+  onEdit: (id: string) => void;
 };
 
-export function ProductTable({ products, total, page, pageSize }: ProductTableProps) {
+export function ProductTable({ products, total, page, pageSize, onEdit }: ProductTableProps) {
   const hasData = products.length > 0;
   const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, total);
@@ -30,7 +31,7 @@ export function ProductTable({ products, total, page, pageSize }: ProductTablePr
         <table className={styles.table}>
           <thead className={styles.thead}>
             <tr>
-              {["SKU", "JAN", "商品名", "カテゴリ", "売価", "原価", "状態"].map((h) => (
+              {["SKU", "JAN", "商品名", "カテゴリ", "売価", "原価", "状態", ""].map((h) => (
                 <th key={h} className={styles.th}>
                   {h}
                 </th>
@@ -58,6 +59,15 @@ export function ProductTable({ products, total, page, pageSize }: ProductTablePr
                       <span className={statusDotClass} />
                       {p.isActive ? "有効" : "無効"}
                     </span>
+                  </td>
+                  <td className={styles.td}>
+                    <button
+                      type="button"
+                      onClick={() => onEdit(p.id)}
+                      className={styles.editButton}
+                    >
+                      編集
+                    </button>
                   </td>
                 </tr>
               );

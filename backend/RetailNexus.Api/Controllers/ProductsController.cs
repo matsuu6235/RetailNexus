@@ -13,16 +13,20 @@ public sealed class ProductsController : ControllerBase
 {
     private readonly IProductRepository _productRepo;
     private readonly IValidator<CreateProductRequest> _createValidator;
+    private readonly IValidator<UpdateProductRequest> _updateValidator;
 
     public ProductsController(
         IProductRepository productRepo,
-        IValidator<CreateProductRequest> createValidator)
+        IValidator<CreateProductRequest> createValidator,
+        IValidator<UpdateProductRequest> updateValidator)
     {
         _productRepo = productRepo;
         _createValidator = createValidator;
+        _updateValidator = updateValidator;
     }
 
     public sealed record CreateProductRequest(string ProductCode, string JanCode, string ProductName, decimal Price, decimal Cost, string ProductCategoryCode);
+    public sealed record UpdateProductRequest(string ProductCode, string JanCode, string ProductName, decimal Price, decimal Cost, string ProductCategoryCode, bool IsActive);
     public sealed record ProductResponse(
         Guid Id,
         string ProductCode,
@@ -54,6 +58,33 @@ public sealed class ProductsController : ControllerBase
         await _productRepo.SaveChangesAsync(ct);
 
         return CreatedAtAction(nameof(GetById), new { id = product.Id }, Map(product));
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductRequest req, CancellationToken ct)
+    {
+        var product = await _productRepo.GetByIdAsync(id, ct);
+        if (product is null)
+            return NotFound();
+
+        var validationContext = new FluentValidation.ValidationContext<UpdateProductRequest>(req);
+        validationContext.RootContextData["productId"] = id;
+        var validation = await _updateValidator.ValidateAsync(validationContext, ct);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
+
+        product.Update(
+            req.ProductCode.Trim(),
+            req.JanCode.Trim(),
+            req.ProductName.Trim(),
+            req.Price,
+            req.Cost,
+            req.ProductCategoryCode.Trim(),
+            req.IsActive);
+
+        await _productRepo.SaveChangesAsync(ct);
+
+        return Ok(Map(product));
     }
 
     [HttpGet("{id:guid}")]

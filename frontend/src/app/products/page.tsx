@@ -194,6 +194,7 @@ export default function ProductsPage() {
             total={total}
             page={page}
             pageSize={PAGE_SIZE}
+            onEdit={(id) => router.push(`/products/edit?id=${id}`)}
           />
 
           <div className={styles.pager}>

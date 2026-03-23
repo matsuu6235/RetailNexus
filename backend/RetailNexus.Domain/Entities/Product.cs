@@ -23,4 +23,16 @@ public class Product
         Cost = cost;
         ProductCategoryCode = productCategoryCode;
     }
+
+    public void Update(string productCode, string janCode, string productName, decimal price, decimal cost, string productCategoryCode, bool isActive)
+    {
+        ProductCode = productCode;
+        JanCode = janCode;
+        ProductName = productName;
+        Price = price;
+        Cost = cost;
+        ProductCategoryCode = productCategoryCode;
+        IsActive = isActive;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
 }

@@ -7,7 +7,10 @@ type ProductFormFields = {
   productCategoryCode: string;
 };
 
+type UpdateProductFormFields = ProductFormFields & { isActive: boolean };
+
 export type ProductFieldErrors = Partial<Record<keyof ProductFormFields, string>>;
+export type UpdateProductFieldErrors = Partial<Record<keyof UpdateProductFormFields, string>>;
 
 export function validateProduct(form: ProductFormFields): ProductFieldErrors {
   const errors: ProductFieldErrors = {};
@@ -45,4 +48,8 @@ export function validateProduct(form: ProductFormFields): ProductFieldErrors {
   }
 
   return errors;
+}
+
+export function validateUpdateProduct(form: UpdateProductFormFields): UpdateProductFieldErrors {
+  return validateProduct(form);
 }
