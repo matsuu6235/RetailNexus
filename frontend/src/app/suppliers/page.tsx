@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getSuppliers } from "../lib/api/suppliers";
-import type { Supplier } from "../types/suppliers";
+import { getSuppliers } from "@/lib/api/suppliers";
+import type { Supplier } from "@/types/suppliers";
 import styles from "./page.module.css";
-import tableStyles from "../components/table/MasterTable.module.css";
-import { formatPhoneNumber } from "../lib/utils/phoneNumber";
+import tableStyles from "@/components/table/MasterTable.module.css";
+import { formatPhoneNumber } from "@/lib/utils/phoneNumber";
 
 const PAGE_SIZE = 20;
 

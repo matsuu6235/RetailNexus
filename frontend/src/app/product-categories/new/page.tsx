@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import {
   createProductCategory,
   type CreateProductCategoryRequest,
-} from "../../lib/api/productCategories";
-import { validateProductCategory, type ProductCategoryFieldErrors } from "../../lib/validators/productCategoryValidator";
+} from "@/lib/api/productCategories";
+import { validateProductCategory, type ProductCategoryFieldErrors } from "@/lib/validators/productCategoryValidator";
 import styles from "./page.module.css";
 
 export default function NewProductCategoryPage() {

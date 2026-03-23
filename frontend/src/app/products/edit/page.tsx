@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getProductById, updateProduct, type UpdateProductRequest } from "../../lib/api/products";
-import { getAllProductCategories } from "../../lib/api/productCategories";
-import type { ProductCategory } from "../../types/productCategories";
-import { validateUpdateProduct, type UpdateProductFieldErrors } from "../../lib/validators/productValidator";
+import { getProductById, updateProduct, type UpdateProductRequest } from "@/lib/api/products";
+import { getAllProductCategories } from "@/lib/api/productCategories";
+import type { ProductCategory } from "@/types/productCategories";
+import { validateUpdateProduct, type UpdateProductFieldErrors } from "@/lib/validators/productValidator";
 import styles from "./page.module.css";
 
 export default function EditProductPage() {

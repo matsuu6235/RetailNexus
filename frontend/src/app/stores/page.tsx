@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getStores } from "../lib/api/stores";
-import { getAllAreas } from "../lib/api/areas";
-import { getStoreTypes } from "../lib/api/storeTypes";
-import type { Store } from "../types/stores";
-import type { Area } from "../types/areas";
-import type { StoreType } from "../types/storeTypes";
+import { getStores } from "@/lib/api/stores";
+import { getAllAreas } from "@/lib/api/areas";
+import { getStoreTypes } from "@/lib/api/storeTypes";
+import type { Store } from "@/types/stores";
+import type { Area } from "@/types/areas";
+import type { StoreType } from "@/types/storeTypes";
 import styles from "./page.module.css";
-import tableStyles from "../components/table/MasterTable.module.css";
+import tableStyles from "@/components/table/MasterTable.module.css";
 
 const PAGE_SIZE = 20;
 

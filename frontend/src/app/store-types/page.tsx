@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getStoreTypes, reorderStoreTypes } from "../lib/api/storeTypes";
-import type { StoreType } from "../types/storeTypes";
+import { getStoreTypes, reorderStoreTypes } from "@/lib/api/storeTypes";
+import type { StoreType } from "@/types/storeTypes";
 import styles from "./page.module.css";
-import tableStyles from "../components/table/MasterTable.module.css";
+import tableStyles from "@/components/table/MasterTable.module.css";
 
 function moveItem(items: StoreType[], fromId: string, toId: string): StoreType[] {
   const fromIndex = items.findIndex((item) => item.storeTypeId === fromId);

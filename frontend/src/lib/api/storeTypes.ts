@@ -1,5 +1,5 @@
 import { apiGet, apiPost, apiPut } from "./client";
-import type { StoreType } from "../../types/storeTypes";
+import type { StoreType } from "@/types/storeTypes";
 
 export type CreateStoreTypeRequest = {
   storeTypeCd: string;

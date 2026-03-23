@@ -1,5 +1,5 @@
 ﻿import { apiGet, apiPost, apiPut } from "./client";
-import type { Product } from "../../types/products";
+import type { Product } from "@/types/products";
 
 export type ProductListResponse = {
   total: number;

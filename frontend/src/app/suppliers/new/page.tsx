@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createSupplier, type CreateSupplierRequest } from "../../lib/api/suppliers";
-import { validateSupplier, type SupplierFieldErrors } from "../../lib/validators/supplierValidator";
+import { createSupplier, type CreateSupplierRequest } from "@/lib/api/suppliers";
+import { validateSupplier, type SupplierFieldErrors } from "@/lib/validators/supplierValidator";
 import styles from "./page.module.css";
 
 export default function NewSupplierPage() {

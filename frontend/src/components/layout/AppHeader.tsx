@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./AppHeader.module.css";
-import { getLoggedInUserName, logout } from "../../services/authService";
+import { getLoggedInUserName, logout } from "@/services/authService";
 
 export default function AppHeader() {
 const router = useRouter();

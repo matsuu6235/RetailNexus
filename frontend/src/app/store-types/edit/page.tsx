@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getStoreTypeById, updateStoreType, type UpdateStoreTypeRequest } from "../../lib/api/storeTypes";
-import { validateStoreType, type StoreTypeFieldErrors } from "../../lib/validators/storeTypeValidator";
+import { getStoreTypeById, updateStoreType, type UpdateStoreTypeRequest } from "@/lib/api/storeTypes";
+import { validateStoreType, type StoreTypeFieldErrors } from "@/lib/validators/storeTypeValidator";
 import styles from "./page.module.css";
 
 export default function EditStoreTypePage() {

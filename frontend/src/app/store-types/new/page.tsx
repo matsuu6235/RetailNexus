@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createStoreType, type CreateStoreTypeRequest } from "../../lib/api/storeTypes";
-import { validateStoreType, type StoreTypeFieldErrors } from "../../lib/validators/storeTypeValidator";
+import { createStoreType, type CreateStoreTypeRequest } from "@/lib/api/storeTypes";
+import { validateStoreType, type StoreTypeFieldErrors } from "@/lib/validators/storeTypeValidator";
 import styles from "./page.module.css";
 
 export default function NewStoreTypePage() {

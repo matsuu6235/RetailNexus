@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import {
     getAllProductCategories,
     reorderProductCategories,
-} from "../lib/api/productCategories";
-import type { ProductCategory } from "../types/productCategories";
+} from "@/lib/api/productCategories";
+import type { ProductCategory } from "@/types/productCategories";
 import styles from "./page.module.css";
-import tableStyles from "../components/table/MasterTable.module.css";
+import tableStyles from "@/components/table/MasterTable.module.css";
 
 function moveItem(items: ProductCategory[], fromId: string, toId: string): ProductCategory[] {
     const fromIndex = items.findIndex((item) => item.productCategoryId === fromId);

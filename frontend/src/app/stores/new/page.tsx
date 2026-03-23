@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createStore, type CreateStoreRequest } from "../../lib/api/stores";
-import { getAllAreas } from "../../lib/api/areas";
-import { getStoreTypes } from "../../lib/api/storeTypes";
-import type { Area } from "../../types/areas";
-import type { StoreType } from "../../types/storeTypes";
-import { validateStore, type StoreFieldErrors } from "../../lib/validators/storeValidator";
+import { createStore, type CreateStoreRequest } from "@/lib/api/stores";
+import { getAllAreas } from "@/lib/api/areas";
+import { getStoreTypes } from "@/lib/api/storeTypes";
+import type { Area } from "@/types/areas";
+import type { StoreType } from "@/types/storeTypes";
+import { validateStore, type StoreFieldErrors } from "@/lib/validators/storeValidator";
 import styles from "./page.module.css";
 
 export default function NewStorePage() {

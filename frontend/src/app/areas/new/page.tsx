@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createArea, type CreateAreaRequest } from "../../lib/api/areas";
-import { validateArea, type AreaFieldErrors } from "../../lib/validators/areaValidator";
+import { createArea, type CreateAreaRequest } from "@/lib/api/areas";
+import { validateArea, type AreaFieldErrors } from "@/lib/validators/areaValidator";
 import styles from "./page.module.css";
 
 export default function NewAreaPage() {

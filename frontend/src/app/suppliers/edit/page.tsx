@@ -6,8 +6,8 @@ import {
     getSupplierById,
     updateSupplier,
     type UpdateSupplierRequest,
-} from "../../lib/api/suppliers";
-import { validateSupplier, type SupplierFieldErrors } from "../../lib/validators/supplierValidator";
+} from "@/lib/api/suppliers";
+import { validateSupplier, type SupplierFieldErrors } from "@/lib/validators/supplierValidator";
 import styles from "./page.module.css";
 
 export default function EditSupplierPage() {

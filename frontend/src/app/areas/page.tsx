@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAllAreas, reorderAreas } from "../lib/api/areas";
-import type { Area } from "../types/areas";
+import { getAllAreas, reorderAreas } from "@/lib/api/areas";
+import type { Area } from "@/types/areas";
 import styles from "./page.module.css";
-import tableStyles from "../components/table/MasterTable.module.css";
+import tableStyles from "@/components/table/MasterTable.module.css";
 
 function moveItem(items: Area[], fromId: string, toId: string): Area[] {
   const fromIndex = items.findIndex((item) => item.areaId === fromId);

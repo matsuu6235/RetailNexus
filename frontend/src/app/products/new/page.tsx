@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createProduct, type CreateProductRequest } from "../../lib/api/products";
-import { getAllProductCategories } from "../../lib/api/productCategories";
-import type { ProductCategory } from "../../types/productCategories";
-import { validateProduct, type ProductFieldErrors } from "../../lib/validators/productValidator";
+import { createProduct, type CreateProductRequest } from "@/lib/api/products";
+import { getAllProductCategories } from "@/lib/api/productCategories";
+import type { ProductCategory } from "@/types/productCategories";
+import { validateProduct, type ProductFieldErrors } from "@/lib/validators/productValidator";
 import styles from "./page.module.css";
 
 export default function NewProductPage() {

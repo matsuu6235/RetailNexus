@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getAreaById, updateArea, type UpdateAreaRequest } from "../../lib/api/areas";
-import { validateArea, type AreaFieldErrors } from "../../lib/validators/areaValidator";
+import { getAreaById, updateArea, type UpdateAreaRequest } from "@/lib/api/areas";
+import { validateArea, type AreaFieldErrors } from "@/lib/validators/areaValidator";
 import styles from "./page.module.css";
 
 export default function EditAreaPage() {

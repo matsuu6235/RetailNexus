@@ -1,5 +1,5 @@
 import { apiGet, apiPost, apiPut } from "./client";
-import type { Area } from "../../types/areas";
+import type { Area } from "@/types/areas";
 
 const MAX_PAGE_SIZE = 200;
 

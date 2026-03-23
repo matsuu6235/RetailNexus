@@ -1,5 +1,5 @@
 import { apiGet, apiPost, apiPut } from "./client";
-import type { ProductCategory } from "../../types/productCategories";
+import type { ProductCategory } from "@/types/productCategories";
 
 const MAX_PAGE_SIZE = 200;
 
