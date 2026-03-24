@@ -18,8 +18,10 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         b.Property(x => x.ProductCode)
             .HasColumnName("product_code")
-            .HasMaxLength(50)
+            .HasMaxLength(20)
             .IsRequired();
+
+        b.HasIndex(x => x.ProductCode).IsUnique();
 
         b.Property(x => x.JanCode)
             .HasColumnName("jan_code")

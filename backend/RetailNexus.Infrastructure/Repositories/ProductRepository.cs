@@ -52,6 +52,16 @@ public sealed class ProductRepository : IProductRepository
             .CountAsync(ct);
     }
 
+    public async Task<string?> GetMaxProductCodeByPrefixAsync(string prefix, CancellationToken ct)
+    {
+        var pattern = prefix + "-";
+        return await _db.Products
+            .Where(x => x.ProductCode.StartsWith(pattern))
+            .OrderByDescending(x => x.ProductCode)
+            .Select(x => x.ProductCode)
+            .FirstOrDefaultAsync(ct);
+    }
+
     public async Task AddAsync(Product product, CancellationToken ct)
         => await _db.Products.AddAsync(product, ct);
 

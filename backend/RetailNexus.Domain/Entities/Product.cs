@@ -14,6 +14,10 @@ public class Product
     public DateTimeOffset UpdatedAt { get; private set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset CreatedAt { get; private set; } = DateTimeOffset.UtcNow;
     
+    private Product()
+    {
+    }
+
     public Product(string productCode, string janCode, string productName, decimal price, decimal cost, string productCategoryCode)
     {
         ProductCode = productCode;
@@ -24,9 +28,8 @@ public class Product
         ProductCategoryCode = productCategoryCode;
     }
 
-    public void Update(string productCode, string janCode, string productName, decimal price, decimal cost, string productCategoryCode, bool isActive)
+    public void Update(string janCode, string productName, decimal price, decimal cost, string productCategoryCode, bool isActive)
     {
-        ProductCode = productCode;
         JanCode = janCode;
         ProductName = productName;
         Price = price;

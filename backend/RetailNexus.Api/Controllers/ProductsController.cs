@@ -12,21 +12,24 @@ namespace RetailNexus.Api.Controllers;
 public sealed class ProductsController : ControllerBase
 {
     private readonly IProductRepository _productRepo;
+    private readonly IProductCategoryRepository _categoryRepo;
     private readonly IValidator<CreateProductRequest> _createValidator;
     private readonly IValidator<UpdateProductRequest> _updateValidator;
 
     public ProductsController(
         IProductRepository productRepo,
+        IProductCategoryRepository categoryRepo,
         IValidator<CreateProductRequest> createValidator,
         IValidator<UpdateProductRequest> updateValidator)
     {
         _productRepo = productRepo;
+        _categoryRepo = categoryRepo;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
     }
 
-    public sealed record CreateProductRequest(string ProductCode, string JanCode, string ProductName, decimal Price, decimal Cost, string ProductCategoryCode);
-    public sealed record UpdateProductRequest(string ProductCode, string JanCode, string ProductName, decimal Price, decimal Cost, string ProductCategoryCode, bool IsActive);
+    public sealed record CreateProductRequest(string JanCode, string ProductName, decimal Price, decimal Cost, string ProductCategoryCode);
+    public sealed record UpdateProductRequest(string JanCode, string ProductName, decimal Price, decimal Cost, string ProductCategoryCode, bool IsActive);
     public sealed record ProductResponse(
         Guid Id,
         string ProductCode,
@@ -46,13 +49,28 @@ public sealed class ProductsController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
+        var categoryCode = req.ProductCategoryCode.Trim();
+        var category = await _categoryRepo.GetByCodeAsync(categoryCode, ct);
+        if (category is null)
+            return BadRequest(new { ProductCategoryCode = new[] { "指定された商品カテゴリが存在しません。" } });
+
+        var abbreviation = category.CategoryAbbreviation;
+        var maxCode = await _productRepo.GetMaxProductCodeByPrefixAsync(abbreviation, ct);
+        var nextSeq = 1;
+        if (maxCode is not null)
+        {
+            var numericPart = maxCode[(abbreviation.Length + 1)..];
+            nextSeq = int.Parse(numericPart) + 1;
+        }
+        var productCode = $"{abbreviation}-{nextSeq:D6}";
+
         var product = new Product(
-            req.ProductCode.Trim(),
+            productCode,
             req.JanCode.Trim(),
             req.ProductName.Trim(),
             req.Price,
             req.Cost,
-            req.ProductCategoryCode.Trim());
+            categoryCode);
 
         await _productRepo.AddAsync(product, ct);
         await _productRepo.SaveChangesAsync(ct);
@@ -74,7 +92,6 @@ public sealed class ProductsController : ControllerBase
             return BadRequest(validation.ToDictionary());
 
         product.Update(
-            req.ProductCode.Trim(),
             req.JanCode.Trim(),
             req.ProductName.Trim(),
             req.Price,

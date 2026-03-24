@@ -9,7 +9,6 @@ export type ProductListResponse = {
 };
 
 export type CreateProductRequest = {
-  productCode: string;
   janCode: string;
   productName: string;
   price: number;
@@ -18,7 +17,6 @@ export type CreateProductRequest = {
 };
 
 export type UpdateProductRequest = {
-  productCode: string;
   janCode: string;
   productName: string;
   price: number;

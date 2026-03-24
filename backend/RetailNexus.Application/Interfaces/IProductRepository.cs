@@ -26,6 +26,7 @@ public interface IProductRepository
         bool? isActive,
         CancellationToken ct);
 
+    Task<string?> GetMaxProductCodeByPrefixAsync(string prefix, CancellationToken ct);
     Task AddAsync(Product product, CancellationToken ct);
     Task SaveChangesAsync(CancellationToken ct);
 }

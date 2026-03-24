@@ -9,16 +9,6 @@ public sealed class CreateProductRequestValidator : AbstractValidator<ProductsCo
 {
     public CreateProductRequestValidator(IProductRepository productRepo, IProductCategoryRepository categoryRepo)
     {
-        RuleFor(x => x.ProductCode)
-            .Cascade(CascadeMode.Stop)
-            .NotEmpty().WithMessage("商品コードは必須です。")
-            .MaximumLength(50).WithMessage("商品コードは50文字以内で入力してください。")
-            .MustAsync(async (code, ct) =>
-            {
-                var existing = await productRepo.GetByProductCodeAsync(code.Trim(), ct);
-                return existing is null;
-            }).WithMessage("この商品コードは既に使用されています。");
-
         RuleFor(x => x.JanCode)
             .Cascade(CascadeMode.Stop)
             .Must(x => System.Text.RegularExpressions.Regex.IsMatch(x, @"^\d+$"))
@@ -52,17 +42,6 @@ public sealed class UpdateProductRequestValidator : AbstractValidator<ProductsCo
 {
     public UpdateProductRequestValidator(IProductRepository productRepo, IProductCategoryRepository categoryRepo)
     {
-        RuleFor(x => x.ProductCode)
-            .Cascade(CascadeMode.Stop)
-            .NotEmpty().WithMessage("商品コードは必須です。")
-            .MaximumLength(50).WithMessage("商品コードは50文字以内で入力してください。")
-            .MustAsync(async (request, code, context, ct) =>
-            {
-                var productId = (Guid)context.RootContextData["productId"];
-                var existing = await productRepo.GetByProductCodeExcludingAsync(code.Trim(), productId, ct);
-                return existing is null;
-            }).WithMessage("この商品コードは既に使用されています。");
-
         RuleFor(x => x.JanCode)
             .Cascade(CascadeMode.Stop)
             .Must(x => System.Text.RegularExpressions.Regex.IsMatch(x, @"^\d+$"))

@@ -1,5 +1,4 @@
 type ProductFormFields = {
-  productCode: string;
   janCode: string;
   productName: string;
   price: number;
@@ -14,12 +13,6 @@ export type UpdateProductFieldErrors = Partial<Record<keyof UpdateProductFormFie
 
 export function validateProduct(form: ProductFormFields): ProductFieldErrors {
   const errors: ProductFieldErrors = {};
-
-  if (!form.productCode.trim()) {
-    errors.productCode = "商品コードは必須です。";
-  } else if (form.productCode.trim().length > 50) {
-    errors.productCode = "商品コードは50文字以内で入力してください。";
-  }
 
   if (form.janCode) {
     if (!/^\d+$/.test(form.janCode.trim())) {

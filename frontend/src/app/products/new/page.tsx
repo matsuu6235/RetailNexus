@@ -14,7 +14,6 @@ export default function NewProductPage() {
   const [loadingCategories, setLoadingCategories] = useState(true);
 
   const [form, setForm] = useState<CreateProductRequest>({
-    productCode: "",
     janCode: "",
     productName: "",
     price: 0,
@@ -34,12 +33,7 @@ export default function NewProductPage() {
 
         if (!cancelled) {
           setCategories(items);
-          if (items.length > 0) {
-            setForm((prev) => ({
-              ...prev,
-              productCategoryCode: prev.productCategoryCode || items[0].productCategoryCd,
-            }));
-          }
+          // カテゴリのデフォルト値は「選択してください」のまま
         }
       } catch (e) {
         if (!cancelled) {
@@ -79,7 +73,6 @@ export default function NewProductPage() {
     try {
       setSubmitting(true);
       await createProduct({
-        productCode: form.productCode.trim(),
         janCode: form.janCode.trim(),
         productName: form.productName.trim(),
         price: form.price,
@@ -99,16 +92,10 @@ export default function NewProductPage() {
       <h1 className={styles.title}>商品新規作成</h1>
 
       <form onSubmit={onSubmit} className={styles.form}>
-        <label className={styles.field}>
-          <span>SKU *</span>
-          <input
-            value={form.productCode}
-            onChange={(e) => handleChange("productCode", e.target.value)}
-            className={styles.input}
-          />
-          <small className={styles.hint}>50文字以内で入力してください。</small>
-          {fieldErrors.productCode && <small className={styles.errorText}>{fieldErrors.productCode}</small>}
-        </label>
+        <div className={styles.field}>
+          <span>商品コード</span>
+          <small className={styles.hint}>登録時にカテゴリに基づいて自動採番されます。</small>
+        </div>
 
         <label className={styles.field}>
           <span>JAN</span>
@@ -117,7 +104,7 @@ export default function NewProductPage() {
             onChange={(e) => handleChange("janCode", e.target.value)}
             className={styles.input}
           />
-          <small className={styles.hint}>13文字以内で入力してください。</small>
+          <small className={styles.hint}>13桁の数字で入力してください。</small>
           {fieldErrors.janCode && <small className={styles.errorText}>{fieldErrors.janCode}</small>}
         </label>
 
@@ -128,6 +115,7 @@ export default function NewProductPage() {
             onChange={(e) => handleChange("productName", e.target.value)}
             className={styles.input}
           />
+          <small className={styles.hint}>200文字以内で入力してください。</small>
           {fieldErrors.productName && <small className={styles.errorText}>{fieldErrors.productName}</small>}
         </label>
 
@@ -137,6 +125,7 @@ export default function NewProductPage() {
             type="number"
             min={0}
             value={form.price}
+            onFocus={(e) => e.target.select()}
             onChange={(e) => handleChange("price", e.target.value)}
             className={styles.input}
           />
@@ -149,6 +138,7 @@ export default function NewProductPage() {
             type="number"
             min={0}
             value={form.cost}
+            onFocus={(e) => e.target.select()}
             onChange={(e) => handleChange("cost", e.target.value)}
             className={styles.input}
           />
@@ -163,7 +153,7 @@ export default function NewProductPage() {
             disabled={loadingCategories}
             className={styles.select}
           >
-            {categories.length === 0 && <option value="">カテゴリなし</option>}
+            <option value="">選択してください</option>
             {categories.map((c) => (
               <option key={c.productCategoryId} value={c.productCategoryCd}>
                 {c.productCategoryName} ({c.productCategoryCd})

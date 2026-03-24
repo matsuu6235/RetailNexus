@@ -14,8 +14,8 @@ export default function EditProductPage() {
   const productId = searchParams.get("id") ?? "";
 
   const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const [productCode, setProductCode] = useState("");
   const [form, setForm] = useState<UpdateProductRequest>({
-    productCode: "",
     janCode: "",
     productName: "",
     price: 0,
@@ -49,8 +49,8 @@ export default function EditProductPage() {
         ]);
 
         if (!cancelled) {
+          setProductCode(product.productCode);
           setForm({
-            productCode: product.productCode,
             janCode: product.janCode,
             productName: product.productName,
             price: product.price,
@@ -100,7 +100,6 @@ export default function EditProductPage() {
     try {
       setSubmitting(true);
       await updateProduct(productId, {
-        productCode: form.productCode.trim(),
         janCode: form.janCode.trim(),
         productName: form.productName.trim(),
         price: form.price,
@@ -126,16 +125,16 @@ export default function EditProductPage() {
       <p className={styles.description}>商品情報を更新します。</p>
 
       <form onSubmit={onSubmit} className={styles.form}>
-        <label className={styles.field}>
-          <span>SKU *</span>
+        <div className={styles.field}>
+          <span>商品コード</span>
           <input
-            value={form.productCode}
-            onChange={(e) => handleChange("productCode", e.target.value)}
+            value={productCode}
+            readOnly
             className={styles.input}
+            style={{ backgroundColor: "#f5f5f5" }}
           />
-          <small className={styles.hint}>50文字以内で入力してください。</small>
-          {fieldErrors.productCode && <small className={styles.errorText}>{fieldErrors.productCode}</small>}
-        </label>
+          <small className={styles.hint}>商品コードは変更できません。</small>
+        </div>
 
         <label className={styles.field}>
           <span>JAN</span>
@@ -155,6 +154,7 @@ export default function EditProductPage() {
             onChange={(e) => handleChange("productName", e.target.value)}
             className={styles.input}
           />
+          <small className={styles.hint}>200文字以内で入力してください。</small>
           {fieldErrors.productName && <small className={styles.errorText}>{fieldErrors.productName}</small>}
         </label>
 
@@ -164,6 +164,7 @@ export default function EditProductPage() {
             type="number"
             min={0}
             value={form.price}
+            onFocus={(e) => e.target.select()}
             onChange={(e) => handleChange("price", e.target.value)}
             className={styles.input}
           />
@@ -176,6 +177,7 @@ export default function EditProductPage() {
             type="number"
             min={0}
             value={form.cost}
+            onFocus={(e) => e.target.select()}
             onChange={(e) => handleChange("cost", e.target.value)}
             className={styles.input}
           />
@@ -189,7 +191,7 @@ export default function EditProductPage() {
             onChange={(e) => handleChange("productCategoryCode", e.target.value)}
             className={styles.select}
           >
-            {categories.length === 0 && <option value="">カテゴリなし</option>}
+            <option value="">選択してください</option>
             {categories.map((c) => (
               <option key={c.productCategoryId} value={c.productCategoryCd}>
                 {c.productCategoryName} ({c.productCategoryCd})
