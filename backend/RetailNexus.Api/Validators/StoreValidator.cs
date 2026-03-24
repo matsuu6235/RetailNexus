@@ -11,19 +11,9 @@ public sealed class CreateStoreRequestValidator : AbstractValidator<StoresContro
         IAreaRepository areaRepo,
         IStoreTypeRepository storeTypeRepo)
     {
-        RuleFor(x => x.StoreCd)
-            .Cascade(CascadeMode.Stop)
-            .NotEmpty().WithMessage("店舗コードは必須です。")
-            .MaximumLength(6).WithMessage("店舗コードは6文字以内で入力してください。")
-            .MustAsync(async (code, ct) =>
-            {
-                var existing = await storeRepo.GetByCodeAsync(code.Trim(), ct);
-                return existing is null;
-            }).WithMessage("この店舗コードは既に使用されています。");
-
         RuleFor(x => x.StoreName)
             .NotEmpty().WithMessage("店舗名は必須です。")
-            .MaximumLength(100).WithMessage("店舗名は100文字以内で入力してください。");
+            .MaximumLength(50).WithMessage("店舗名は50文字以内で入力してください。");
 
         RuleFor(x => x.AreaId)
             .Cascade(CascadeMode.Stop)
@@ -52,20 +42,9 @@ public sealed class UpdateStoreRequestValidator : AbstractValidator<StoresContro
         IAreaRepository areaRepo,
         IStoreTypeRepository storeTypeRepo)
     {
-        RuleFor(x => x.StoreCd)
-            .Cascade(CascadeMode.Stop)
-            .NotEmpty().WithMessage("店舗コードは必須です。")
-            .MaximumLength(6).WithMessage("店舗コードは6文字以内で入力してください。")
-            .MustAsync(async (request, code, context, ct) =>
-            {
-                var entityId = (Guid)context.RootContextData["EntityId"];
-                var existing = await storeRepo.GetByCodeAsync(code.Trim(), ct);
-                return existing is null || existing.StoreId == entityId;
-            }).WithMessage("この店舗コードは既に使用されています。");
-
         RuleFor(x => x.StoreName)
             .NotEmpty().WithMessage("店舗名は必須です。")
-            .MaximumLength(100).WithMessage("店舗名は100文字以内で入力してください。");
+            .MaximumLength(50).WithMessage("店舗名は50文字以内で入力してください。");
 
         RuleFor(x => x.AreaId)
             .Cascade(CascadeMode.Stop)

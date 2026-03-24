@@ -17,8 +17,8 @@ export default function EditStorePage() {
 
   const [areas, setAreas] = useState<Area[]>([]);
   const [storeTypes, setStoreTypes] = useState<StoreType[]>([]);
+  const [storeCd, setStoreCd] = useState("");
   const [form, setForm] = useState<UpdateStoreRequest>({
-    storeCd: "",
     storeName: "",
     areaId: "",
     storeTypeId: "",
@@ -53,8 +53,8 @@ export default function EditStorePage() {
         if (!cancelled) {
           setAreas(areaItems);
           setStoreTypes(typeItems);
+          setStoreCd(store.storeCd);
           setForm({
-            storeCd: store.storeCd,
             storeName: store.storeName,
             areaId: store.areaId,
             storeTypeId: store.storeTypeId,
@@ -101,7 +101,6 @@ export default function EditStorePage() {
     try {
       setSubmitting(true);
       await updateStore(storeId, {
-        storeCd: form.storeCd.trim(),
         storeName: form.storeName.trim(),
         areaId: form.areaId,
         storeTypeId: form.storeTypeId,
@@ -123,17 +122,16 @@ export default function EditStorePage() {
       <p className={styles.description}>店舗情報を更新します。</p>
 
       <form onSubmit={onSubmit} className={styles.form}>
-        <label className={styles.field}>
-          <span>店舗コード *</span>
-          <input value={form.storeCd} onChange={(e) => handleChange("storeCd", e.target.value)} className={styles.input} />
-          <small className={styles.hint}>6文字以内で入力してください。</small>
-          {fieldErrors.storeCd && <small className={styles.errorText}>{fieldErrors.storeCd}</small>}
-        </label>
+        <div className={styles.field}>
+          <span>店舗コード</span>
+          <input value={storeCd} readOnly className={styles.input} style={{ backgroundColor: "#f5f5f5" }} />
+          <small className={styles.hint}>店舗コードは変更できません。</small>
+        </div>
 
         <label className={styles.field}>
           <span>店舗名 *</span>
           <input value={form.storeName} onChange={(e) => handleChange("storeName", e.target.value)} className={styles.input} />
-          <small className={styles.hint}>100文字以内で入力してください。</small>
+          <small className={styles.hint}>50文字以内で入力してください。</small>
           {fieldErrors.storeName && <small className={styles.errorText}>{fieldErrors.storeName}</small>}
         </label>
 

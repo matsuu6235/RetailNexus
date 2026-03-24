@@ -17,7 +17,6 @@ export default function NewStorePage() {
   const [loadingMasters, setLoadingMasters] = useState(true);
 
   const [form, setForm] = useState<CreateStoreRequest>({
-    storeCd: "",
     storeName: "",
     areaId: "",
     storeTypeId: "",
@@ -38,11 +37,7 @@ export default function NewStorePage() {
         if (!cancelled) {
           setAreas(areaItems);
           setStoreTypes(typeItems);
-          setForm((prev) => ({
-            ...prev,
-            areaId: prev.areaId || areaItems[0]?.areaId || "",
-            storeTypeId: prev.storeTypeId || typeItems[0]?.storeTypeId || "",
-          }));
+          // デフォルト値は「選択してください」のまま
         }
       } catch (e) {
         if (!cancelled) {
@@ -79,7 +74,6 @@ export default function NewStorePage() {
     try {
       setSubmitting(true);
       await createStore({
-        storeCd: form.storeCd.trim(),
         storeName: form.storeName.trim(),
         areaId: form.areaId,
         storeTypeId: form.storeTypeId,
@@ -99,17 +93,15 @@ export default function NewStorePage() {
       <p className={styles.description}>店舗コード、店舗名、所属エリア、店舗種別を入力してください。</p>
 
       <form onSubmit={onSubmit} className={styles.form}>
-        <label className={styles.field}>
-          <span>店舗コード *</span>
-          <input value={form.storeCd} onChange={(e) => handleChange("storeCd", e.target.value)} className={styles.input} />
-          <small className={styles.hint}>6文字以内で入力してください。</small>
-          {fieldErrors.storeCd && <small className={styles.errorText}>{fieldErrors.storeCd}</small>}
-        </label>
+        <div className={styles.field}>
+          <span>店舗コード</span>
+          <small className={styles.hint}>登録時に自動採番されます。</small>
+        </div>
 
         <label className={styles.field}>
           <span>店舗名 *</span>
           <input value={form.storeName} onChange={(e) => handleChange("storeName", e.target.value)} className={styles.input} />
-          <small className={styles.hint}>100文字以内で入力してください。</small>
+          <small className={styles.hint}>50文字以内で入力してください。</small>
           {fieldErrors.storeName && <small className={styles.errorText}>{fieldErrors.storeName}</small>}
         </label>
 

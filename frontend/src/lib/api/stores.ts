@@ -9,7 +9,6 @@ export type StoreListResponse = {
 };
 
 export type CreateStoreRequest = {
-  storeCd: string;
   storeName: string;
   areaId: string;
   storeTypeId: string;

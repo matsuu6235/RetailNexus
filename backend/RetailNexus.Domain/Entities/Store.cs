@@ -29,9 +29,8 @@ public class Store
         UpdatedBy = actorUserId;
     }
 
-    public void Update(string storeCd, string storeName, Guid areaId, Guid storeTypeId, bool isActive, Guid actorUserId)
+    public void Update(string storeName, Guid areaId, Guid storeTypeId, bool isActive, Guid actorUserId)
     {
-        StoreCd = storeCd.Trim();
         StoreName = storeName.Trim();
         AreaId = areaId;
         StoreTypeId = storeTypeId;

@@ -27,8 +27,8 @@ public sealed class StoresController : ControllerBase
         _updateValidator = updateValidator;
     }
 
-    public sealed record CreateStoreRequest(string StoreCd, string StoreName, Guid AreaId, Guid StoreTypeId, bool IsActive = true);
-    public sealed record UpdateStoreRequest(string StoreCd, string StoreName, Guid AreaId, Guid StoreTypeId, bool IsActive = true);
+    public sealed record CreateStoreRequest(string StoreName, Guid AreaId, Guid StoreTypeId, bool IsActive = true);
+    public sealed record UpdateStoreRequest(string StoreName, Guid AreaId, Guid StoreTypeId, bool IsActive = true);
     public sealed record StoreResponse(
         Guid StoreId,
         string StoreCd,
@@ -83,7 +83,15 @@ public sealed class StoresController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var entity = new Store(req.StoreCd.Trim(), req.StoreName.Trim(), req.AreaId, req.StoreTypeId, req.IsActive, userId);
+        var maxCode = await _storeRepo.GetMaxStoreCodeAsync(ct);
+        var nextSeq = 1;
+        if (maxCode is not null)
+        {
+            nextSeq = int.Parse(maxCode) + 1;
+        }
+        var storeCd = $"{nextSeq:D6}";
+
+        var entity = new Store(storeCd, req.StoreName.Trim(), req.AreaId, req.StoreTypeId, req.IsActive, userId);
 
         await _storeRepo.AddAsync(entity, ct);
         await _storeRepo.SaveChangesAsync(ct);
@@ -108,7 +116,7 @@ public sealed class StoresController : ControllerBase
         if (entity is null)
             return NotFound();
 
-        entity.Update(req.StoreCd.Trim(), req.StoreName.Trim(), req.AreaId, req.StoreTypeId, req.IsActive, userId);
+        entity.Update(req.StoreName.Trim(), req.AreaId, req.StoreTypeId, req.IsActive, userId);
         await _storeRepo.SaveChangesAsync(ct);
 
         var updated = await _storeRepo.GetByIdAsync(entity.StoreId, ct);

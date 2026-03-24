@@ -35,6 +35,14 @@ public sealed class StoreRepository : IStoreRepository
             .ToListAsync(ct);
     }
 
+    public async Task<string?> GetMaxStoreCodeAsync(CancellationToken ct)
+    {
+        return await _db.Stores
+            .OrderByDescending(x => x.StoreCd)
+            .Select(x => x.StoreCd)
+            .FirstOrDefaultAsync(ct);
+    }
+
     public Task AddAsync(Store entity, CancellationToken ct)
         => _db.Stores.AddAsync(entity, ct).AsTask();
 
