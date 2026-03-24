@@ -15,8 +15,8 @@ export default function EditSupplierPage() {
     const searchParams = useSearchParams();
     const supplierId = searchParams.get("id") ?? "";
 
+    const [supplierCode, setSupplierCode] = useState("");
     const [form, setForm] = useState<UpdateSupplierRequest>({
-        supplierCode: "",
         supplierName: "",
         phoneNumber: "",
         email: "",
@@ -47,8 +47,8 @@ export default function EditSupplierPage() {
                 const supplier = await getSupplierById(supplierId);
 
                 if (!cancelled) {
+                    setSupplierCode(supplier.supplierCode);
                     setForm({
-                        supplierCode: supplier.supplierCode,
                         supplierName: supplier.supplierName,
                         phoneNumber: supplier.phoneNumber ?? "",
                         email: supplier.email ?? "",
@@ -97,7 +97,6 @@ export default function EditSupplierPage() {
         try {
             setSubmitting(true);
             await updateSupplier(supplierId, {
-                supplierCode: form.supplierCode.trim(),
                 supplierName: form.supplierName.trim(),
                 phoneNumber: form.phoneNumber?.trim() || "",
                 email: form.email?.trim() || "",
@@ -121,16 +120,16 @@ export default function EditSupplierPage() {
             <p className={styles.description}>仕入先情報を更新します。</p>
 
             <form onSubmit={onSubmit} className={styles.form}>
-                <label className={styles.field}>
-                    <span>仕入先コード *</span>
+                <div className={styles.field}>
+                    <span>仕入先コード</span>
                     <input
-                        value={form.supplierCode}
-                        onChange={(e) => handleChange("supplierCode", e.target.value)}
+                        value={supplierCode}
+                        readOnly
                         className={styles.input}
+                        style={{ backgroundColor: "#f5f5f5" }}
                     />
-                    <small className={styles.hint}>30文字以内で入力してください。</small>
-                    {fieldErrors.supplierCode && <small className={styles.errorText}>{fieldErrors.supplierCode}</small>}
-                </label>
+                    <small className={styles.hint}>仕入先コードは変更できません。</small>
+                </div>
 
                 <label className={styles.field}>
                     <span>仕入先名 *</span>
@@ -139,7 +138,7 @@ export default function EditSupplierPage() {
                         onChange={(e) => handleChange("supplierName", e.target.value)}
                         className={styles.input}
                     />
-                    <small className={styles.hint}>100文字以内で入力してください。</small>
+                    <small className={styles.hint}>50文字以内で入力してください。</small>
                     {fieldErrors.supplierName && <small className={styles.errorText}>{fieldErrors.supplierName}</small>}
                 </label>
 
@@ -150,7 +149,6 @@ export default function EditSupplierPage() {
                         onChange={(e) => handleChange("phoneNumber", e.target.value)}
                         className={styles.input}
                     />
-                    <small className={styles.hint}>20文字以内で入力してください。</small>
                     {fieldErrors.phoneNumber && <small className={styles.errorText}>{fieldErrors.phoneNumber}</small>}
                 </label>
 
@@ -162,7 +160,6 @@ export default function EditSupplierPage() {
                         onChange={(e) => handleChange("email", e.target.value)}
                         className={styles.input}
                     />
-                    <small className={styles.hint}>255文字以内で入力してください。</small>
                     {fieldErrors.email && <small className={styles.errorText}>{fieldErrors.email}</small>}
                 </label>
 

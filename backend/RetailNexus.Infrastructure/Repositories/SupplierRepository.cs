@@ -51,6 +51,14 @@ public sealed class SupplierRepository : ISupplierRepository
         return await q.CountAsync(ct);
     }
 
+    public async Task<string?> GetMaxSupplierCodeAsync(CancellationToken ct)
+    {
+        return await _db.Suppliers
+            .OrderByDescending(x => x.SupplierCode)
+            .Select(x => x.SupplierCode)
+            .FirstOrDefaultAsync(ct);
+    }
+
     public async Task AddAsync(Supplier supplier, CancellationToken ct)
         => await _db.Suppliers.AddAsync(supplier, ct);
 

@@ -9,7 +9,6 @@ import styles from "./page.module.css";
 export default function NewSupplierPage() {
     const router = useRouter();
     const [form, setForm] = useState<CreateSupplierRequest>({
-        supplierCode: "",
         supplierName: "",
         phoneNumber: "",
         email: "",
@@ -41,7 +40,6 @@ export default function NewSupplierPage() {
         try {
             setSubmitting(true);
             await createSupplier({
-                supplierCode: form.supplierCode.trim(),
                 supplierName: form.supplierName.trim(),
                 phoneNumber: form.phoneNumber?.trim() ?? "",
                 email: form.email?.trim() ?? "",
@@ -61,16 +59,10 @@ export default function NewSupplierPage() {
             <p className={styles.description}>仕入先コードと仕入先名は必須です。</p>
 
             <form onSubmit={onSubmit} className={styles.form}>
-                <label className={styles.field}>
-                    <span>仕入先コード *</span>
-                    <input
-                        value={form.supplierCode}
-                        onChange={(e) => handleChange("supplierCode", e.target.value)}
-                        className={styles.input}
-                    />
-                    <small className={styles.hint}>30文字以内で入力してください。</small>
-                    {fieldErrors.supplierCode && <small className={styles.errorText}>{fieldErrors.supplierCode}</small>}
-                </label>
+                <div className={styles.field}>
+                    <span>仕入先コード</span>
+                    <small className={styles.hint}>登録時に自動採番されます。</small>
+                </div>
 
                 <label className={styles.field}>
                     <span>仕入先名 *</span>
@@ -79,7 +71,7 @@ export default function NewSupplierPage() {
                         onChange={(e) => handleChange("supplierName", e.target.value)}
                         className={styles.input}
                     />
-                    <small className={styles.hint}>100文字以内で入力してください。</small>
+                    <small className={styles.hint}>50文字以内で入力してください。</small>
                     {fieldErrors.supplierName && <small className={styles.errorText}>{fieldErrors.supplierName}</small>}
                 </label>
 
@@ -90,7 +82,6 @@ export default function NewSupplierPage() {
                         onChange={(e) => handleChange("phoneNumber", e.target.value)}
                         className={styles.input}
                     />
-                    <small className={styles.hint}>20文字以内で入力してください。</small>
                     {fieldErrors.phoneNumber && <small className={styles.errorText}>{fieldErrors.phoneNumber}</small>}
                 </label>
 
@@ -102,7 +93,6 @@ export default function NewSupplierPage() {
                         onChange={(e) => handleChange("email", e.target.value)}
                         className={styles.input}
                     />
-                    <small className={styles.hint}>255文字以内で入力してください。</small>
                     {fieldErrors.email && <small className={styles.errorText}>{fieldErrors.email}</small>}
                 </label>
 

@@ -18,12 +18,14 @@ public sealed class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
 
         b.Property(x => x.SupplierCode)
             .HasColumnName("supplier_code")
-            .HasMaxLength(30)
+            .HasMaxLength(6)
             .IsRequired();
+
+        b.HasIndex(x => x.SupplierCode).IsUnique();
 
         b.Property(x => x.SupplierName)
             .HasColumnName("supplier_name")
-            .HasMaxLength(100)
+            .HasMaxLength(50)
             .IsRequired();
 
         b.Property(x => x.PhoneNumber)

@@ -25,29 +25,28 @@ public class Supplier
         bool isActive,
         Guid actorUserId)
     {
-        SetBasic(supplierCode, supplierName, phoneNumber, email);
+        SupplierCode = supplierCode.Trim();
+        SetBasic(supplierName, phoneNumber, email);
         IsActive = isActive;
         CreatedBy = actorUserId;
         UpdatedBy = actorUserId;
     }
 
     public void Update(
-        string supplierCode,
         string supplierName,
         string? phoneNumber,
         string? email,
         bool isActive,
         Guid actorUserId)
     {
-        SetBasic(supplierCode, supplierName, phoneNumber, email);
+        SetBasic(supplierName, phoneNumber, email);
         IsActive = isActive;
         UpdatedBy = actorUserId;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
-    private void SetBasic(string supplierCode, string supplierName, string? phoneNumber, string? email)
+    private void SetBasic(string supplierName, string? phoneNumber, string? email)
     {
-        SupplierCode = supplierCode.Trim();
         SupplierName = supplierName.Trim();
         PhoneNumber = NormalizeOptional(phoneNumber);
         Email = NormalizeOptional(email);

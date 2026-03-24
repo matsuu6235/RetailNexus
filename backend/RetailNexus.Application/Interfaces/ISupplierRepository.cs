@@ -22,6 +22,7 @@ public interface ISupplierRepository
         string? email,
         bool? isActive,
         CancellationToken ct);
+    Task<string?> GetMaxSupplierCodeAsync(CancellationToken ct);
     Task AddAsync(Supplier supplier, CancellationToken ct);
     Task SaveChangesAsync(CancellationToken ct);
 }

@@ -1,7 +1,6 @@
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 type SupplierFormFields = {
-  supplierCode: string;
   supplierName: string;
   phoneNumber?: string;
   email?: string;
@@ -12,16 +11,10 @@ export type SupplierFieldErrors = Partial<Record<keyof SupplierFormFields, strin
 export function validateSupplier(form: SupplierFormFields): SupplierFieldErrors {
   const errors: SupplierFieldErrors = {};
 
-  if (!form.supplierCode.trim()) {
-    errors.supplierCode = "仕入先コードは必須です。";
-  } else if (form.supplierCode.trim().length > 30) {
-    errors.supplierCode = "仕入先コードは30文字以内で入力してください。";
-  }
-
   if (!form.supplierName.trim()) {
     errors.supplierName = "仕入先名は必須です。";
-  } else if (form.supplierName.trim().length > 100) {
-    errors.supplierName = "仕入先名は100文字以内で入力してください。";
+  } else if (form.supplierName.trim().length > 50) {
+    errors.supplierName = "仕入先名は50文字以内で入力してください。";
   }
 
   if (form.phoneNumber) {

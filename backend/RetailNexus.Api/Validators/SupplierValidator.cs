@@ -8,19 +8,9 @@ public sealed class CreateSupplierRequestValidator : AbstractValidator<Suppliers
 {
     public CreateSupplierRequestValidator(ISupplierRepository repo)
     {
-        RuleFor(x => x.SupplierCode)
-            .Cascade(CascadeMode.Stop)
-            .NotEmpty().WithMessage("仕入先コードは必須です。")
-            .MaximumLength(30).WithMessage("仕入先コードは30文字以内で入力してください。")
-            .MustAsync(async (code, ct) =>
-            {
-                var existing = await repo.GetBySupplierCodeAsync(code.Trim(), ct);
-                return existing is null;
-            }).WithMessage("この仕入先コードは既に使用されています。");
-
         RuleFor(x => x.SupplierName)
             .NotEmpty().WithMessage("仕入先名は必須です。")
-            .MaximumLength(100).WithMessage("仕入先名は100文字以内で入力してください。");
+            .MaximumLength(50).WithMessage("仕入先名は50文字以内で入力してください。");
 
         RuleFor(x => x.PhoneNumber)
             .MaximumLength(20).WithMessage("電話番号は20文字以内で入力してください。")
@@ -38,20 +28,9 @@ public sealed class UpdateSupplierRequestValidator : AbstractValidator<Suppliers
 {
     public UpdateSupplierRequestValidator(ISupplierRepository repo)
     {
-        RuleFor(x => x.SupplierCode)
-            .Cascade(CascadeMode.Stop)
-            .NotEmpty().WithMessage("仕入先コードは必須です。")
-            .MaximumLength(30).WithMessage("仕入先コードは30文字以内で入力してください。")
-            .MustAsync(async (request, code, context, ct) =>
-            {
-                var entityId = (Guid)context.RootContextData["EntityId"];
-                var existing = await repo.GetBySupplierCodeAsync(code.Trim(), ct);
-                return existing is null || existing.SupplierId == entityId;
-            }).WithMessage("この仕入先コードは既に使用されています。");
-
         RuleFor(x => x.SupplierName)
             .NotEmpty().WithMessage("仕入先名は必須です。")
-            .MaximumLength(100).WithMessage("仕入先名は100文字以内で入力してください。");
+            .MaximumLength(50).WithMessage("仕入先名は50文字以内で入力してください。");
 
         RuleFor(x => x.PhoneNumber)
             .MaximumLength(20).WithMessage("電話番号は20文字以内で入力してください。")

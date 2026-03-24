@@ -9,7 +9,6 @@ export type SupplierListResponse = {
 };
 
 export type CreateSupplierRequest = {
-  supplierCode: string;
   supplierName: string;
   phoneNumber?: string;
   email?: string;

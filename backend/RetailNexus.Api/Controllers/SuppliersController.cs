@@ -28,14 +28,12 @@ public sealed class SuppliersController : ControllerBase
     }
 
     public sealed record CreateSupplierRequest(
-        string SupplierCode,
         string SupplierName,
         string? PhoneNumber,
         string? Email,
         bool IsActive = true);
 
     public sealed record UpdateSupplierRequest(
-        string SupplierCode,
         string SupplierName,
         string? PhoneNumber,
         string? Email,
@@ -108,7 +106,15 @@ public sealed class SuppliersController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var supplier = new Supplier(req.SupplierCode.Trim(), req.SupplierName.Trim(), req.PhoneNumber, req.Email, req.IsActive, actorUserId);
+        var maxCode = await _repo.GetMaxSupplierCodeAsync(ct);
+        var nextSeq = 1;
+        if (maxCode is not null)
+        {
+            nextSeq = int.Parse(maxCode) + 1;
+        }
+        var supplierCode = $"{nextSeq:D5}";
+
+        var supplier = new Supplier(supplierCode, req.SupplierName.Trim(), req.PhoneNumber, req.Email, req.IsActive, actorUserId);
 
         await _repo.AddAsync(supplier, ct);
         await _repo.SaveChangesAsync(ct);
@@ -132,7 +138,7 @@ public sealed class SuppliersController : ControllerBase
         if (supplier is null)
             return NotFound();
 
-        supplier.Update(req.SupplierCode.Trim(), req.SupplierName.Trim(), req.PhoneNumber, req.Email, req.IsActive, actorUserId);
+        supplier.Update(req.SupplierName.Trim(), req.PhoneNumber, req.Email, req.IsActive, actorUserId);
         await _repo.SaveChangesAsync(ct);
 
         return Ok(Map(supplier));
