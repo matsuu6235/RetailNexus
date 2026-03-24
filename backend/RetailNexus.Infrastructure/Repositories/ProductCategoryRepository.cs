@@ -20,6 +20,12 @@ public sealed class ProductCategoryRepository : IProductCategoryRepository
     public Task<ProductCategory?> GetByCodeAsync(string code, CancellationToken ct)
         => _db.ProductCategories.FirstOrDefaultAsync(x => x.ProductCategoryCd == code, ct);
 
+    public Task<ProductCategory?> GetByAbbreviationAsync(string abbreviation, CancellationToken ct)
+        => _db.ProductCategories.FirstOrDefaultAsync(x => x.CategoryAbbreviation == abbreviation, ct);
+
+    public Task<ProductCategory?> GetByAbbreviationExcludingAsync(string abbreviation, Guid excludeId, CancellationToken ct)
+        => _db.ProductCategories.FirstOrDefaultAsync(x => x.CategoryAbbreviation == abbreviation && x.ProductCategoryId != excludeId, ct);
+
     public Task<int> CountAsync(string? code, string? name, bool? isActive, CancellationToken ct)
         => BuildQuery(code, name, isActive).CountAsync(ct);
 

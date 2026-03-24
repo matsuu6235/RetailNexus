@@ -13,6 +13,7 @@ export default function NewProductCategoryPage() {
   const router = useRouter();
   const [form, setForm] = useState<CreateProductCategoryRequest>({
     productCategoryCd: "",
+    categoryAbbreviation: "",
     productCategoryName: "",
     isActive: true,
   });
@@ -48,6 +49,7 @@ export default function NewProductCategoryPage() {
       setSubmitting(true);
       await createProductCategory({
         productCategoryCd: form.productCategoryCd.trim(),
+        categoryAbbreviation: form.categoryAbbreviation.trim(),
         productCategoryName: form.productCategoryName.trim(),
         isActive: form.isActive,
       });
@@ -74,9 +76,22 @@ export default function NewProductCategoryPage() {
             onChange={(e) => handleChange("productCategoryCd", e.target.value)}
             className={styles.input}
           />
-          <small className={styles.hint}>30文字以内で入力してください。</small>
+          <small className={styles.hint}>数字3文字以内で入力してください。</small>
           {fieldErrors.productCategoryCd && (
             <small className={styles.errorText}>{fieldErrors.productCategoryCd}</small>
+          )}
+        </label>
+
+        <label className={styles.field}>
+          <span>カテゴリ略称 *</span>
+          <input
+            value={form.categoryAbbreviation}
+            onChange={(e) => handleChange("categoryAbbreviation", e.target.value)}
+            className={styles.input}
+          />
+          <small className={styles.hint}>英字2〜5文字で入力してください。例: FD → 商品コード FD-000001</small>
+          {fieldErrors.categoryAbbreviation && (
+            <small className={styles.errorText}>{fieldErrors.categoryAbbreviation}</small>
           )}
         </label>
 
@@ -87,7 +102,7 @@ export default function NewProductCategoryPage() {
             onChange={(e) => handleChange("productCategoryName", e.target.value)}
             className={styles.input}
           />
-          <small className={styles.hint}>100文字以内で入力してください。</small>
+          <small className={styles.hint}>30文字以内で入力してください。</small>
           {fieldErrors.productCategoryName && (
             <small className={styles.errorText}>{fieldErrors.productCategoryName}</small>
           )}

@@ -18,12 +18,17 @@ public sealed class ProductCategoryConfiguration : IEntityTypeConfiguration<Prod
 
         b.Property(x => x.ProductCategoryCd)
             .HasColumnName("product_category_cd")
-            .HasMaxLength(30)
+            .HasMaxLength(3)
+            .IsRequired();
+
+        b.Property(x => x.CategoryAbbreviation)
+            .HasColumnName("category_abbreviation")
+            .HasMaxLength(5)
             .IsRequired();
 
         b.Property(x => x.ProductCategoryName)
             .HasColumnName("product_category_name")
-            .HasMaxLength(100)
+            .HasMaxLength(30)
             .IsRequired();
 
         b.Property(x => x.DisplayOrder)

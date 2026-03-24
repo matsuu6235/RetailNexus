@@ -12,6 +12,7 @@ export type ProductCategoryListResponse = {
 
 export type CreateProductCategoryRequest = {
   productCategoryCd: string;
+  categoryAbbreviation: string;
   productCategoryName: string;
   isActive: boolean;
 };

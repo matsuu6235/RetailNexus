@@ -30,12 +30,13 @@ public sealed class ProductCategoriesController : ControllerBase
         _reorderValidator = reorderValidator;
     }
 
-    public sealed record CreateProductCategoryRequest(string ProductCategoryCd, string ProductCategoryName, bool IsActive = true);
-    public sealed record UpdateProductCategoryRequest(string ProductCategoryCd, string ProductCategoryName, bool IsActive = true);
+    public sealed record CreateProductCategoryRequest(string ProductCategoryCd, string CategoryAbbreviation, string ProductCategoryName, bool IsActive = true);
+    public sealed record UpdateProductCategoryRequest(string ProductCategoryCd, string CategoryAbbreviation, string ProductCategoryName, bool IsActive = true);
     public sealed record ReorderProductCategoriesRequest(IReadOnlyList<Guid> ProductCategoryIds);
     public sealed record ProductCategoryResponse(
         Guid ProductCategoryId,
         string ProductCategoryCd,
+        string CategoryAbbreviation,
         string ProductCategoryName,
         int DisplayOrder,
         bool IsActive,
@@ -81,9 +82,10 @@ public sealed class ProductCategoriesController : ControllerBase
             return BadRequest(validation.ToDictionary());
 
         var code = req.ProductCategoryCd.Trim();
+        var abbreviation = req.CategoryAbbreviation.Trim();
         var name = req.ProductCategoryName.Trim();
         var nextDisplayOrder = await _repo.GetNextDisplayOrderAsync(ct);
-        var entity = new ProductCategory(code, name, nextDisplayOrder, req.IsActive, userId);
+        var entity = new ProductCategory(code, abbreviation, name, nextDisplayOrder, req.IsActive, userId);
 
         await _repo.AddAsync(entity, ct);
         await _repo.SaveChangesAsync(ct);
@@ -107,7 +109,7 @@ public sealed class ProductCategoriesController : ControllerBase
         if (entity is null)
             return NotFound();
 
-        entity.Update(req.ProductCategoryCd.Trim(), req.ProductCategoryName.Trim(), req.IsActive, userId);
+        entity.Update(req.ProductCategoryCd.Trim(), req.CategoryAbbreviation.Trim(), req.ProductCategoryName.Trim(), req.IsActive, userId);
         await _repo.SaveChangesAsync(ct);
 
         return Ok(Map(entity));
@@ -156,6 +158,7 @@ public sealed class ProductCategoriesController : ControllerBase
         => new(
             x.ProductCategoryId,
             x.ProductCategoryCd,
+            x.CategoryAbbreviation,
             x.ProductCategoryName,
             x.DisplayOrder,
             x.IsActive,
