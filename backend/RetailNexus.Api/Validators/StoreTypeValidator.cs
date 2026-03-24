@@ -19,7 +19,7 @@ public sealed class CreateStoreTypeRequestValidator : AbstractValidator<StoreTyp
 
         RuleFor(x => x.StoreTypeName)
             .NotEmpty().WithMessage("店舗種別名は必須です。")
-            .MaximumLength(50).WithMessage("店舗種別名は50文字以内で入力してください。");
+            .MaximumLength(20).WithMessage("店舗種別名は20文字以内で入力してください。");
     }
 }
 
@@ -40,7 +40,7 @@ public sealed class UpdateStoreTypeRequestValidator : AbstractValidator<StoreTyp
 
         RuleFor(x => x.StoreTypeName)
             .NotEmpty().WithMessage("店舗種別名は必須です。")
-            .MaximumLength(50).WithMessage("店舗種別名は50文字以内で入力してください。");
+            .MaximumLength(20).WithMessage("店舗種別名は20文字以内で入力してください。");
     }
 }
 
