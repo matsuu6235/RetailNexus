@@ -23,7 +23,7 @@ public sealed class StoreTypeConfiguration : IEntityTypeConfiguration<StoreType>
 
         b.Property(x => x.StoreTypeName)
             .HasColumnName("store_type_name")
-            .HasMaxLength(50)
+            .HasMaxLength(20)
             .IsRequired();
 
         b.Property(x => x.DisplayOrder)

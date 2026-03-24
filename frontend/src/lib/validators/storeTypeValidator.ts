@@ -18,8 +18,8 @@ export function validateStoreType(form: StoreTypeFormFields): StoreTypeFieldErro
 
   if (!form.storeTypeName.trim()) {
     errors.storeTypeName = "店舗種別名は必須です。";
-  } else if (form.storeTypeName.trim().length > 50) {
-    errors.storeTypeName = "店舗種別名は50文字以内で入力してください。";
+  } else if (form.storeTypeName.trim().length > 20) {
+    errors.storeTypeName = "店舗種別名は20文字以内で入力してください。";
   }
 
   return errors;

@@ -23,7 +23,7 @@ public sealed class StoreConfiguration : IEntityTypeConfiguration<Store>
 
         b.Property(x => x.StoreName)
             .HasColumnName("store_name")
-            .HasMaxLength(100)
+            .HasMaxLength(50)
             .IsRequired();
 
         b.Property(x => x.AreaId)

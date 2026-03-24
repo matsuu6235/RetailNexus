@@ -115,7 +115,7 @@ export default function EditStoreTypePage() {
         <label className={styles.field}>
           <span>店舗種別名 *</span>
           <input value={form.storeTypeName} onChange={(e) => handleChange("storeTypeName", e.target.value)} className={styles.input} />
-          <small className={styles.hint}>50文字以内で入力してください。</small>
+          <small className={styles.hint}>20文字以内で入力してください。</small>
           {fieldErrors.storeTypeName && <small className={styles.errorText}>{fieldErrors.storeTypeName}</small>}
         </label>
 

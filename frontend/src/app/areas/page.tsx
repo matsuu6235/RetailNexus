@@ -129,12 +129,12 @@ export default function AreasPage() {
         <div className={styles.searchGrid}>
           <label className={styles.field}>
             <span className={styles.fieldLabel}>エリアコード</span>
-            <input value={codeInput} onChange={(e) => setCodeInput(e.target.value)} className={styles.input} />
+            <input value={codeInput} onChange={(e) => setCodeInput(e.target.value)} placeholder="エリアコード" className={styles.input} />
           </label>
 
           <label className={styles.field}>
             <span className={styles.fieldLabel}>エリア名</span>
-            <input value={nameInput} onChange={(e) => setNameInput(e.target.value)} className={styles.input} />
+            <input value={nameInput} onChange={(e) => setNameInput(e.target.value)} placeholder="エリア名" className={styles.input} />
           </label>
 
           <label className={styles.field}>

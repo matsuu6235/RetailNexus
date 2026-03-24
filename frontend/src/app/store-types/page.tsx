@@ -132,12 +132,12 @@ export default function StoreTypesPage() {
         <div className={styles.searchGrid}>
           <label className={styles.field}>
             <span className={styles.fieldLabel}>店舗種別コード</span>
-            <input value={codeInput} onChange={(e) => setCodeInput(e.target.value)} className={styles.input} />
+            <input value={codeInput} onChange={(e) => setCodeInput(e.target.value)} placeholder="店舗種別コード" className={styles.input} />
           </label>
 
           <label className={styles.field}>
             <span className={styles.fieldLabel}>店舗種別名</span>
-            <input value={nameInput} onChange={(e) => setNameInput(e.target.value)} className={styles.input} />
+            <input value={nameInput} onChange={(e) => setNameInput(e.target.value)} placeholder="店舗種別名" className={styles.input} />
           </label>
 
           <label className={styles.field}>

@@ -116,12 +116,12 @@ export default function StoresPage() {
         <div className={styles.searchGrid}>
           <label className={styles.field}>
             <span className={styles.fieldLabel}>店舗コード</span>
-            <input value={storeCdInput} onChange={(e) => setStoreCdInput(e.target.value)} className={styles.input} />
+            <input value={storeCdInput} onChange={(e) => setStoreCdInput(e.target.value)} placeholder="店舗コード" className={styles.input} />
           </label>
 
           <label className={styles.field}>
             <span className={styles.fieldLabel}>店舗名</span>
-            <input value={storeNameInput} onChange={(e) => setStoreNameInput(e.target.value)} className={styles.input} />
+            <input value={storeNameInput} onChange={(e) => setStoreNameInput(e.target.value)} placeholder="店舗名" className={styles.input} />
           </label>
 
           <label className={styles.field}>
