@@ -116,5 +116,20 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// 開発環境: 初期管理者ユーザーの自動作成
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<RetailNexusDbContext>();
+    var userRepo = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+    var existingAdmin = await userRepo.FindByLoginIdAsync("admin", CancellationToken.None);
+    if (existingAdmin is null)
+    {
+        var admin = new RetailNexus.Domain.Entities.User(
+            "admin", "管理者", "admin@example.com", "password123", true, null, null);
+        db.Users.Add(admin);
+        await db.SaveChangesAsync();
+    }
+}
 
 app.Run();
