@@ -1,0 +1,261 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  createProduct,
+  getProductById,
+  updateProduct,
+  type CreateProductRequest,
+  type UpdateProductRequest,
+} from "@/lib/api/products";
+import { getAllProductCategories } from "@/lib/api/productCategories";
+import type { ProductCategory } from "@/types/productCategories";
+import {
+  validateProduct,
+  validateUpdateProduct,
+  type ProductFieldErrors,
+  type UpdateProductFieldErrors,
+} from "@/lib/validators/productValidator";
+import styles from "@/components/modal/FormModal.module.css";
+
+interface ProductFormProps {
+  mode: "create" | "edit";
+  editId?: string;
+  onSave: () => void;
+  onCancel: () => void;
+}
+
+export default function ProductForm({ mode, editId, onSave, onCancel }: ProductFormProps) {
+  const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const [productCode, setProductCode] = useState("");
+  const [form, setForm] = useState<{
+    janCode: string;
+    productName: string;
+    price: number;
+    cost: number;
+    productCategoryCode: string;
+    isActive: boolean;
+  }>({ janCode: "", productName: "", price: 0, cost: 0, productCategoryCode: "", isActive: true });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<ProductFieldErrors | UpdateProductFieldErrors>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        if (mode === "create") {
+          const cats = await getAllProductCategories({ isActive: "active" });
+          if (!cancelled) {
+            setCategories(cats);
+            setLoading(false);
+          }
+        } else {
+          const [product, cats] = await Promise.all([
+            getProductById(editId!),
+            getAllProductCategories({ isActive: "active" }),
+          ]);
+          if (!cancelled) {
+            setProductCode(product.productCode);
+            setForm({
+              janCode: product.janCode ?? "",
+              productName: product.productName,
+              price: product.price,
+              cost: product.cost,
+              productCategoryCode: product.productCategoryCode,
+              isActive: product.isActive,
+            });
+            setCategories(cats);
+            setLoading(false);
+          }
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : "データの取得に失敗しました。");
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, editId]);
+
+  const handleChange = (field: string, value: string | boolean) => {
+    const numericValue = field === "price" || field === "cost" ? (value === "" ? 0 : Number(value)) : value;
+    const updatedForm = { ...form, [field]: numericValue };
+    setForm(updatedForm);
+    if (mode === "create") {
+      const errors = validateProduct(updatedForm);
+      setFieldErrors((prev) => ({ ...prev, [field]: errors[field as keyof ProductFieldErrors] }));
+    } else {
+      const errors = validateUpdateProduct(updatedForm);
+      setFieldErrors((prev) => ({ ...prev, [field]: errors[field as keyof UpdateProductFieldErrors] }));
+    }
+  };
+
+  const handleSubmit = async () => {
+    setError(null);
+
+    if (mode === "create") {
+      const errors = validateProduct(form);
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
+        return;
+      }
+    } else {
+      const errors = validateUpdateProduct(form);
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
+        return;
+      }
+    }
+
+    try {
+      setSubmitting(true);
+      if (mode === "create") {
+        await createProduct({
+          janCode: form.janCode.trim(),
+          productName: form.productName.trim(),
+          price: form.price,
+          cost: form.cost,
+          productCategoryCode: form.productCategoryCode,
+        });
+      } else {
+        await updateProduct(editId!, {
+          janCode: form.janCode.trim(),
+          productName: form.productName.trim(),
+          price: form.price,
+          cost: form.cost,
+          productCategoryCode: form.productCategoryCode,
+          isActive: form.isActive,
+        });
+      }
+      onSave();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "保存に失敗しました。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return <p>読み込み中...</p>;
+  }
+
+  return (
+    <div className={styles.form}>
+      <label className={styles.field}>
+        <span className={styles.label}>商品コード</span>
+        {mode === "create" ? (
+          <span className={styles.hint}>登録時にカテゴリに基づいて自動採番されます。</span>
+        ) : (
+          <>
+            <input
+              type="text"
+              value={productCode}
+              readOnly
+              className={styles.readOnlyInput}
+            />
+            <span className={styles.hint}>商品コードは変更できません。</span>
+          </>
+        )}
+      </label>
+
+      <label className={styles.field}>
+        <span className={styles.label}>JAN</span>
+        <input
+          type="text"
+          value={form.janCode}
+          onChange={(e) => handleChange("janCode", e.target.value)}
+          className={styles.input}
+        />
+        <span className={styles.hint}>13桁の数字で入力してください。</span>
+        {fieldErrors.janCode && <span className={styles.error}>{fieldErrors.janCode}</span>}
+      </label>
+
+      <label className={styles.field}>
+        <span className={styles.label}>商品名 *</span>
+        <input
+          type="text"
+          value={form.productName}
+          onChange={(e) => handleChange("productName", e.target.value)}
+          className={styles.input}
+        />
+        <span className={styles.hint}>200文字以内で入力してください。</span>
+        {fieldErrors.productName && <span className={styles.error}>{fieldErrors.productName}</span>}
+      </label>
+
+      <label className={styles.field}>
+        <span className={styles.label}>売価 *</span>
+        <input
+          type="number"
+          min={0}
+          value={form.price}
+          onChange={(e) => handleChange("price", e.target.value)}
+          onFocus={(e) => e.target.select()}
+          className={styles.input}
+        />
+        {fieldErrors.price && <span className={styles.error}>{fieldErrors.price}</span>}
+      </label>
+
+      <label className={styles.field}>
+        <span className={styles.label}>原価 *</span>
+        <input
+          type="number"
+          min={0}
+          value={form.cost}
+          onChange={(e) => handleChange("cost", e.target.value)}
+          onFocus={(e) => e.target.select()}
+          className={styles.input}
+        />
+        {fieldErrors.cost && <span className={styles.error}>{fieldErrors.cost}</span>}
+      </label>
+
+      <label className={styles.field}>
+        <span className={styles.label}>{mode === "create" ? "カテゴリ" : "カテゴリ *"}</span>
+        <select
+          value={form.productCategoryCode}
+          onChange={(e) => handleChange("productCategoryCode", e.target.value)}
+          className={styles.input}
+          disabled={loading}
+        >
+          <option value="">選択してください</option>
+          {categories.map((c) => (
+            <option key={c.productCategoryId} value={c.productCategoryCd}>
+              {c.productCategoryName} ({c.productCategoryCd})
+            </option>
+          ))}
+        </select>
+        {fieldErrors.productCategoryCode && (
+          <span className={styles.error}>{fieldErrors.productCategoryCode}</span>
+        )}
+      </label>
+
+      {mode === "edit" && (
+        <label className={styles.checkboxField}>
+          <input
+            type="checkbox"
+            checked={form.isActive}
+            onChange={(e) => handleChange("isActive", e.target.checked)}
+          />
+          <span>有効</span>
+        </label>
+      )}
+
+      {error && <div className={styles.errorBox}>{error}</div>}
+
+      <div className={styles.actions}>
+        <button type="button" onClick={onCancel} className={styles.cancelButton} disabled={submitting}>
+          キャンセル
+        </button>
+        <button type="button" onClick={handleSubmit} className={styles.submitButton} disabled={submitting}>
+          {submitting ? "保存中..." : "保存"}
+        </button>
+      </div>
+    </div>
+  );
+}

@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { getProducts } from "@/lib/api/products";
 import { getAllProductCategories } from "@/lib/api/productCategories";
 import type { Product } from "@/types/products";
 import type { ProductCategory } from "@/types/productCategories";
+import Modal from "@/components/modal/Modal";
+import ProductForm from "./ProductForm";
 import styles from "./page.module.css";
 
 const PAGE_SIZE = 20;
@@ -18,7 +19,6 @@ function formatYen(value: number) {
 }
 
 export default function ProductsPage() {
-  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [total, setTotal] = useState(0);
@@ -37,6 +37,10 @@ export default function ProductsPage() {
   const [nameFilter, setNameFilter] = useState("");
   const [categoryCodeFilter, setCategoryCodeFilter] = useState("");
   const [activeFilter, setActiveFilter] = useState<"all" | "active" | "inactive">("all");
+
+  const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const moveToPage = (nextPage: number) => {
     setPage(nextPage);
@@ -93,12 +97,22 @@ export default function ProductsPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, skuFilter, nameFilter, janFilter, categoryCodeFilter, activeFilter]);
+  }, [page, skuFilter, nameFilter, janFilter, categoryCodeFilter, activeFilter, refreshKey]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const hasData = products.length > 0;
   const start = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const end = Math.min(page * PAGE_SIZE, total);
+
+  const handleModalClose = () => {
+    setModalMode(null);
+    setEditId(null);
+  };
+
+  const handleSave = () => {
+    handleModalClose();
+    setRefreshKey((k) => k + 1);
+  };
 
   return (
     <main className={styles.page}>
@@ -108,7 +122,14 @@ export default function ProductsPage() {
           <p className={styles.subtitle}>商品マスタの閲覧・編集・新規登録を行います。</p>
         </div>
 
-        <button type="button" onClick={() => router.push("/products/new")} className={styles.primaryButton}>
+        <button
+          type="button"
+          onClick={() => {
+            setModalMode("create");
+            setEditId(null);
+          }}
+          className={styles.primaryButton}
+        >
           商品新規作成
         </button>
       </header>
@@ -116,11 +137,11 @@ export default function ProductsPage() {
       <section className={styles.searchSection}>
         <div className={styles.searchGrid}>
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>SKU</span>
+            <span className={styles.fieldLabel}>商品コード</span>
             <input
               value={skuInput}
               onChange={(e) => setSkuInput(e.target.value)}
-              placeholder="SKU"
+              placeholder="商品コード"
               className={styles.input}
             />
           </label>
@@ -207,7 +228,7 @@ export default function ProductsPage() {
               <table className={styles.table}>
                 <thead className={styles.thead}>
                   <tr>
-                    {["SKU", "JAN", "商品名", "カテゴリ", "売価", "原価", "状態", ""].map((h) => (
+                    {["商品コード", "JAN", "商品名", "カテゴリ", "売価", "原価", "状態", ""].map((h) => (
                       <th key={h} className={styles.th}>
                         {h}
                       </th>
@@ -239,7 +260,10 @@ export default function ProductsPage() {
                         <td className={styles.td}>
                           <button
                             type="button"
-                            onClick={() => router.push(`/products/edit?id=${p.id}`)}
+                            onClick={() => {
+                              setModalMode("edit");
+                              setEditId(p.id);
+                            }}
                             className={styles.editButton}
                           >
                             編集
@@ -279,6 +303,12 @@ export default function ProductsPage() {
           </div>
         </>
       )}
+
+      <Modal open={modalMode !== null} title={modalMode === "create" ? "商品新規作成" : "商品編集"} onClose={handleModalClose}>
+        {modalMode && (
+          <ProductForm mode={modalMode} editId={editId ?? undefined} onSave={handleSave} onCancel={handleModalClose} />
+        )}
+      </Modal>
     </main>
   );
 }

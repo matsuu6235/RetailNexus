@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { getStoreTypes, reorderStoreTypes } from "@/lib/api/storeTypes";
 import type { StoreType } from "@/types/storeTypes";
+import Modal from "@/components/modal/Modal";
+import StoreTypeForm from "./StoreTypeForm";
 import styles from "./page.module.css";
 import tableStyles from "@/components/table/MasterTable.module.css";
 
@@ -24,8 +25,6 @@ function normalizeDisplayOrder(items: StoreType[]): StoreType[] {
 }
 
 export default function StoreTypesPage() {
-  const router = useRouter();
-
   const [items, setItems] = useState<StoreType[]>([]);
   const [originalOrderIds, setOriginalOrderIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,33 +42,26 @@ export default function StoreTypesPage() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
 
+  const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await getStoreTypes();
+      const normalized = normalizeDisplayOrder(response);
+      setItems(normalized);
+      setOriginalOrderIds(normalized.map((item) => item.storeTypeId));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "店舗種別一覧の取得に失敗しました。");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await getStoreTypes();
-        const normalized = normalizeDisplayOrder(response);
-
-        if (!cancelled) {
-          setItems(normalized);
-          setOriginalOrderIds(normalized.map((item) => item.storeTypeId));
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : "店舗種別一覧の取得に失敗しました。");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+    fetchData();
   }, []);
 
   const filteredItems = items.filter((item) => {
@@ -115,6 +107,16 @@ export default function StoreTypesPage() {
     setDragOverId(null);
   };
 
+  const handleModalClose = () => {
+    setModalMode(null);
+    setEditId(null);
+  };
+
+  const handleSave = () => {
+    handleModalClose();
+    fetchData();
+  };
+
   return (
     <main className={styles.page}>
       <header className={styles.header}>
@@ -123,7 +125,14 @@ export default function StoreTypesPage() {
           <p className={styles.subtitle}>店舗種別の検索・編集・新規作成と表示順変更を行います。</p>
         </div>
 
-        <button type="button" onClick={() => router.push("/store-types/new")} className={styles.primaryButton}>
+        <button
+          type="button"
+          onClick={() => {
+            setModalMode("create");
+            setEditId(null);
+          }}
+          className={styles.primaryButton}
+        >
           店舗種別新規作成
         </button>
       </header>
@@ -272,7 +281,10 @@ export default function StoreTypesPage() {
                       <td className={`${tableStyles.td} ${tableStyles.tdAction}`}>
                         <button
                           type="button"
-                          onClick={() => router.push(`/store-types/edit?id=${item.storeTypeId}`)}
+                          onClick={() => {
+                            setModalMode("edit");
+                            setEditId(item.storeTypeId);
+                          }}
                           className={tableStyles.editButton}
                         >
                           編集
@@ -286,6 +298,12 @@ export default function StoreTypesPage() {
           </div>
         </div>
       )}
+
+      <Modal open={modalMode !== null} title={modalMode === "create" ? "店舗種別新規作成" : "店舗種別編集"} onClose={handleModalClose}>
+        {modalMode && (
+          <StoreTypeForm mode={modalMode} editId={editId ?? undefined} onSave={handleSave} onCancel={handleModalClose} />
+        )}
+      </Modal>
     </main>
   );
 }

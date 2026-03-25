@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { getSuppliers } from "@/lib/api/suppliers";
 import type { Supplier } from "@/types/suppliers";
 import styles from "./page.module.css";
 import tableStyles from "@/components/table/MasterTable.module.css";
 import { formatPhoneNumber } from "@/lib/utils/phoneNumber";
+import Modal from "@/components/modal/Modal";
+import SupplierForm from "./SupplierForm";
 
 const PAGE_SIZE = 20;
 
 export default function SuppliersPage() {
-    const router = useRouter();
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
@@ -29,6 +29,10 @@ export default function SuppliersPage() {
     const [phoneNumberFilter, setPhoneNumberFilter] = useState("");
     const [emailFilter, setEmailFilter] = useState("");
     const [isActiveFilter, setIsActiveFilter] = useState<"all" | "active" | "inactive">("all");
+
+    const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
+    const [editId, setEditId] = useState<string | null>(null);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     useEffect(() => {
         let cancelled = false;
@@ -64,7 +68,17 @@ export default function SuppliersPage() {
         return () => {
             cancelled = true;
         };
-    }, [page, supplierCodeFilter, supplierNameFilter, phoneNumberFilter, emailFilter, isActiveFilter]);
+    }, [page, supplierCodeFilter, supplierNameFilter, phoneNumberFilter, emailFilter, isActiveFilter, refreshKey]);
+
+    const handleModalClose = () => {
+        setModalMode(null);
+        setEditId(null);
+    };
+
+    const handleSave = () => {
+        handleModalClose();
+        setRefreshKey((k) => k + 1);
+    };
 
     const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
     const start = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
@@ -78,7 +92,14 @@ export default function SuppliersPage() {
                     <p className={styles.subtitle}>仕入先マスタの検索・編集・新規登録を行います。</p>
                 </div>
 
-                <button type="button" onClick={() => router.push("/suppliers/new")} className={styles.primaryButton}>
+                <button
+                    type="button"
+                    onClick={() => {
+                        setModalMode("create");
+                        setEditId(null);
+                    }}
+                    className={styles.primaryButton}
+                >
                     仕入先新規作成
                 </button>
             </header>
@@ -212,7 +233,10 @@ export default function SuppliersPage() {
                                                 <td className={`${tableStyles.td} ${tableStyles.tdAction}`}>
                                                     <button
                                                         type="button"
-                                                        onClick={() => router.push(`/suppliers/edit?id=${supplier.supplierId}`)}
+                                                        onClick={() => {
+                                                            setModalMode("edit");
+                                                            setEditId(supplier.supplierId);
+                                                        }}
                                                         className={tableStyles.editButton}
                                                     >
                                                         編集
@@ -241,6 +265,12 @@ export default function SuppliersPage() {
                     </div>
                 </>
             )}
+
+            <Modal open={modalMode !== null} title={modalMode === "create" ? "仕入先新規作成" : "仕入先編集"} onClose={handleModalClose}>
+                {modalMode && (
+                    <SupplierForm mode={modalMode} editId={editId ?? undefined} onSave={handleSave} onCancel={handleModalClose} />
+                )}
+            </Modal>
         </main>
     );
 }

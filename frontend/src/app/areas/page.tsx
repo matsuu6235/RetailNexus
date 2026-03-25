@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { getAllAreas, reorderAreas } from "@/lib/api/areas";
 import type { Area } from "@/types/areas";
+import Modal from "@/components/modal/Modal";
+import AreaForm from "./AreaForm";
 import styles from "./page.module.css";
 import tableStyles from "@/components/table/MasterTable.module.css";
 
@@ -24,7 +25,6 @@ function normalizeDisplayOrder(items: Area[]): Area[] {
 }
 
 export default function AreasPage() {
-  const router = useRouter();
   const [items, setItems] = useState<Area[]>([]);
   const [originalOrderIds, setOriginalOrderIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,33 +42,26 @@ export default function AreasPage() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
 
+  const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await getAllAreas();
+      const normalized = normalizeDisplayOrder(response);
+      setItems(normalized);
+      setOriginalOrderIds(normalized.map((item) => item.areaId));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "エリア一覧の取得に失敗しました。");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await getAllAreas();
-        const normalized = normalizeDisplayOrder(response);
-
-        if (!cancelled) {
-          setItems(normalized);
-          setOriginalOrderIds(normalized.map((item) => item.areaId));
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : "エリア一覧の取得に失敗しました。");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+    fetchData();
   }, []);
 
   const filteredItems = items.filter((item) => {
@@ -112,6 +105,16 @@ export default function AreasPage() {
     setDragOverId(null);
   };
 
+  const handleModalClose = () => {
+    setModalMode(null);
+    setEditId(null);
+  };
+
+  const handleSave = () => {
+    handleModalClose();
+    fetchData();
+  };
+
   return (
     <main className={styles.page}>
       <header className={styles.header}>
@@ -120,7 +123,14 @@ export default function AreasPage() {
           <p className={styles.subtitle}>エリアの検索・編集・新規作成と表示順変更を行います。</p>
         </div>
 
-        <button type="button" onClick={() => router.push("/areas/new")} className={styles.primaryButton}>
+        <button
+          type="button"
+          onClick={() => {
+            setModalMode("create");
+            setEditId(null);
+          }}
+          className={styles.primaryButton}
+        >
           エリア新規作成
         </button>
       </header>
@@ -267,7 +277,14 @@ export default function AreasPage() {
                         </span>
                       </td>
                       <td className={`${tableStyles.td} ${tableStyles.tdAction}`}>
-                        <button type="button" onClick={() => router.push(`/areas/edit?id=${item.areaId}`)} className={tableStyles.editButton}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setModalMode("edit");
+                            setEditId(item.areaId);
+                          }}
+                          className={tableStyles.editButton}
+                        >
                           編集
                         </button>
                       </td>
@@ -279,6 +296,17 @@ export default function AreasPage() {
           </div>
         </div>
       )}
+
+      <Modal open={modalMode !== null} title={modalMode === "create" ? "エリア新規作成" : "エリア編集"} onClose={handleModalClose}>
+        {modalMode && (
+          <AreaForm
+            mode={modalMode}
+            editId={editId ?? undefined}
+            onSave={handleSave}
+            onCancel={handleModalClose}
+          />
+        )}
+      </Modal>
     </main>
   );
 }

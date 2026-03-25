@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
     getAllProductCategories,
     reorderProductCategories,
 } from "@/lib/api/productCategories";
 import type { ProductCategory } from "@/types/productCategories";
+import Modal from "@/components/modal/Modal";
+import ProductCategoryForm from "./ProductCategoryForm";
 import styles from "./page.module.css";
 import tableStyles from "@/components/table/MasterTable.module.css";
 
@@ -33,8 +34,6 @@ function normalizeDisplayOrder(items: ProductCategory[]): ProductCategory[] {
 }
 
 export default function ProductCategoriesPage() {
-    const router = useRouter();
-
     const [items, setItems] = useState<ProductCategory[]>([]);
     const [originalOrderIds, setOriginalOrderIds] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
@@ -52,35 +51,26 @@ export default function ProductCategoriesPage() {
     const [draggingId, setDraggingId] = useState<string | null>(null);
     const [dragOverId, setDragOverId] = useState<string | null>(null);
 
+    const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
+    const [editId, setEditId] = useState<string | null>(null);
+
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await getAllProductCategories();
+            const normalized = normalizeDisplayOrder(response);
+            setItems(normalized);
+            setOriginalOrderIds(normalized.map((item) => item.productCategoryId));
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "商品カテゴリ一覧の取得に失敗しました。");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        let cancelled = false;
-
-        (async () => {
-            try {
-                setLoading(true);
-                setError(null);
-
-                const response = await getAllProductCategories();
-                const normalized = normalizeDisplayOrder(response);
-
-                if (!cancelled) {
-                    setItems(normalized);
-                    setOriginalOrderIds(normalized.map((item) => item.productCategoryId));
-                }
-            } catch (e) {
-                if (!cancelled) {
-                    setError(e instanceof Error ? e.message : "商品カテゴリ一覧の取得に失敗しました。");
-                }
-            } finally {
-                if (!cancelled) {
-                    setLoading(false);
-                }
-            }
-        })();
-
-        return () => {
-            cancelled = true;
-        };
+        fetchData();
     }, []);
 
     const filteredItems = items.filter((item) => {
@@ -128,6 +118,16 @@ export default function ProductCategoriesPage() {
         setDragOverId(null);
     };
 
+    const handleModalClose = () => {
+        setModalMode(null);
+        setEditId(null);
+    };
+
+    const handleSave = () => {
+        handleModalClose();
+        fetchData();
+    };
+
     return (
         <main className={styles.page}>
             <header className={styles.header}>
@@ -140,7 +140,10 @@ export default function ProductCategoriesPage() {
 
                 <button
                     type="button"
-                    onClick={() => router.push("/product-categories/new")}
+                    onClick={() => {
+                        setModalMode("create");
+                        setEditId(null);
+                    }}
                     className={styles.primaryButton}
                 >
                     商品カテゴリ新規作成
@@ -345,9 +348,10 @@ export default function ProductCategoriesPage() {
                                             <td className={`${tableStyles.td} ${tableStyles.tdAction}`}>
                                                 <button
                                                     type="button"
-                                                    onClick={() =>
-                                                        router.push(`/product-categories/edit?id=${item.productCategoryId}`)
-                                                    }
+                                                    onClick={() => {
+                                                        setModalMode("edit");
+                                                        setEditId(item.productCategoryId);
+                                                    }}
                                                     className={tableStyles.editButton}
                                                 >
                                                     編集
@@ -361,6 +365,21 @@ export default function ProductCategoriesPage() {
                     </div>
                 </div>
             )}
+
+            <Modal
+                open={modalMode !== null}
+                title={modalMode === "create" ? "商品カテゴリ新規作成" : "商品カテゴリ編集"}
+                onClose={handleModalClose}
+            >
+                {modalMode && (
+                    <ProductCategoryForm
+                        mode={modalMode}
+                        editId={editId ?? undefined}
+                        onSave={handleSave}
+                        onCancel={handleModalClose}
+                    />
+                )}
+            </Modal>
         </main>
     );
 }

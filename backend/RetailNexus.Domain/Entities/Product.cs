@@ -3,7 +3,7 @@
 public class Product
 {
     public Guid Id { get; private set; } = Guid.NewGuid();
-    public string ProductCode { get; private set; } = string.Empty; // SKU
+    public string ProductCode { get; private set; } = string.Empty; // 商品コード
     public string JanCode { get; private set; } = string.Empty;// JAN
     public string ProductName { get; private set; } = string.Empty;
     public string ProductCategoryCode { get; private set; }　= string.Empty;
