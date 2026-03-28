@@ -3,6 +3,7 @@ using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RetailNexus.Api.Authorization;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
 
@@ -31,7 +32,7 @@ public sealed class ProductCategoriesController : ControllerBase
     }
 
     public sealed record CreateProductCategoryRequest(string ProductCategoryCd, string CategoryAbbreviation, string ProductCategoryName, bool IsActive = true);
-    public sealed record UpdateProductCategoryRequest(string ProductCategoryCd, string CategoryAbbreviation, string ProductCategoryName, bool IsActive = true);
+    public sealed record UpdateProductCategoryRequest(string ProductCategoryCd, string CategoryAbbreviation, string ProductCategoryName);
     public sealed record ReorderProductCategoriesRequest(IReadOnlyList<Guid> ProductCategoryIds);
     public sealed record ProductCategoryResponse(
         Guid ProductCategoryId,
@@ -46,6 +47,7 @@ public sealed class ProductCategoriesController : ControllerBase
         Guid CreatedBy);
 
     [HttpGet]
+    [RequirePermission("product-categories.view")]
     public async Task<IActionResult> List(
         [FromQuery] string? productCategoryCd,
         [FromQuery] string? productCategoryName,
@@ -65,6 +67,7 @@ public sealed class ProductCategoriesController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [RequirePermission("product-categories.view")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var entity = await _repo.GetByIdAsync(id, ct);
@@ -72,6 +75,7 @@ public sealed class ProductCategoriesController : ControllerBase
     }
 
     [HttpPost]
+    [RequirePermission("product-categories.create")]
     public async Task<IActionResult> Create([FromBody] CreateProductCategoryRequest req, CancellationToken ct)
     {
         if (!TryGetCurrentUserId(out var userId))
@@ -94,6 +98,7 @@ public sealed class ProductCategoriesController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [RequirePermission("product-categories.edit")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductCategoryRequest req, CancellationToken ct)
     {
         if (!TryGetCurrentUserId(out var userId))
@@ -109,13 +114,33 @@ public sealed class ProductCategoriesController : ControllerBase
         if (entity is null)
             return NotFound();
 
-        entity.Update(req.ProductCategoryCd.Trim(), req.CategoryAbbreviation.Trim(), req.ProductCategoryName.Trim(), req.IsActive, userId);
+        entity.Update(req.ProductCategoryCd.Trim(), req.CategoryAbbreviation.Trim(), req.ProductCategoryName.Trim(), userId);
+        await _repo.SaveChangesAsync(ct);
+
+        return Ok(Map(entity));
+    }
+
+    public sealed record ChangeActivationRequest(bool IsActive);
+
+    [HttpPut("{id:guid}/activation")]
+    [RequirePermission("product-categories.delete")]
+    public async Task<IActionResult> ChangeActivation(Guid id, [FromBody] ChangeActivationRequest req, CancellationToken ct)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+            return Unauthorized();
+
+        var entity = await _repo.GetByIdAsync(id, ct);
+        if (entity is null)
+            return NotFound();
+
+        entity.SetActivation(req.IsActive, userId);
         await _repo.SaveChangesAsync(ct);
 
         return Ok(Map(entity));
     }
 
     [HttpPut("display-order")]
+    [RequirePermission("product-categories.edit")]
     public async Task<IActionResult> Reorder([FromBody] ReorderProductCategoriesRequest req, CancellationToken ct)
     {
         if (!TryGetCurrentUserId(out var userId))

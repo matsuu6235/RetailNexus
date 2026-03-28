@@ -3,6 +3,7 @@ using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RetailNexus.Api.Authorization;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
 
@@ -36,8 +37,7 @@ public sealed class SuppliersController : ControllerBase
     public sealed record UpdateSupplierRequest(
         string SupplierName,
         string? PhoneNumber,
-        string? Email,
-        bool IsActive = true);
+        string? Email);
 
     public sealed record SupplierNewResponse(
         string SupplierCode,
@@ -59,6 +59,7 @@ public sealed class SuppliersController : ControllerBase
         Guid UpdatedBy);
 
     [HttpGet]
+    [RequirePermission("suppliers.view")]
     public async Task<IActionResult> List(
         [FromQuery] string? supplierCode,
         [FromQuery] string? supplierName,
@@ -86,6 +87,7 @@ public sealed class SuppliersController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [RequirePermission("suppliers.view")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var supplier = await _repo.GetByIdAsync(id, ct);
@@ -93,10 +95,12 @@ public sealed class SuppliersController : ControllerBase
     }
 
     [HttpGet("new")]
+    [RequirePermission("suppliers.create")]
     public IActionResult New()
         => Ok(new SupplierNewResponse(string.Empty, string.Empty, null, null, true));
 
     [HttpPost]
+    [RequirePermission("suppliers.create")]
     public async Task<IActionResult> Create([FromBody] CreateSupplierRequest req, CancellationToken ct)
     {
         if (!TryGetCurrentUserId(out var actorUserId))
@@ -123,6 +127,7 @@ public sealed class SuppliersController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [RequirePermission("suppliers.edit")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateSupplierRequest req, CancellationToken ct)
     {
         if (!TryGetCurrentUserId(out var actorUserId))
@@ -138,7 +143,26 @@ public sealed class SuppliersController : ControllerBase
         if (supplier is null)
             return NotFound();
 
-        supplier.Update(req.SupplierName.Trim(), req.PhoneNumber, req.Email, req.IsActive, actorUserId);
+        supplier.Update(req.SupplierName.Trim(), req.PhoneNumber, req.Email, actorUserId);
+        await _repo.SaveChangesAsync(ct);
+
+        return Ok(Map(supplier));
+    }
+
+    public sealed record ChangeActivationRequest(bool IsActive);
+
+    [HttpPut("{id:guid}/activation")]
+    [RequirePermission("suppliers.delete")]
+    public async Task<IActionResult> ChangeActivation(Guid id, [FromBody] ChangeActivationRequest req, CancellationToken ct)
+    {
+        if (!TryGetCurrentUserId(out var actorUserId))
+            return Unauthorized();
+
+        var supplier = await _repo.GetByIdAsync(id, ct);
+        if (supplier is null)
+            return NotFound();
+
+        supplier.SetActivation(req.IsActive, actorUserId);
         await _repo.SaveChangesAsync(ct);
 
         return Ok(Map(supplier));

@@ -3,6 +3,7 @@ using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RetailNexus.Api.Authorization;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
 
@@ -31,7 +32,7 @@ public sealed class AreasController : ControllerBase
     }
 
     public sealed record CreateAreaRequest(string AreaCd, string AreaName, bool IsActive = true);
-    public sealed record UpdateAreaRequest(string AreaCd, string AreaName, bool IsActive = true);
+    public sealed record UpdateAreaRequest(string AreaCd, string AreaName);
     public sealed record ReorderAreasRequest(IReadOnlyList<Guid> AreaIds);
     public sealed record AreaResponse(
         Guid AreaId,
@@ -45,6 +46,7 @@ public sealed class AreasController : ControllerBase
         Guid CreatedBy);
 
     [HttpGet]
+    [RequirePermission("areas.view")]
     public async Task<IActionResult> List(
         [FromQuery] string? areaCd,
         [FromQuery] string? areaName,
@@ -64,6 +66,7 @@ public sealed class AreasController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [RequirePermission("areas.view")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var entity = await _repo.GetByIdAsync(id, ct);
@@ -71,6 +74,7 @@ public sealed class AreasController : ControllerBase
     }
 
     [HttpPost]
+    [RequirePermission("areas.create")]
     public async Task<IActionResult> Create([FromBody] CreateAreaRequest req, CancellationToken ct)
     {
         if (!TryGetCurrentUserId(out var userId))
@@ -92,6 +96,7 @@ public sealed class AreasController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [RequirePermission("areas.edit")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateAreaRequest req, CancellationToken ct)
     {
         if (!TryGetCurrentUserId(out var userId))
@@ -107,13 +112,33 @@ public sealed class AreasController : ControllerBase
         if (entity is null)
             return NotFound();
 
-        entity.Update(req.AreaCd.Trim(), req.AreaName.Trim(), req.IsActive, userId);
+        entity.Update(req.AreaCd.Trim(), req.AreaName.Trim(), userId);
+        await _repo.SaveChangesAsync(ct);
+
+        return Ok(Map(entity));
+    }
+
+    public sealed record ChangeActivationRequest(bool IsActive);
+
+    [HttpPut("{id:guid}/activation")]
+    [RequirePermission("areas.delete")]
+    public async Task<IActionResult> ChangeActivation(Guid id, [FromBody] ChangeActivationRequest req, CancellationToken ct)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+            return Unauthorized();
+
+        var entity = await _repo.GetByIdAsync(id, ct);
+        if (entity is null)
+            return NotFound();
+
+        entity.SetActivation(req.IsActive, userId);
         await _repo.SaveChangesAsync(ct);
 
         return Ok(Map(entity));
     }
 
     [HttpPut("display-order")]
+    [RequirePermission("areas.edit")]
     public async Task<IActionResult> Reorder([FromBody] ReorderAreasRequest req, CancellationToken ct)
     {
         if (!TryGetCurrentUserId(out var userId))

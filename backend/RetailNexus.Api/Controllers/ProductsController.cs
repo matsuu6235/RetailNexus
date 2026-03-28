@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RetailNexus.Api.Authorization;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
 
@@ -29,7 +30,7 @@ public sealed class ProductsController : ControllerBase
     }
 
     public sealed record CreateProductRequest(string JanCode, string ProductName, decimal Price, decimal Cost, string ProductCategoryCode);
-    public sealed record UpdateProductRequest(string JanCode, string ProductName, decimal Price, decimal Cost, string ProductCategoryCode, bool IsActive);
+    public sealed record UpdateProductRequest(string JanCode, string ProductName, decimal Price, decimal Cost, string ProductCategoryCode);
     public sealed record ProductResponse(
         Guid Id,
         string ProductCode,
@@ -43,6 +44,7 @@ public sealed class ProductsController : ControllerBase
         DateTimeOffset CreatedAt);
 
     [HttpPost]
+    [RequirePermission("products.create")]
     public async Task<IActionResult> Create([FromBody] CreateProductRequest req, CancellationToken ct)
     {
         var validation = await _createValidator.ValidateAsync(req, ct);
@@ -79,6 +81,7 @@ public sealed class ProductsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [RequirePermission("products.edit")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductRequest req, CancellationToken ct)
     {
         var product = await _productRepo.GetByIdAsync(id, ct);
@@ -96,15 +99,31 @@ public sealed class ProductsController : ControllerBase
             req.ProductName.Trim(),
             req.Price,
             req.Cost,
-            req.ProductCategoryCode.Trim(),
-            req.IsActive);
+            req.ProductCategoryCode.Trim());
 
         await _productRepo.SaveChangesAsync(ct);
 
         return Ok(Map(product));
     }
 
+    public sealed record ChangeActivationRequest(bool IsActive);
+
+    [HttpPut("{id:guid}/activation")]
+    [RequirePermission("products.delete")]
+    public async Task<IActionResult> ChangeActivation(Guid id, [FromBody] ChangeActivationRequest req, CancellationToken ct)
+    {
+        var product = await _productRepo.GetByIdAsync(id, ct);
+        if (product is null)
+            return NotFound();
+
+        product.SetActivation(req.IsActive);
+        await _productRepo.SaveChangesAsync(ct);
+
+        return Ok(Map(product));
+    }
+
     [HttpGet("{id:guid}")]
+    [RequirePermission("products.view")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var product = await _productRepo.GetByIdAsync(id, ct);
@@ -115,6 +134,7 @@ public sealed class ProductsController : ControllerBase
     }
 
     [HttpGet]
+    [RequirePermission("products.view")]
     public async Task<IActionResult> List(
         [FromQuery] string? productCode,
         [FromQuery] string? janCode,

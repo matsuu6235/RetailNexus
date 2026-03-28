@@ -3,6 +3,7 @@ using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RetailNexus.Api.Authorization;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
 
@@ -28,7 +29,7 @@ public sealed class StoresController : ControllerBase
     }
 
     public sealed record CreateStoreRequest(string StoreName, Guid AreaId, Guid StoreTypeId, bool IsActive = true);
-    public sealed record UpdateStoreRequest(string StoreName, Guid AreaId, Guid StoreTypeId, bool IsActive = true);
+    public sealed record UpdateStoreRequest(string StoreName, Guid AreaId, Guid StoreTypeId);
     public sealed record StoreResponse(
         Guid StoreId,
         string StoreCd,
@@ -46,6 +47,7 @@ public sealed class StoresController : ControllerBase
         Guid CreatedBy);
 
     [HttpGet]
+    [RequirePermission("stores.view")]
     public async Task<IActionResult> List(
         [FromQuery] string? storeCd,
         [FromQuery] string? storeName,
@@ -67,6 +69,7 @@ public sealed class StoresController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [RequirePermission("stores.view")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var entity = await _storeRepo.GetByIdAsync(id, ct);
@@ -74,6 +77,7 @@ public sealed class StoresController : ControllerBase
     }
 
     [HttpPost]
+    [RequirePermission("stores.create")]
     public async Task<IActionResult> Create([FromBody] CreateStoreRequest req, CancellationToken ct)
     {
         if (!TryGetCurrentUserId(out var userId))
@@ -101,6 +105,7 @@ public sealed class StoresController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [RequirePermission("stores.edit")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateStoreRequest req, CancellationToken ct)
     {
         if (!TryGetCurrentUserId(out var userId))
@@ -116,11 +121,30 @@ public sealed class StoresController : ControllerBase
         if (entity is null)
             return NotFound();
 
-        entity.Update(req.StoreName.Trim(), req.AreaId, req.StoreTypeId, req.IsActive, userId);
+        entity.Update(req.StoreName.Trim(), req.AreaId, req.StoreTypeId, userId);
         await _storeRepo.SaveChangesAsync(ct);
 
         var updated = await _storeRepo.GetByIdAsync(entity.StoreId, ct);
         return Ok(Map(updated!));
+    }
+
+    public sealed record ChangeActivationRequest(bool IsActive);
+
+    [HttpPut("{id:guid}/activation")]
+    [RequirePermission("stores.delete")]
+    public async Task<IActionResult> ChangeActivation(Guid id, [FromBody] ChangeActivationRequest req, CancellationToken ct)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+            return Unauthorized();
+
+        var entity = await _storeRepo.GetByIdAsync(id, ct);
+        if (entity is null)
+            return NotFound();
+
+        entity.SetActivation(req.IsActive, userId);
+        await _storeRepo.SaveChangesAsync(ct);
+
+        return Ok(Map(entity));
     }
 
     private bool TryGetCurrentUserId(out Guid userId)

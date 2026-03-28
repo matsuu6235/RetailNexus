@@ -3,6 +3,7 @@ using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RetailNexus.Api.Authorization;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
 
@@ -29,7 +30,7 @@ public sealed class StoreTypesController : ControllerBase
     }
 
     public sealed record CreateStoreTypeRequest(string StoreTypeCd, string StoreTypeName, bool IsActive = true);
-    public sealed record UpdateStoreTypeRequest(string StoreTypeCd, string StoreTypeName, bool IsActive = true);
+    public sealed record UpdateStoreTypeRequest(string StoreTypeCd, string StoreTypeName);
     public sealed record ReorderStoreTypesRequest(IReadOnlyList<Guid> StoreTypeIds);
 
     public sealed record StoreTypeResponse(
@@ -44,6 +45,7 @@ public sealed class StoreTypesController : ControllerBase
         Guid CreatedBy);
 
     [HttpGet]
+    [RequirePermission("store-types.view")]
     public async Task<IActionResult> List(
         [FromQuery] string? storeTypeCd,
         [FromQuery] string? storeTypeName,
@@ -55,6 +57,7 @@ public sealed class StoreTypesController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [RequirePermission("store-types.view")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var entity = await _repo.GetByIdAsync(id, ct);
@@ -62,6 +65,7 @@ public sealed class StoreTypesController : ControllerBase
     }
 
     [HttpPost]
+    [RequirePermission("store-types.create")]
     public async Task<IActionResult> Create([FromBody] CreateStoreTypeRequest req, CancellationToken ct)
     {
         if (!TryGetCurrentUserId(out var userId))
@@ -83,6 +87,7 @@ public sealed class StoreTypesController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [RequirePermission("store-types.edit")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateStoreTypeRequest req, CancellationToken ct)
     {
         if (!TryGetCurrentUserId(out var userId))
@@ -98,13 +103,33 @@ public sealed class StoreTypesController : ControllerBase
         if (entity is null)
             return NotFound();
 
-        entity.Update(req.StoreTypeCd.Trim(), req.StoreTypeName.Trim(), req.IsActive, userId);
+        entity.Update(req.StoreTypeCd.Trim(), req.StoreTypeName.Trim(), userId);
+        await _repo.SaveChangesAsync(ct);
+
+        return Ok(Map(entity));
+    }
+
+    public sealed record ChangeActivationRequest(bool IsActive);
+
+    [HttpPut("{id:guid}/activation")]
+    [RequirePermission("store-types.delete")]
+    public async Task<IActionResult> ChangeActivation(Guid id, [FromBody] ChangeActivationRequest req, CancellationToken ct)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+            return Unauthorized();
+
+        var entity = await _repo.GetByIdAsync(id, ct);
+        if (entity is null)
+            return NotFound();
+
+        entity.SetActivation(req.IsActive, userId);
         await _repo.SaveChangesAsync(ct);
 
         return Ok(Map(entity));
     }
 
     [HttpPut("display-order")]
+    [RequirePermission("store-types.edit")]
     public async Task<IActionResult> Reorder([FromBody] ReorderStoreTypesRequest req, CancellationToken ct)
     {
         if (!TryGetCurrentUserId(out var userId))
