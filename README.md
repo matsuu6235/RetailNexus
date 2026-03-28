@@ -1,4 +1,7 @@
 # Retail Nexus
+
+![CI](https://github.com/matthew113725/RetailNexus/actions/workflows/ci.yml/badge.svg)
+
 小売業務の基幹データ（商品・仕入先・店舗・在庫・販売）を一元管理する業務管理プラットフォームです。
 実務レベルのアーキテクチャ設計と実装を目的として開発しています。
 
