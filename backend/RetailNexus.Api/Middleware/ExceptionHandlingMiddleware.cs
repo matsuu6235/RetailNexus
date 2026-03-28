@@ -7,11 +7,13 @@ public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly IHostEnvironment _env;
+    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next, IHostEnvironment env)
+    public ExceptionHandlingMiddleware(RequestDelegate next, IHostEnvironment env, ILogger<ExceptionHandlingMiddleware> logger)
     {
         _next = next;
         _env = env;
+        _logger = logger;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -28,6 +30,8 @@ public class ExceptionHandlingMiddleware
 
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
+        var path = context.Request.Path;
+
         var (statusCode, message) = exception switch
         {
             UnauthorizedAccessException => (HttpStatusCode.Unauthorized, exception.Message),
@@ -35,6 +39,16 @@ public class ExceptionHandlingMiddleware
             BadHttpRequestException => (HttpStatusCode.BadRequest, "リクエストの形式が正しくありません。"),
             _ => (HttpStatusCode.InternalServerError, "サーバーエラーが発生しました。")
         };
+
+        // エラーログ出力
+        if (statusCode == HttpStatusCode.InternalServerError)
+        {
+            _logger.LogError(exception, "サーバーエラー: {Path}", path);
+        }
+        else
+        {
+            _logger.LogWarning("HTTPエラー {StatusCode}: {Message} Path: {Path}", (int)statusCode, exception.Message, path);
+        }
 
         var response = new Dictionary<string, string> { ["message"] = message };
 

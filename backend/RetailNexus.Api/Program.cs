@@ -11,8 +11,14 @@ using RetailNexus.Infrastructure.Persistence;
 using RetailNexus.Infrastructure.Repositories;
 using RetailNexus.Api.Authorization;
 using RetailNexus.Infrastructure.Security;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, config) => config
+    .ReadFrom.Configuration(context.Configuration)
+    .WriteTo.Console()
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

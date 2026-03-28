@@ -18,6 +18,7 @@ Thumbs.db
 **/obj/
 /packages/
 /_ReSharper.Caches/
+backend/RetailNexus.Api/logs/
 
 # Claude Code
 .claude/
