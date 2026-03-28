@@ -4,7 +4,24 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./AppShell.module.css";
-import { getLoggedInUserName, logout } from "@/services/authService";
+import { getLoggedInUserName, getPermissions, logout } from "@/services/authService";
+
+type NavItem = {
+  label: string;
+  href: string;
+  permission: string;
+};
+
+const navItems: NavItem[] = [
+  { label: "商品マスタ", href: "/products", permission: "products.view" },
+  { label: "仕入先マスタ", href: "/suppliers", permission: "suppliers.view" },
+  { label: "商品カテゴリマスタ", href: "/product-categories", permission: "product-categories.view" },
+  { label: "エリアマスタ", href: "/areas", permission: "areas.view" },
+  { label: "店舗マスタ", href: "/stores", permission: "stores.view" },
+  { label: "店舗種別マスタ", href: "/store-types", permission: "store-types.view" },
+  { label: "ユーザー管理", href: "/users", permission: "users.view" },
+  { label: "ロール管理", href: "/roles", permission: "roles.view" },
+];
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -14,18 +31,14 @@ export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [userName, setUserName] = useState("");
+  const [permissions, setPermissions] = useState<string[]>([]);
 
   useEffect(() => {
     setUserName(getLoggedInUserName());
+    setPermissions(getPermissions());
   }, [pathname]);
 
   const isLoginPage = pathname === "/login";
-  const isProductMasterActive = pathname.startsWith("/products");
-  const isSupplierMasterActive = pathname.startsWith("/suppliers");
-  const isProductCategoryMasterActive = pathname.startsWith("/product-categories");
-  const isAreaMasterActive = pathname.startsWith("/areas");
-  const isStoreMasterActive = pathname.startsWith("/stores");
-  const isStoreTypeMasterActive = pathname.startsWith("/store-types");
 
   const handleLogout = () => {
     logout();
@@ -35,6 +48,8 @@ export default function AppShell({ children }: AppShellProps) {
   if (isLoginPage) {
     return <>{children}</>;
   }
+
+  const visibleNavItems = navItems.filter((item) => permissions.includes(item.permission));
 
   return (
     <div className={styles.shell}>
@@ -62,24 +77,15 @@ export default function AppShell({ children }: AppShellProps) {
       <div className={styles.body}>
         <aside className={styles.sidebar}>
           <nav className={styles.nav}>
-            <Link href="/products" className={`${styles.navItem} ${isProductMasterActive ? styles.navItemActive : ""}`}>
-              商品マスタ
-            </Link>
-            <Link href="/suppliers" className={`${styles.navItem} ${isSupplierMasterActive ? styles.navItemActive : ""}`}>
-              仕入先マスタ
-            </Link>
-            <Link href="/product-categories" className={`${styles.navItem} ${isProductCategoryMasterActive ? styles.navItemActive : ""}`}>
-              商品カテゴリマスタ
-            </Link>
-            <Link href="/areas" className={`${styles.navItem} ${isAreaMasterActive ? styles.navItemActive : ""}`}>
-              エリアマスタ
-            </Link>
-            <Link href="/stores" className={`${styles.navItem} ${isStoreMasterActive ? styles.navItemActive : ""}`}>
-              店舗マスタ
-            </Link>
-            <Link href="/store-types" className={`${styles.navItem} ${isStoreTypeMasterActive ? styles.navItemActive : ""}`}>
-              店舗種別マスタ
-            </Link>
+            {visibleNavItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`${styles.navItem} ${pathname.startsWith(item.href) ? styles.navItemActive : ""}`}
+              >
+                {item.label}
+              </Link>
+            ))}
           </nav>
         </aside>
 

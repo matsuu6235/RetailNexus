@@ -11,6 +11,12 @@ function getAccessToken(): string | null {
 
 async function handleJsonResponse<T>(path: string, res: Response, method: string): Promise<T> {
   if (!res.ok) {
+    if (res.status === 401) {
+      throw new Error("ログインセッションが切れました。再度ログインしてください。");
+    }
+    if (res.status === 403) {
+      throw new Error("アクセス権限がありません。");
+    }
     const text = await res.text().catch(() => "");
     try {
       const json = JSON.parse(text);

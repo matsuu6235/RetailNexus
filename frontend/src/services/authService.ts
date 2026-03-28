@@ -9,7 +9,8 @@ type LoginResponse = {
   accessToken: string;
   expiresAt: string;
   email: string;
-  role: string;
+  roles: string[];
+  permissions: string[];
 };
 
 export async function login(body: LoginRequest): Promise<LoginResponse> {
@@ -29,6 +30,8 @@ export async function login(body: LoginRequest): Promise<LoginResponse> {
     localStorage.setItem("accessToken", data.accessToken);
     localStorage.setItem("loginUserName", body.loginId);
     localStorage.setItem("loginUserEmail", data.email);
+    localStorage.setItem("roles", JSON.stringify(data.roles));
+    localStorage.setItem("permissions", JSON.stringify(data.permissions));
   }
 
   return data;
@@ -44,4 +47,28 @@ export function logout(): void {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("loginUserName");
   localStorage.removeItem("loginUserEmail");
+  localStorage.removeItem("roles");
+  localStorage.removeItem("permissions");
+}
+
+export function getPermissions(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    return JSON.parse(localStorage.getItem("permissions") ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
+export function getRoles(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    return JSON.parse(localStorage.getItem("roles") ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
+export function hasPermission(permission: string): boolean {
+  return getPermissions().includes(permission);
 }
