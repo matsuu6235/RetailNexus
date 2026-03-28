@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: retailnexus
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5150:5150"
+    environment:
+      ConnectionStrings__Default: "Host=db;Port=5432;Database=retailnexus;Username=postgres;Password=postgres"
+      Jwt__Key: "RetailNexusDockerSecretKey_ChangeInProduction_12345"
+      Jwt__Issuer: "RetailNexus"
+      Jwt__Audience: "RetailNexus"
+      Jwt__AccessTokenMinutes: "30"
+      ASPNETCORE_ENVIRONMENT: "Development"
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: >
+      sh -c "
+        dotnet ef database update --project /src/RetailNexus.Infrastructure/RetailNexus.Infrastructure.csproj --startup-project /src/RetailNexus.Api/RetailNexus.Api.csproj --no-build 2>/dev/null;
+        dotnet RetailNexus.Api.dll
+      "
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

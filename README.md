@@ -85,13 +85,29 @@ src/
 
 ## セットアップ
 
-### 前提
+### Docker（推奨）
+
+Docker Desktop がインストールされていれば、1コマンドで全環境が起動します。
+
+```bash
+docker compose up --build
+# API:       http://localhost:5150/swagger
+# フロント:  http://localhost:3000
+# DB:        localhost:5432 (postgres/postgres)
+```
+
+停止: `docker compose down`（データ保持）
+全削除: `docker compose down -v`（DBデータも削除）
+
+### ローカル開発（Docker なし）
+
+#### 前提
 
 - .NET 8 SDK
 - Node.js 20+
 - PostgreSQL 17
 
-### バックエンド
+#### バックエンド
 
 ```bash
 cd backend
@@ -101,7 +117,7 @@ dotnet run --project RetailNexus.Api
 # → http://localhost:5150/swagger
 ```
 
-### フロントエンド
+#### フロントエンド
 
 ```bash
 cd frontend
@@ -111,7 +127,7 @@ npm run dev
 # → http://localhost:3000
 ```
 
-### テスト
+#### テスト
 
 ```bash
 cd backend
