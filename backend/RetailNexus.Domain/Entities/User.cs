@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace RetailNexus.Domain.Entities;
+﻿namespace RetailNexus.Domain.Entities;
 
 public class User
 {
@@ -8,7 +6,7 @@ public class User
     public string LoginId { get;　private set; } = string.Empty;
     public string UserName { get; private set; } = string.Empty;
     public string? Email { get; private set; } = string.Empty;
-    public string PasswordHash { get; private set; } = string.Empty; // MVPでは平文っぽく扱うが将来はハッシュ必須
+    public string PasswordHash { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
 
     public DateTimeOffset? LastLoginAt { get; set; }
@@ -16,9 +14,8 @@ public class User
     public Guid? CreatedBy { get; private set; }
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     public Guid? UpdatedBy { get; set; }
-    
-    [NotMapped]
-    public string Role => "Admin";
+
+    public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 
     private User()
     {
@@ -40,6 +37,22 @@ public class User
         IsActive = isActive;
         CreatedBy = createdBy;
         UpdatedBy = updatedBy;
+    }
+
+    public void UpdateProfile(string loginId, string userName, string? email, Guid actorId)
+    {
+        LoginId = loginId.Trim();
+        UserName = userName.Trim();
+        Email = NormalizeNullable(email);
+        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedBy = actorId;
+    }
+
+    public void SetActivation(bool isActive, Guid actorId)
+    {
+        IsActive = isActive;
+        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedBy = actorId;
     }
 
     private static string? NormalizeNullable(string? value)
