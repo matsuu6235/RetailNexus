@@ -29,6 +29,7 @@ public sealed class JwtService : IJwtService
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
+            new(JwtRegisteredClaimNames.Name, user.UserName),
             new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
         };
 

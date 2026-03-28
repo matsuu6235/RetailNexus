@@ -30,8 +30,6 @@ public class LoginHandler
 
         var now = DateTimeOffset.UtcNow;
         user.LastLoginAt = now;
-        user.UpdatedAt = now;
-        user.UpdatedBy = user.UserId;
 
         await _users.SaveChangesAsync(ct);
 

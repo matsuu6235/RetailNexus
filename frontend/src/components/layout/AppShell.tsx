@@ -21,6 +21,7 @@ const navItems: NavItem[] = [
   { label: "店舗種別マスタ", href: "/store-types", permission: "store-types.view" },
   { label: "ユーザー管理", href: "/users", permission: "users.view" },
   { label: "ロール管理", href: "/roles", permission: "roles.view" },
+  { label: "監査ログ", href: "/audit-logs", permission: "auditlog.view" },
 ];
 
 type AppShellProps = {

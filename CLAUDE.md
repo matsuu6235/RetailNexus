@@ -17,6 +17,7 @@
 ```bash
 dotnet build                                                                                    # ソリューションのビルド
 dotnet run --project RetailNexus.Api                                                            # API起動（http://localhost:5150）
+dotnet test                                                                                     # テスト実行（xUnit + FluentAssertions + Moq）
 dotnet ef migrations add <マイグレーション名> --project RetailNexus.Infrastructure --startup-project RetailNexus.Api  # マイグレーション作成
 dotnet ef database update --project RetailNexus.Infrastructure --startup-project RetailNexus.Api                     # マイグレーション適用
 ```
@@ -44,7 +45,8 @@ npm run lint      # リント実行
 RetailNexus.Domain         → エンティティのみ（依存なし）
 RetailNexus.Application    → ユースケース、リポジトリインターフェース
 RetailNexus.Infrastructure → EF Core DbContext、リポジトリ実装、JWTサービス
-RetailNexus.Api            → コントローラー、FluentValidationバリデーター、DI設定（Program.cs）
+RetailNexus.Api            → コントローラー、FluentValidationバリデーター、認可属性、DI設定（Program.cs）
+RetailNexus.Tests          → ユニットテスト（xUnit + FluentAssertions + Moq）
 ```
 
 **主なパターン:**
@@ -52,24 +54,47 @@ RetailNexus.Api            → コントローラー、FluentValidationバリデ
 - **リポジトリパターン**: インターフェースは `Application/Interfaces/`、実装は `Infrastructure/Repositories/`
 - **EF Core設定**: エンティティごとのFluentAPI設定は `Infrastructure/Persistence/Configurations/`（データアノテーション不使用、エンティティをPOCOに保つ）
 - **バリデーション**: FluentValidationバリデーターは `Api/Validators/` に配置
-- **認証**: JWT Bearerトークン。`Infrastructure/Services/JwtService` が `UserId`・`Email`・`Role` クレームを含むトークンを生成
+- **認証**: JWT Bearerトークン。`Infrastructure/Security/JwtService` が `UserId`・`Email`・`Role`・`Permission` クレームを含むトークンを生成
+- **認可**: カスタム属性 `[RequirePermission("products.create")]` で権限コード単位の認可制御。`Api/Authorization/` に実装
+- **パスワード**: BCrypt.Net-Next でハッシュ化。平文保存は行わない
 
 全エンティティは `CreatedAt`・`UpdatedAt` タイムスタンプと `IsActive` 論理削除フラグを持つ。物理削除は行わない。
+
+### 認可の仕組み
+
+**��限モデル**: `User ──< UserRole >── Role ──< RolePermission >── Permission`
+
+- 権限の粒度は「画面 × 操作（view / create / edit / delete）」
+- `*.view` / `*.create` / `*.edit` は各CRUD操作に対応
+- `*.delete` は論理削除（IsActive切り替え）に対応。編集権限とは分離されている
+- 論理削除は専用エンドポイント `PUT /api/{entity}/{id}/activation` で操作
+
+**バックエンド:**
+- JWTトークンのクレームにユーザーの全権限コードを含める
+- `[RequirePermission("products.create")]` でコントローラーのアクション単位で認可
+- `PermissionPolicyProvider` がポリシーを動的生成、`PermissionAuthorizationHandler` がJWTクレームから権限を検証
+
+**フロントエンド:**
+- ログイン時にロール・権限一覧を localStorage に保存
+- `hasPermission("products.create")` ユーティリティ関数で UI の出し分け
+- `AppShell` のサイドバーメニューを権限でフィルタリング
+- 編集モーダル内の「有効状態の変更」セクションは `*.delete` 権限時のみ表示
 
 ### フロントエンド — Next.js App Router
 
 ```
 src/
   app/                 → ルーティング専用
-    (機能ルート)/        → products, suppliers, product-categories, areas, stores, store-types, login, dashboard
+    (機能ルート)/        → products, suppliers, product-categories, areas, stores, store-types, users, roles, login, dashboard
   components/
-    layout/            → AppShell、AppHeader
+    layout/            → AppShell（権限ベースのサイドバー）
     table/             → MasterTable（共有テーブルスタイル）
+    modal/             → Modal、FormModal（共有モーダルスタイル）
   lib/
     api/               → エンティティごとのHTTPクライアント（client.ts がJWT付与・エラー処理を共通化）
     validators/        → フロントエンドバリデーター（バックエンドと同一ルールで実装）
     utils/             → ユーティリティ関数
-  services/            → authService（ログイン・トークン管理）
+  services/            → authService（ログイン・トークン・権限管理）
   types/               → 各エンティティのTypeScriptインターフェース
 ```
 
@@ -80,6 +105,7 @@ src/
 - デフォルトはサーバーコンポーネント。インタラクティブなコンポーネント（フォーム等）にのみ `"use client"` を付与
 - JWTアクセストークンは `localStorage` の `"accessToken"` に保存。`lib/api/client.ts` が全リクエストに自動付与
 - `/auth/login` 以外の全APIエンドポイントは `Authorization: Bearer <token>` ヘッダーが必要
+- `client.ts` は 401（セッション切れ）・403（権限不足）を日本語メッセージで返す
 - **リアルタイムバリデーション**: `handleChange` 内でバリデーター関数を呼び出し、変更したフィールドのみエラーを更新する
 - **サーバーエラー表示**: `client.ts` がAPIの `{"FieldName": ["message"]}` 形式をパースし、メッセージ文字列のみを `Error` としてスローする
 
@@ -106,3 +132,5 @@ if (Object.keys(errors).length > 0) { setFieldErrors(errors); return; }
 - エリアコード・店舗種別コード・店舗コード・商品カテゴリコードは**数字のみ**（バックエンド・フロントエンド双方でバリデーション）
 - JANコードは**13桁の数字のみ**（任意入力）
 - コードフィールドのバリデーション順序: 必須チェック → 桁数 → 数字のみ → 重複チェック（非同期）
+- エンティティの `Update()` メソッドは `IsActive` を含まない。論理削除は `SetActivation()` で分離
+- コントローラーの `UpdateRequest` レコードは `IsActive` を含まない。論理削除は `PUT {id}/activation` + `*.delete` 権限で制御
