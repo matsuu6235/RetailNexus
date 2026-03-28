@@ -21,7 +21,7 @@ export async function login(body: LoginRequest): Promise<LoginResponse> {
   });
 
   if (!res.ok) {
-    throw new Error(`Login failed: ${res.status}`);
+    throw new Error("ログインIDまたはパスワードが正しくありません。");
   }
 
   const data = (await res.json()) as LoginResponse;

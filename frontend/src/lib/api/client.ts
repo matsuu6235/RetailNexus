@@ -17,9 +17,15 @@ async function handleJsonResponse<T>(path: string, res: Response, method: string
     if (res.status === 403) {
       throw new Error("アクセス権限がありません。");
     }
+    if (res.status >= 500) {
+      throw new Error("サーバーエラーが発生しました。しばらく時間をおいて再度お試しください。");
+    }
     const text = await res.text().catch(() => "");
     try {
       const json = JSON.parse(text);
+      // ミドルウェアの { "message": "..." } 形式
+      if (typeof json.message === "string") throw new Error(json.message);
+      // FluentValidation の { "FieldName": ["message"] } 形式
       const source = json.errors ?? json;
       const messages = (Object.values(source) as unknown[]).flat().filter(Boolean) as string[];
       if (messages.length > 0) throw new Error(messages.join("\n"));
