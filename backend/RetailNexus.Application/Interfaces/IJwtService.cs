@@ -4,5 +4,5 @@ namespace RetailNexus.Application.Interfaces;
 
 public interface IJwtService
 {
-    string CreateAccessToken(User user, DateTimeOffset now, out DateTimeOffset expiresAt);
+    string CreateAccessToken(User user, IReadOnlyList<string> roles, IReadOnlyList<string> permissions, DateTimeOffset now, out DateTimeOffset expiresAt);
 }

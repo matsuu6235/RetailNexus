@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
@@ -17,7 +17,7 @@ public sealed class JwtService : IJwtService
         _config = config;
     }
 
-    public string CreateAccessToken(User user, DateTimeOffset now, out DateTimeOffset expiresAt)
+    public string CreateAccessToken(User user, IReadOnlyList<string> roles, IReadOnlyList<string> permissions, DateTimeOffset now, out DateTimeOffset expiresAt)
     {
         var issuer = _config["Jwt:Issuer"]!;
         var audience = _config["Jwt:Audience"]!;
@@ -29,9 +29,18 @@ public sealed class JwtService : IJwtService
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
-            new(JwtRegisteredClaimNames.Email, user.Email),
-            new(ClaimTypes.Role, user.Role),
+            new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
         };
+
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        foreach (var permission in permissions)
+        {
+            claims.Add(new Claim("permission", permission));
+        }
 
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
         var creds = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);

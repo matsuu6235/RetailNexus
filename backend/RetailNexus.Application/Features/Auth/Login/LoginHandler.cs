@@ -1,4 +1,4 @@
-﻿using RetailNexus.Application.Interfaces;
+using RetailNexus.Application.Interfaces;
 
 namespace RetailNexus.Application.Features.Auth.Login;
 
@@ -23,8 +23,7 @@ public class LoginHandler
             throw new UnauthorizedAccessException("Invalid credentials.");
         }
 
-        // 現時点では仮で文字列比較。後でBCrypt等に置き換える
-        if (user.PasswordHash != command.Password)
+        if (!BCrypt.Net.BCrypt.Verify(command.Password, user.PasswordHash))
         {
             throw new UnauthorizedAccessException("Invalid credentials.");
         }
@@ -36,13 +35,17 @@ public class LoginHandler
 
         await _users.SaveChangesAsync(ct);
 
-        var token = _jwt.CreateAccessToken(user, now, out var expiresAt);
+        var roles = await _users.GetRoleNamesAsync(user.UserId, ct);
+        var permissions = await _users.GetPermissionCodesAsync(user.UserId, ct);
+
+        var token = _jwt.CreateAccessToken(user, roles, permissions, now, out var expiresAt);
 
         return new LoginResponse(
             token,
             expiresAt,
             user.Email ?? string.Empty,
-            user.Role
+            roles.ToArray(),
+            permissions.ToArray()
         );
     }
 }

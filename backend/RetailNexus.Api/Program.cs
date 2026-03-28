@@ -1,6 +1,7 @@
 using System.Text;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -8,6 +9,7 @@ using RetailNexus.Application.Features.Auth.Login;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Infrastructure.Persistence;
 using RetailNexus.Infrastructure.Repositories;
+using RetailNexus.Api.Authorization;
 using RetailNexus.Infrastructure.Security;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -96,7 +98,10 @@ builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 builder.Services.AddScoped<IAreaRepository, AreaRepository>();
 builder.Services.AddScoped<IStoreRepository, StoreRepository>();
 builder.Services.AddScoped<IStoreTypeRepository, StoreTypeRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
@@ -121,13 +126,39 @@ if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<RetailNexusDbContext>();
-    var userRepo = scope.ServiceProvider.GetRequiredService<IUserRepository>();
-    var existingAdmin = await userRepo.FindByLoginIdAsync("admin", CancellationToken.None);
+
+    // Admin ロール（マイグレーションで投入済み）
+    var adminRoleId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+
+    var existingAdmin = await db.Users.FirstOrDefaultAsync(u => u.LoginId == "admin");
     if (existingAdmin is null)
     {
         var admin = new RetailNexus.Domain.Entities.User(
-            "admin", "管理者", "admin@example.com", "password123", true, null, null);
+            "admin", "管理者", "admin@example.com", BCrypt.Net.BCrypt.HashPassword("password123"), true, null, null);
         db.Users.Add(admin);
+        await db.SaveChangesAsync();
+
+        db.UserRoles.Add(new RetailNexus.Domain.Entities.UserRole
+        {
+            UserId = admin.UserId,
+            RoleId = adminRoleId
+        });
+        await db.SaveChangesAsync();
+    }
+    else if (!await db.UserRoles.AnyAsync(ur => ur.UserId == existingAdmin.UserId))
+    {
+        db.UserRoles.Add(new RetailNexus.Domain.Entities.UserRole
+        {
+            UserId = existingAdmin.UserId,
+            RoleId = adminRoleId
+        });
+
+        // 既存の平文パスワードをBCryptハッシュに変換
+        if (!existingAdmin.PasswordHash.StartsWith("$2"))
+        {
+            existingAdmin.PasswordHash = BCrypt.Net.BCrypt.HashPassword(existingAdmin.PasswordHash);
+        }
+
         await db.SaveChangesAsync();
     }
 }

@@ -1,8 +1,9 @@
-﻿namespace RetailNexus.Application.Features.Auth.Login;
+namespace RetailNexus.Application.Features.Auth.Login;
 
 public sealed record LoginResponse(
     string AccessToken,
     DateTimeOffset ExpiresAt,
     string Email,
-    string Role
+    string[] Roles,
+    string[] Permissions
 );
