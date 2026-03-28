@@ -12,7 +12,6 @@ export type CreateSupplierRequest = {
   supplierName: string;
   phoneNumber?: string;
   email?: string;
-  isActive: boolean;
 };
 
 export type UpdateSupplierRequest = CreateSupplierRequest;
@@ -55,4 +54,8 @@ export async function createSupplier(body: CreateSupplierRequest): Promise<Suppl
 
 export async function updateSupplier(id: string, body: UpdateSupplierRequest): Promise<Supplier> {
   return apiPut<UpdateSupplierRequest, Supplier>(`/api/suppliers/${id}`, body);
+}
+
+export async function changeSupplierActivation(id: string, isActive: boolean): Promise<void> {
+  return apiPut<{ isActive: boolean }, void>(`/api/suppliers/${id}/activation`, { isActive });
 }

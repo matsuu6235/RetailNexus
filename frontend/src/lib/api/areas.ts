@@ -13,7 +13,6 @@ export type AreaListResponse = {
 export type CreateAreaRequest = {
   areaCd: string;
   areaName: string;
-  isActive: boolean;
 };
 
 export type UpdateAreaRequest = CreateAreaRequest;
@@ -76,4 +75,8 @@ export async function updateArea(id: string, body: UpdateAreaRequest): Promise<A
 
 export async function reorderAreas(areaIds: string[]): Promise<Area[]> {
   return apiPut<ReorderAreasRequest, Area[]>("/api/areas/display-order", { areaIds });
+}
+
+export async function changeAreaActivation(id: string, isActive: boolean): Promise<void> {
+  return apiPut<{ isActive: boolean }, void>(`/api/areas/${id}/activation`, { isActive });
 }

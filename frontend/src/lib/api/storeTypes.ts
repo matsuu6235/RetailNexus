@@ -4,7 +4,6 @@ import type { StoreType } from "@/types/storeTypes";
 export type CreateStoreTypeRequest = {
   storeTypeCd: string;
   storeTypeName: string;
-  isActive: boolean;
 };
 
 export type UpdateStoreTypeRequest = CreateStoreTypeRequest;
@@ -43,4 +42,8 @@ export async function updateStoreType(id: string, body: UpdateStoreTypeRequest):
 
 export async function reorderStoreTypes(storeTypeIds: string[]): Promise<StoreType[]> {
   return apiPut<ReorderStoreTypesRequest, StoreType[]>("/api/storetypes/display-order", { storeTypeIds });
+}
+
+export async function changeStoreTypeActivation(id: string, isActive: boolean): Promise<void> {
+  return apiPut<{ isActive: boolean }, void>(`/api/storetypes/${id}/activation`, { isActive });
 }

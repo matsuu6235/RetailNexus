@@ -5,10 +5,12 @@ import {
   createSupplier,
   getSupplierById,
   updateSupplier,
+  changeSupplierActivation,
   type CreateSupplierRequest,
   type UpdateSupplierRequest,
 } from "@/lib/api/suppliers";
 import { validateSupplier, type SupplierFieldErrors } from "@/lib/validators/supplierValidator";
+import { hasPermission } from "@/services/authService";
 import styles from "@/components/modal/FormModal.module.css";
 
 type SupplierFormProps = {
@@ -23,13 +25,15 @@ export default function SupplierForm({ mode, editId, onSave, onCancel }: Supplie
     supplierName: "",
     phoneNumber: "",
     email: "",
-    isActive: true,
   });
   const [supplierCode, setSupplierCode] = useState("");
   const [loading, setLoading] = useState(mode === "edit");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<SupplierFieldErrors>({});
+  const [canDelete, setCanDelete] = useState(false);
+  const [currentIsActive, setCurrentIsActive] = useState(true);
+  const [changingActivation, setChangingActivation] = useState(false);
 
   useEffect(() => {
     if (mode !== "edit" || !editId) return;
@@ -48,8 +52,8 @@ export default function SupplierForm({ mode, editId, onSave, onCancel }: Supplie
             supplierName: supplier.supplierName,
             phoneNumber: supplier.phoneNumber ?? "",
             email: supplier.email ?? "",
-            isActive: supplier.isActive,
           });
+          setCurrentIsActive(supplier.isActive);
         }
       } catch (e) {
         if (!cancelled) {
@@ -64,6 +68,10 @@ export default function SupplierForm({ mode, editId, onSave, onCancel }: Supplie
       cancelled = true;
     };
   }, [mode, editId]);
+
+  useEffect(() => {
+    setCanDelete(hasPermission("suppliers.delete"));
+  }, []);
 
   const handleChange = (field: keyof CreateSupplierRequest, value: string | boolean) => {
     const updatedForm = { ...form, [field]: value };
@@ -91,14 +99,12 @@ export default function SupplierForm({ mode, editId, onSave, onCancel }: Supplie
           supplierName: form.supplierName.trim(),
           phoneNumber: form.phoneNumber?.trim() ?? "",
           email: form.email?.trim() ?? "",
-          isActive: form.isActive,
         });
       } else {
         await updateSupplier(editId!, {
           supplierName: form.supplierName.trim(),
           phoneNumber: form.phoneNumber?.trim() || "",
           email: form.email?.trim() || "",
-          isActive: form.isActive,
         });
       }
 
@@ -164,11 +170,6 @@ export default function SupplierForm({ mode, editId, onSave, onCancel }: Supplie
         {fieldErrors.email && <small className={styles.errorText}>{fieldErrors.email}</small>}
       </label>
 
-      <label className={styles.checkboxField}>
-        <input type="checkbox" checked={form.isActive} onChange={(e) => handleChange("isActive", e.target.checked)} />
-        <span>有効</span>
-      </label>
-
       {error && <div className={styles.errorBox}>{error}</div>}
 
       <div className={styles.actions}>
@@ -179,6 +180,36 @@ export default function SupplierForm({ mode, editId, onSave, onCancel }: Supplie
           {mode === "create" ? (submitting ? "作成中..." : "作成") : (submitting ? "更新中..." : "更新")}
         </button>
       </div>
+
+      {mode === "edit" && canDelete && (
+        <fieldset className={styles.field} style={{ border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px", marginTop: "8px" }}>
+          <legend style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a", padding: "0 4px" }}>有効状態の変更</legend>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "13px" }}>
+              現在の状態: <strong>{currentIsActive ? "有効" : "無効"}</strong>
+            </span>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  setChangingActivation(true);
+                  await changeSupplierActivation(editId!, !currentIsActive);
+                  setCurrentIsActive(!currentIsActive);
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "状態の変更に失敗しました。");
+                } finally {
+                  setChangingActivation(false);
+                }
+              }}
+              disabled={changingActivation}
+              className={styles.submitButton}
+              style={currentIsActive ? { backgroundColor: "#dc2626" } : {}}
+            >
+              {changingActivation ? "変更中..." : currentIsActive ? "無効化する" : "有効化する"}
+            </button>
+          </div>
+        </fieldset>
+      )}
     </form>
   );
 }

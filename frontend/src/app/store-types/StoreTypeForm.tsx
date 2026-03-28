@@ -5,10 +5,12 @@ import {
   createStoreType,
   getStoreTypeById,
   updateStoreType,
+  changeStoreTypeActivation,
   type CreateStoreTypeRequest,
   type UpdateStoreTypeRequest,
 } from "@/lib/api/storeTypes";
 import { validateStoreType, type StoreTypeFieldErrors } from "@/lib/validators/storeTypeValidator";
+import { hasPermission } from "@/services/authService";
 import styles from "@/components/modal/FormModal.module.css";
 
 type StoreTypeFormProps = {
@@ -22,12 +24,14 @@ export default function StoreTypeForm({ mode, editId, onSave, onCancel }: StoreT
   const [form, setForm] = useState<CreateStoreTypeRequest>({
     storeTypeCd: "",
     storeTypeName: "",
-    isActive: true,
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<StoreTypeFieldErrors>({});
   const [loading, setLoading] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
+  const [currentIsActive, setCurrentIsActive] = useState(true);
+  const [changingActivation, setChangingActivation] = useState(false);
 
   useEffect(() => {
     if (mode !== "edit" || !editId) return;
@@ -42,8 +46,8 @@ export default function StoreTypeForm({ mode, editId, onSave, onCancel }: StoreT
           setForm({
             storeTypeCd: data.storeTypeCd,
             storeTypeName: data.storeTypeName,
-            isActive: data.isActive,
           });
+          setCurrentIsActive(data.isActive);
         }
       } catch (e) {
         if (!cancelled) {
@@ -58,6 +62,10 @@ export default function StoreTypeForm({ mode, editId, onSave, onCancel }: StoreT
       cancelled = true;
     };
   }, [mode, editId]);
+
+  useEffect(() => {
+    setCanDelete(hasPermission("store-types.delete"));
+  }, []);
 
   const handleChange = (field: keyof CreateStoreTypeRequest, value: string | boolean) => {
     const updatedForm = { ...form, [field]: value };
@@ -82,7 +90,6 @@ export default function StoreTypeForm({ mode, editId, onSave, onCancel }: StoreT
       const payload = {
         storeTypeCd: form.storeTypeCd.trim(),
         storeTypeName: form.storeTypeName.trim(),
-        isActive: form.isActive,
       };
 
       if (mode === "edit") {
@@ -135,16 +142,6 @@ export default function StoreTypeForm({ mode, editId, onSave, onCancel }: StoreT
         <span className={styles.hint}>20文字以内で入力してください。</span>
       </div>
 
-      <div className={styles.checkboxField}>
-        <input
-          type="checkbox"
-          id="isActive"
-          checked={form.isActive}
-          onChange={(e) => handleChange("isActive", e.target.checked)}
-        />
-        <label htmlFor="isActive">有効</label>
-      </div>
-
       {error && <div className={styles.errorBox}>{error}</div>}
 
       <div className={styles.actions}>
@@ -155,6 +152,36 @@ export default function StoreTypeForm({ mode, editId, onSave, onCancel }: StoreT
           {submitting ? "保存中..." : "保存"}
         </button>
       </div>
+
+      {mode === "edit" && canDelete && (
+        <fieldset className={styles.field} style={{ border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px", marginTop: "8px" }}>
+          <legend style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a", padding: "0 4px" }}>有効状態の変更</legend>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "13px" }}>
+              現在の状態: <strong>{currentIsActive ? "有効" : "無効"}</strong>
+            </span>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  setChangingActivation(true);
+                  await changeStoreTypeActivation(editId!, !currentIsActive);
+                  setCurrentIsActive(!currentIsActive);
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "状態の変更に失敗しました。");
+                } finally {
+                  setChangingActivation(false);
+                }
+              }}
+              disabled={changingActivation}
+              className={styles.submitButton}
+              style={currentIsActive ? { backgroundColor: "#dc2626" } : {}}
+            >
+              {changingActivation ? "変更中..." : currentIsActive ? "無効化する" : "有効化する"}
+            </button>
+          </div>
+        </fieldset>
+      )}
     </form>
   );
 }

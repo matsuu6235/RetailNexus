@@ -5,10 +5,12 @@ import {
   createProductCategory,
   getProductCategoryById,
   updateProductCategory,
+  changeProductCategoryActivation,
   type CreateProductCategoryRequest,
   type UpdateProductCategoryRequest,
 } from "@/lib/api/productCategories";
 import { validateProductCategory, type ProductCategoryFieldErrors } from "@/lib/validators/productCategoryValidator";
+import { hasPermission } from "@/services/authService";
 import styles from "@/components/modal/FormModal.module.css";
 
 type ProductCategoryFormProps = {
@@ -23,12 +25,14 @@ export default function ProductCategoryForm({ mode, editId, onSave, onCancel }: 
     productCategoryCd: "",
     categoryAbbreviation: "",
     productCategoryName: "",
-    isActive: true,
   });
   const [loading, setLoading] = useState(mode === "edit");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<ProductCategoryFieldErrors>({});
+  const [canDelete, setCanDelete] = useState(false);
+  const [currentIsActive, setCurrentIsActive] = useState(true);
+  const [changingActivation, setChangingActivation] = useState(false);
 
   useEffect(() => {
     if (mode !== "edit" || !editId) return;
@@ -46,8 +50,8 @@ export default function ProductCategoryForm({ mode, editId, onSave, onCancel }: 
             productCategoryCd: item.productCategoryCd,
             categoryAbbreviation: item.categoryAbbreviation,
             productCategoryName: item.productCategoryName,
-            isActive: item.isActive,
           });
+          setCurrentIsActive(item.isActive);
         }
       } catch (e) {
         if (!cancelled) {
@@ -62,6 +66,10 @@ export default function ProductCategoryForm({ mode, editId, onSave, onCancel }: 
       cancelled = true;
     };
   }, [mode, editId]);
+
+  useEffect(() => {
+    setCanDelete(hasPermission("product-categories.delete"));
+  }, []);
 
   const handleChange = (field: keyof CreateProductCategoryRequest, value: string | boolean) => {
     const updatedForm = { ...form, [field]: value };
@@ -89,14 +97,12 @@ export default function ProductCategoryForm({ mode, editId, onSave, onCancel }: 
           productCategoryCd: form.productCategoryCd.trim(),
           categoryAbbreviation: form.categoryAbbreviation.trim(),
           productCategoryName: form.productCategoryName.trim(),
-          isActive: form.isActive,
         });
       } else {
         await updateProductCategory(editId!, {
           productCategoryCd: form.productCategoryCd.trim(),
           categoryAbbreviation: form.categoryAbbreviation.trim(),
           productCategoryName: form.productCategoryName.trim(),
-          isActive: form.isActive,
         });
       }
 
@@ -133,11 +139,6 @@ export default function ProductCategoryForm({ mode, editId, onSave, onCancel }: 
         {fieldErrors.productCategoryName && <small className={styles.errorText}>{fieldErrors.productCategoryName}</small>}
       </label>
 
-      <label className={styles.checkboxField}>
-        <input type="checkbox" checked={form.isActive} onChange={(e) => handleChange("isActive", e.target.checked)} />
-        <span>有効</span>
-      </label>
-
       {error && <div className={styles.errorBox}>{error}</div>}
 
       <div className={styles.actions}>
@@ -148,6 +149,36 @@ export default function ProductCategoryForm({ mode, editId, onSave, onCancel }: 
           {mode === "create" ? (submitting ? "登録中..." : "登録") : (submitting ? "更新中..." : "更新")}
         </button>
       </div>
+
+      {mode === "edit" && canDelete && (
+        <fieldset className={styles.field} style={{ border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px", marginTop: "8px" }}>
+          <legend style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a", padding: "0 4px" }}>有効状態の変更</legend>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "13px" }}>
+              現在の状態: <strong>{currentIsActive ? "有効" : "無効"}</strong>
+            </span>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  setChangingActivation(true);
+                  await changeProductCategoryActivation(editId!, !currentIsActive);
+                  setCurrentIsActive(!currentIsActive);
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "状態の変更に失敗しました。");
+                } finally {
+                  setChangingActivation(false);
+                }
+              }}
+              disabled={changingActivation}
+              className={styles.submitButton}
+              style={currentIsActive ? { backgroundColor: "#dc2626" } : {}}
+            >
+              {changingActivation ? "変更中..." : currentIsActive ? "無効化する" : "有効化する"}
+            </button>
+          </div>
+        </fieldset>
+      )}
     </form>
   );
 }

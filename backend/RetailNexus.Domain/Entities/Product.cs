@@ -28,13 +28,18 @@ public class Product
         ProductCategoryCode = productCategoryCode;
     }
 
-    public void Update(string janCode, string productName, decimal price, decimal cost, string productCategoryCode, bool isActive)
+    public void Update(string janCode, string productName, decimal price, decimal cost, string productCategoryCode)
     {
         JanCode = janCode;
         ProductName = productName;
         Price = price;
         Cost = cost;
         ProductCategoryCode = productCategoryCode;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void SetActivation(bool isActive)
+    {
         IsActive = isActive;
         UpdatedAt = DateTimeOffset.UtcNow;
     }

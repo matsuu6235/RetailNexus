@@ -24,10 +24,16 @@ public class Area
         UpdatedBy = actorUserId;
     }
 
-    public void Update(string areaCd, string areaName, bool isActive, Guid actorUserId)
+    public void Update(string areaCd, string areaName, Guid actorUserId)
     {
         AreaCd = areaCd.Trim();
         AreaName = areaName.Trim();
+        UpdatedBy = actorUserId;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void SetActivation(bool isActive, Guid actorUserId)
+    {
         IsActive = isActive;
         UpdatedBy = actorUserId;
         UpdatedAt = DateTimeOffset.UtcNow;

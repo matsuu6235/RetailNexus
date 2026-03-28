@@ -22,7 +22,6 @@ export type UpdateProductRequest = {
   price: number;
   cost: number;
   productCategoryCode: string;
-  isActive: boolean;
 };
 
 export type ProductSearchParams = {
@@ -79,4 +78,8 @@ export async function createProduct(body: CreateProductRequest): Promise<Product
 
 export async function updateProduct(id: string, body: UpdateProductRequest): Promise<Product> {
   return apiPut<UpdateProductRequest, Product>(`/api/products/${id}`, body);
+}
+
+export async function changeProductActivation(id: string, isActive: boolean): Promise<void> {
+  return apiPut<{ isActive: boolean }, void>(`/api/products/${id}/activation`, { isActive });
 }

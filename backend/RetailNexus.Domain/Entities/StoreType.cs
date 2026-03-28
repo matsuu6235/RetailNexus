@@ -24,10 +24,16 @@ public class StoreType
         UpdatedBy = actorUserId;
     }
 
-    public void Update(string storeTypeCd, string storeTypeName, bool isActive, Guid actorUserId)
+    public void Update(string storeTypeCd, string storeTypeName, Guid actorUserId)
     {
         StoreTypeCd = storeTypeCd.Trim();
         StoreTypeName = storeTypeName.Trim();
+        UpdatedBy = actorUserId;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void SetActivation(bool isActive, Guid actorUserId)
+    {
         IsActive = isActive;
         UpdatedBy = actorUserId;
         UpdatedAt = DateTimeOffset.UtcNow;

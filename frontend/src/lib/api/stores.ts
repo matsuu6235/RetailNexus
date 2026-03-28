@@ -12,7 +12,6 @@ export type CreateStoreRequest = {
   storeName: string;
   areaId: string;
   storeTypeId: string;
-  isActive: boolean;
 };
 
 export type UpdateStoreRequest = CreateStoreRequest;
@@ -54,4 +53,8 @@ export async function createStore(body: CreateStoreRequest): Promise<Store> {
 
 export async function updateStore(id: string, body: UpdateStoreRequest): Promise<Store> {
   return apiPut<UpdateStoreRequest, Store>(`/api/stores/${id}`, body);
+}
+
+export async function changeStoreActivation(id: string, isActive: boolean): Promise<void> {
+  return apiPut<{ isActive: boolean }, void>(`/api/stores/${id}/activation`, { isActive });
 }

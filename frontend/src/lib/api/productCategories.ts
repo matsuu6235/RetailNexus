@@ -14,7 +14,6 @@ export type CreateProductCategoryRequest = {
   productCategoryCd: string;
   categoryAbbreviation: string;
   productCategoryName: string;
-  isActive: boolean;
 };
 
 export type UpdateProductCategoryRequest = CreateProductCategoryRequest;
@@ -91,4 +90,8 @@ export async function reorderProductCategories(productCategoryIds: string[]) {
     "/api/productcategories/display-order",
     { productCategoryIds }
   );
+}
+
+export async function changeProductCategoryActivation(id: string, isActive: boolean): Promise<void> {
+  return apiPut<{ isActive: boolean }, void>(`/api/productcategories/${id}/activation`, { isActive });
 }

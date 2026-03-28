@@ -6,7 +6,7 @@ type ProductFormFields = {
   productCategoryCode: string;
 };
 
-type UpdateProductFormFields = ProductFormFields & { isActive: boolean };
+type UpdateProductFormFields = ProductFormFields;
 
 export type ProductFieldErrors = Partial<Record<keyof ProductFormFields, string>>;
 export type UpdateProductFieldErrors = Partial<Record<keyof UpdateProductFormFields, string>>;

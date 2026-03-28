@@ -28,11 +28,17 @@ public class ProductCategory
         UpdatedBy = actorUserId;
     }
 
-    public void Update(string cd, string categoryAbbreviation, string name, bool isActive, Guid actorUserId)
+    public void Update(string cd, string categoryAbbreviation, string name, Guid actorUserId)
     {
         ProductCategoryCd = cd.Trim();
         CategoryAbbreviation = categoryAbbreviation.Trim().ToUpperInvariant();
         ProductCategoryName = name.Trim();
+        UpdatedBy = actorUserId;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void SetActivation(bool isActive, Guid actorUserId)
+    {
         IsActive = isActive;
         UpdatedBy = actorUserId;
         UpdatedAt = DateTimeOffset.UtcNow;

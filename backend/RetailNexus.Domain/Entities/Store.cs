@@ -29,11 +29,17 @@ public class Store
         UpdatedBy = actorUserId;
     }
 
-    public void Update(string storeName, Guid areaId, Guid storeTypeId, bool isActive, Guid actorUserId)
+    public void Update(string storeName, Guid areaId, Guid storeTypeId, Guid actorUserId)
     {
         StoreName = storeName.Trim();
         AreaId = areaId;
         StoreTypeId = storeTypeId;
+        UpdatedBy = actorUserId;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void SetActivation(bool isActive, Guid actorUserId)
+    {
         IsActive = isActive;
         UpdatedBy = actorUserId;
         UpdatedAt = DateTimeOffset.UtcNow;

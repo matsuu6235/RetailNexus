@@ -36,10 +36,15 @@ public class Supplier
         string supplierName,
         string? phoneNumber,
         string? email,
-        bool isActive,
         Guid actorUserId)
     {
         SetBasic(supplierName, phoneNumber, email);
+        UpdatedBy = actorUserId;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void SetActivation(bool isActive, Guid actorUserId)
+    {
         IsActive = isActive;
         UpdatedBy = actorUserId;
         UpdatedAt = DateTimeOffset.UtcNow;
