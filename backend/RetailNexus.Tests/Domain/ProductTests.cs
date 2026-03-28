@@ -5,10 +5,12 @@ namespace RetailNexus.Tests.Domain;
 
 public class ProductTests
 {
+    private readonly Guid _actorUserId = Guid.NewGuid();
+
     [Fact]
     public void Constructor_ShouldSetProperties()
     {
-        var product = new Product("FD-000001", "4901234567890", "テスト商品", 1000m, 500m, "CAT01");
+        var product = new Product("FD-000001", "4901234567890", "テスト商品", 1000m, 500m, "CAT01", _actorUserId);
 
         product.ProductCode.Should().Be("FD-000001");
         product.JanCode.Should().Be("4901234567890");
@@ -17,6 +19,8 @@ public class ProductTests
         product.Cost.Should().Be(500m);
         product.ProductCategoryCode.Should().Be("CAT01");
         product.IsActive.Should().BeTrue();
+        product.CreatedBy.Should().Be(_actorUserId);
+        product.UpdatedBy.Should().Be(_actorUserId);
     }
 
     [Fact]
@@ -36,11 +40,21 @@ public class ProductTests
     }
 
     [Fact]
+    public void Constructor_ShouldAllowNullCreatedBy()
+    {
+        var product = new Product("FD-000001", "", "テスト商品", 100m, 50m, "CAT01");
+
+        product.CreatedBy.Should().BeNull();
+        product.UpdatedBy.Should().BeNull();
+    }
+
+    [Fact]
     public void Update_ShouldModifyAllProperties()
     {
-        var product = new Product("FD-000001", "4901234567890", "テスト商品", 1000m, 500m, "CAT01");
+        var product = new Product("FD-000001", "4901234567890", "テスト商品", 1000m, 500m, "CAT01", _actorUserId);
+        var updater = Guid.NewGuid();
 
-        product.Update("4901234567891", "更新商品", 2000m, 800m, "CAT02");
+        product.Update("4901234567891", "更新商品", 2000m, 800m, "CAT02", updater);
 
         product.ProductCode.Should().Be("FD-000001");
         product.JanCode.Should().Be("4901234567891");
@@ -48,17 +62,20 @@ public class ProductTests
         product.Price.Should().Be(2000m);
         product.Cost.Should().Be(800m);
         product.ProductCategoryCode.Should().Be("CAT02");
+        product.UpdatedBy.Should().Be(updater);
     }
 
     [Fact]
-    public void SetActivation_ShouldChangeIsActiveAndUpdateTimestamp()
+    public void SetActivation_ShouldChangeIsActiveAndUpdateAudit()
     {
-        var product = new Product("FD-000001", "", "テスト商品", 100m, 50m, "CAT01");
+        var product = new Product("FD-000001", "", "テスト商品", 100m, 50m, "CAT01", _actorUserId);
+        var updater = Guid.NewGuid();
         var before = product.UpdatedAt;
 
-        product.SetActivation(false);
+        product.SetActivation(false, updater);
 
         product.IsActive.Should().BeFalse();
+        product.UpdatedBy.Should().Be(updater);
         product.UpdatedAt.Should().BeOnOrAfter(before);
     }
 

@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -66,13 +68,16 @@ public sealed class ProductsController : ControllerBase
         }
         var productCode = $"{abbreviation}-{nextSeq:D6}";
 
+        TryGetCurrentUserId(out var userId);
+
         var product = new Product(
             productCode,
             req.JanCode.Trim(),
             req.ProductName.Trim(),
             req.Price,
             req.Cost,
-            categoryCode);
+            categoryCode,
+            userId);
 
         await _productRepo.AddAsync(product, ct);
         await _productRepo.SaveChangesAsync(ct);
@@ -94,12 +99,15 @@ public sealed class ProductsController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
+        TryGetCurrentUserId(out var userId);
+
         product.Update(
             req.JanCode.Trim(),
             req.ProductName.Trim(),
             req.Price,
             req.Cost,
-            req.ProductCategoryCode.Trim());
+            req.ProductCategoryCode.Trim(),
+            userId);
 
         await _productRepo.SaveChangesAsync(ct);
 
@@ -116,7 +124,9 @@ public sealed class ProductsController : ControllerBase
         if (product is null)
             return NotFound();
 
-        product.SetActivation(req.IsActive);
+        TryGetCurrentUserId(out var userId);
+
+        product.SetActivation(req.IsActive, userId);
         await _productRepo.SaveChangesAsync(ct);
 
         return Ok(Map(product));
@@ -160,6 +170,14 @@ public sealed class ProductsController : ControllerBase
             pageSize,
             items = items.Select(Map)
         });
+    }
+
+    private bool TryGetCurrentUserId(out Guid userId)
+    {
+        var raw = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                  ?? User.FindFirstValue(ClaimTypes.NameIdentifier)
+                  ?? User.FindFirstValue("sub");
+        return Guid.TryParse(raw, out userId);
     }
 
     private static ProductResponse Map(Product x)

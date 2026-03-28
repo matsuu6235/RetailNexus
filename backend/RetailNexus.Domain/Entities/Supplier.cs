@@ -8,10 +8,10 @@ public class Supplier
     public string? PhoneNumber { get; private set; }
     public string? Email { get; private set; }
     public bool IsActive { get; private set; } = true;
-    public DateTimeOffset CreatedAt { get; private set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; private set; } = DateTimeOffset.UtcNow;
-    public Guid CreatedBy { get; private set; }
     public Guid UpdatedBy { get; private set; }
+    public DateTimeOffset CreatedAt { get; private set; } = DateTimeOffset.UtcNow;
+    public Guid CreatedBy { get; private set; }
 
     private Supplier()
     {

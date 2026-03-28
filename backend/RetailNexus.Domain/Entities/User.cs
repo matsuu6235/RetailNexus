@@ -7,13 +7,12 @@ public class User
     public string UserName { get; private set; } = string.Empty;
     public string? Email { get; private set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
-    public bool IsActive { get; set; } = true;
-
     public DateTimeOffset? LastLoginAt { get; set; }
-    public DateTimeOffset CreatedAt { get; private set; } = DateTimeOffset.UtcNow;
-    public Guid? CreatedBy { get; private set; }
+    public bool IsActive { get; set; } = true;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     public Guid? UpdatedBy { get; set; }
+    public DateTimeOffset CreatedAt { get; private set; } = DateTimeOffset.UtcNow;
+    public Guid? CreatedBy { get; private set; }
 
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 

@@ -6,11 +6,10 @@ public class Role
     public string RoleName { get; set; } = string.Empty;
     public string? Description { get; set; }
     public bool IsActive { get; set; } = true;
-
-    public DateTimeOffset CreatedAt { get; private set; } = DateTimeOffset.UtcNow;
-    public Guid? CreatedBy { get; private set; }
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     public Guid? UpdatedBy { get; set; }
+    public DateTimeOffset CreatedAt { get; private set; } = DateTimeOffset.UtcNow;
+    public Guid? CreatedBy { get; private set; }
 
     public ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();

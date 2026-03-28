@@ -56,9 +56,15 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasDefaultValueSql("now()")
             .IsRequired();
 
+        b.Property(x => x.UpdatedBy)
+            .HasColumnName("updated_by");
+
         b.Property(x => x.CreatedAt)
             .HasColumnName("created_at")
             .HasDefaultValueSql("now()")
             .IsRequired();
+
+        b.Property(x => x.CreatedBy)
+            .HasColumnName("created_by");
     }
 }
