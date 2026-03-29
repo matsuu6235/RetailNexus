@@ -42,7 +42,7 @@ npm run lint      # リント実行
 ### バックエンド — クリーンアーキテクチャ
 
 ```
-RetailNexus.Domain         → エンティティのみ（依存なし）
+RetailNexus.Domain         → エンティティ（Entities/）+ Enum（Enums/）（依存なし）
 RetailNexus.Application    → ユースケース、リポジトリインターフェース
 RetailNexus.Infrastructure → EF Core DbContext、リポジトリ実装、JWTサービス
 RetailNexus.Api            → コントローラー、FluentValidationバリデーター、認可属性、DI設定（Program.cs）
@@ -58,15 +58,16 @@ RetailNexus.Tests          → ユニットテスト（xUnit + FluentAssertions 
 - **認可**: カスタム属性 `[RequirePermission("products.create")]` で権限コード単位の認可制御。`Api/Authorization/` に実装
 - **パスワード**: BCrypt.Net-Next でハッシュ化。平文保存は行わない
 
-全エンティティは `CreatedAt`・`UpdatedAt` タイムスタンプと `IsActive` 論理削除フラグを持つ。物理削除は行わない。
+全エンティティは `CreatedAt`・`CreatedBy`・`UpdatedAt`・`UpdatedBy` タイムスタンプ/監査カラムと `IsActive` 論理削除フラグを持つ。物理削除は行わない。明細エンティティ（PurchaseOrderDetail, StoreRequestDetail）も同様に監査カラムを持つ。
 
 ### 認可の仕組み
 
 **��限モデル**: `User ──< UserRole >── Role ──< RolePermission >── Permission`
 
-- 権限の粒度は「画面 × 操作（view / create / edit / delete）」
+- 権限の粒度は「画面 × 操作（view / create / edit / delete / approve）」
 - `*.view` / `*.create` / `*.edit` は各CRUD操作に対応
 - `*.delete` は論理削除（IsActive切り替え）に対応。編集権限とは分離されている
+- `*.approve` は承認操作に対応（発注・発送依頼の承認/差戻し）
 - 論理削除は専用エンドポイント `PUT /api/{entity}/{id}/activation` で操作
 
 **バックエンド:**
@@ -80,12 +81,27 @@ RetailNexus.Tests          → ユニットテスト（xUnit + FluentAssertions 
 - `AppShell` のサイドバーメニューを権限でフィルタリング
 - 編集モーダル内の「有効状態の変更」セクションは `*.delete` 権限時のみ表示
 
+### 発注・発送依頼（ヘッダ+明細パターン）
+
+**エンティティ構成**: ヘッダ（PurchaseOrder / StoreRequest）+ 明細（PurchaseOrderDetail / StoreRequestDetail）
+
+**承認フロー**: Draft → AwaitingApproval → Approved → 後続ステータス遷移
+- 承認申請: `PUT {id}/submit`（`*.edit` 権限）
+- 承認: `PUT {id}/approve`（`*.approve` 権限）— 承認者ID・日時を記録
+- 差戻し: `PUT {id}/reject`（`*.approve` 権限）— Draft に戻す
+
+**明細の個別更新方式**: 更新時、フロントからの明細リストで `DetailId` が null なら INSERT（`DbSet.Add` で明示的に Added）、値ありなら UPDATE、送信されなかった既存行は DELETE
+
+**自動採番**: PO-000001（発注）、SR-000001（発送依頼）
+
+**Enum**: `Domain/Enums/` に配置（`PurchaseOrderStatus`, `StoreRequestStatus`）
+
 ### フロントエンド — Next.js App Router
 
 ```
 src/
   app/                 → ルーティング専用
-    (機能ルート)/        → products, suppliers, product-categories, areas, stores, store-types, users, roles, login, dashboard
+    (機能ルート)/        → products, suppliers, product-categories, areas, stores, store-types, users, roles, login, dashboard, purchase-orders, store-requests
   components/
     layout/            → AppShell（権限ベースのサイドバー）
     table/             → MasterTable（共有テーブルスタイル）
@@ -134,3 +150,5 @@ if (Object.keys(errors).length > 0) { setFieldErrors(errors); return; }
 - コードフィールドのバリデーション順序: 必須チェック → 桁数 → 数字のみ → 重複チェック（非同期）
 - エンティティの `Update()` メソッドは `IsActive` を含まない。論理削除は `SetActivation()` で分離
 - コントローラーの `UpdateRequest` レコードは `IsActive` を含まない。論理削除は `PUT {id}/activation` + `*.delete` 権限で制御
+- 発注・発送依頼の明細で同一商品の重複行は許可しない（バックエンド・フロントエンド双方でバリデーション）
+- 発注・発送依頼の日付フィールド（発注日・希望到着日等）は過去日付を選択不可（フロントエンドの `min` 属性で制御）
