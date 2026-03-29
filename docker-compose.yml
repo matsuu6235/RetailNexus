@@ -28,6 +28,8 @@ services:
       Jwt__Audience: "RetailNexus"
       Jwt__AccessTokenMinutes: "30"
       ASPNETCORE_ENVIRONMENT: "Development"
+      Cors__AllowedOrigins__0: "http://localhost:3000"
+      Cors__AllowedOrigins__1: ${CORS_ORIGIN:-http://localhost:3000}
     depends_on:
       db:
         condition: service_healthy
