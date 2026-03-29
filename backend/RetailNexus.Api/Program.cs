@@ -92,6 +92,8 @@ builder.Services.AddSwaggerGen(options =>
             Array.Empty<string>()
         }
     });
+
+    options.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
 });
 
 builder.Services.AddDbContext<RetailNexusDbContext>(options =>
