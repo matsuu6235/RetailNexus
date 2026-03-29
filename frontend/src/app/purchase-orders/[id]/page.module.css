@@ -1,0 +1,207 @@
+.page {
+    padding: 32px;
+    max-width: 1080px;
+    margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, -system-ui, sans-serif;
+}
+
+.headerRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 12px;
+}
+
+.title {
+    font-size: 26px;
+    font-weight: 700;
+    margin: 0;
+    color: #0f172a;
+}
+
+.orderNumber {
+    font-size: 14px;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+.backLink {
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    color: #0f172a;
+    font-size: 13px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.section {
+    margin-bottom: 24px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+.sectionTitle {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: #0f172a;
+}
+
+.infoGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+
+.infoLabel {
+    font-size: 11px;
+    color: #64748b;
+    margin-bottom: 2px;
+}
+
+.infoValue {
+    font-size: 14px;
+    color: #0f172a;
+    font-weight: 500;
+}
+
+.statusBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.statusDraft { background: #f1f5f9; color: #475569; }
+.statusAwaitingApproval { background: #fef3c7; color: #92400e; }
+.statusApproved { background: #dbeafe; color: #1e40af; }
+.statusInProgress { background: #e0e7ff; color: #3730a3; }
+.statusReceived { background: #d1fae5; color: #065f46; }
+.statusCancelled { background: #fee2e2; color: #991b1b; }
+
+.detailScroll {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.detailTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.detailTable thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.detailTable th,
+.detailTable td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 13px;
+    text-align: left;
+}
+
+.detailTable th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #334155;
+}
+
+.totalRow {
+    font-weight: 700;
+    font-size: 15px;
+    text-align: right;
+    padding-top: 12px;
+    color: #0f172a;
+}
+
+.actionBar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+}
+
+.actionButton {
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid;
+}
+
+.actionButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btnPrimary {
+    background: #4f46e5;
+    border-color: #4f46e5;
+    color: #fff;
+}
+
+.btnSuccess {
+    background: #059669;
+    border-color: #059669;
+    color: #fff;
+}
+
+.btnWarning {
+    background: #d97706;
+    border-color: #d97706;
+    color: #fff;
+}
+
+.btnDanger {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #fff;
+}
+
+.btnOutline {
+    background: #fff;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+
+.editLink {
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
+}
+
+.errorBox {
+    padding: 12px;
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+@media (max-width: 960px) {
+    .page { padding: 20px; }
+    .infoGrid { grid-template-columns: 1fr; }
+}
