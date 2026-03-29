@@ -80,6 +80,29 @@ src/
 | 発送依頼 | 一覧・作成・編集・詳細・承認フロー（下書き→承認待ち→承認済→ステータス遷移→入荷済）・商品重複チェック・依頼元≠依頼先バリデーション・明細個別更新・自動採番（SR-000001） |
 | テスト | ドメインエンティティ・ログインハンドラー・JWTサービス・バリデーター（192件） |
 
+## 画面イメージ
+
+### ログイン
+![ログイン画面](docs/images/login.png)
+
+### 商品一覧（検索・フィルター・ページネーション）
+![商品一覧](docs/images/products-list.png)
+
+### 商品編集（リアルタイムバリデーション）
+![商品編集モーダル](docs/images/product-edit-validation.png)
+
+### 発注作成（ヘッダ + 明細入力）
+![発注作成画面](docs/images/purchase-order-create.png)
+
+### 発注詳細（承認フロー・ステータス遷移）
+![発注詳細画面](docs/images/purchase-order-detail.png)
+
+### ロール管理（カテゴリ別権限設定）
+![ロール管理](docs/images/role-permissions.png)
+
+### 監査ログ（変更履歴の自動記録）
+![監査ログ画面](docs/images/audit-logs.png)
+
 ## 今後の予定
 
 - 在庫管理・店舗間移動・発注点管理
