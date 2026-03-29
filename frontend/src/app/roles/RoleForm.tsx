@@ -38,6 +38,21 @@ type GroupedPermissions = {
   permissions: Permission[];
 };
 
+const categoryOrder = [
+  "商品管理",
+  "仕入先管理",
+  "商品カテゴリ管理",
+  "エリア管理",
+  "店舗管理",
+  "店舗種別管理",
+  "発注管理",
+  "発送依頼",
+  "ユーザー管理",
+  "ロール管理",
+  "監査ログ",
+  "ダッシュボード",
+];
+
 function groupByCategory(permissions: Permission[]): GroupedPermissions[] {
   const map = new Map<string, Permission[]>();
   for (const p of permissions) {
@@ -45,7 +60,13 @@ function groupByCategory(permissions: Permission[]): GroupedPermissions[] {
     list.push(p);
     map.set(p.category, list);
   }
-  return Array.from(map.entries()).map(([category, permissions]) => ({ category, permissions }));
+  return Array.from(map.entries())
+    .map(([category, permissions]) => ({ category, permissions }))
+    .sort((a, b) => {
+      const ai = categoryOrder.indexOf(a.category);
+      const bi = categoryOrder.indexOf(b.category);
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
 }
 
 export default function RoleForm({ mode, editId, onSave, onCancel }: RoleFormProps) {
@@ -178,27 +199,31 @@ export default function RoleForm({ mode, editId, onSave, onCancel }: RoleFormPro
         <input value={form.description} onChange={(e) => handleChange("description", e.target.value)} className={styles.input} />
       </label>
 
-      <fieldset className={styles.field} style={{ border: "none", padding: 0, margin: 0 }}>
-        <span style={{ fontWeight: 600, marginBottom: "8px", display: "block" }}>権限設定</span>
+      <fieldset className={styles.permissionSection}>
+        <span className={styles.permissionSectionTitle}>権限設定</span>
         {grouped.map((group) => {
           const categoryPermIds = group.permissions.map((p) => p.permissionId);
           const allSelected = categoryPermIds.every((id) => form.permissionIds.includes(id));
+          const someSelected = categoryPermIds.some((id) => form.permissionIds.includes(id));
 
           return (
-            <div key={group.category} style={{ marginBottom: "12px" }}>
-              <label className={styles.checkboxField} style={{ fontWeight: 600, fontSize: "13px", marginBottom: "4px" }}>
+            <div key={group.category} className={styles.permissionGroup}>
+              <label className={styles.permissionGroupHeader} onClick={(e) => { e.preventDefault(); toggleCategory(group.category); }}>
                 <input
                   type="checkbox"
+                  className={styles.categoryCheckbox}
                   checked={allSelected}
+                  ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected; }}
                   onChange={() => toggleCategory(group.category)}
                 />
-                <span>{group.category}</span>
+                <span className={styles.permissionGroupTitle}>{group.category}</span>
               </label>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", paddingLeft: "20px" }}>
+              <div className={styles.permissionItems}>
                 {group.permissions.map((perm) => (
-                  <label key={perm.permissionId} className={styles.checkboxField} style={{ fontSize: "12px" }}>
+                  <label key={perm.permissionId} className={styles.permissionItem}>
                     <input
                       type="checkbox"
+                      className={styles.permissionCheckbox}
                       checked={form.permissionIds.includes(perm.permissionId)}
                       onChange={() => togglePermission(perm.permissionId)}
                     />

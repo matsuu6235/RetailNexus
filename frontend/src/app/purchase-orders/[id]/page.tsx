@@ -252,13 +252,6 @@ export default function PurchaseOrderDetailPage() {
                     </Link>
                 )}
 
-                {/* 論理削除 */}
-                {canDelete && (
-                    <button type="button" className={`${styles.actionButton} ${styles.btnOutline}`} disabled={actionLoading}
-                        onClick={() => handleAction(() => changePurchaseOrderActivation(id, !order.isActive))}>
-                        {order.isActive ? "無効にする" : "有効にする"}
-                    </button>
-                )}
             </div>
         </main>
     );

@@ -181,7 +181,7 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
           className={styles.input}
         />
         <span className={styles.hint}>13桁の数字で入力してください。</span>
-        {fieldErrors.janCode && <span className={styles.error}>{fieldErrors.janCode}</span>}
+        {fieldErrors.janCode && <span className={styles.errorText}>{fieldErrors.janCode}</span>}
       </label>
 
       <label className={styles.field}>
@@ -193,7 +193,7 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
           className={styles.input}
         />
         <span className={styles.hint}>200文字以内で入力してください。</span>
-        {fieldErrors.productName && <span className={styles.error}>{fieldErrors.productName}</span>}
+        {fieldErrors.productName && <span className={styles.errorText}>{fieldErrors.productName}</span>}
       </label>
 
       <label className={styles.field}>
@@ -206,7 +206,7 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
           onFocus={(e) => e.target.select()}
           className={styles.input}
         />
-        {fieldErrors.price && <span className={styles.error}>{fieldErrors.price}</span>}
+        {fieldErrors.price && <span className={styles.errorText}>{fieldErrors.price}</span>}
       </label>
 
       <label className={styles.field}>
@@ -219,7 +219,7 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
           onFocus={(e) => e.target.select()}
           className={styles.input}
         />
-        {fieldErrors.cost && <span className={styles.error}>{fieldErrors.cost}</span>}
+        {fieldErrors.cost && <span className={styles.errorText}>{fieldErrors.cost}</span>}
       </label>
 
       <label className={styles.field}>
@@ -238,7 +238,7 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
           ))}
         </select>
         {fieldErrors.productCategoryCode && (
-          <span className={styles.error}>{fieldErrors.productCategoryCode}</span>
+          <span className={styles.errorText}>{fieldErrors.productCategoryCode}</span>
         )}
       </label>
 

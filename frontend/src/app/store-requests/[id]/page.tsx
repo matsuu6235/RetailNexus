@@ -226,12 +226,6 @@ export default function StoreRequestDetailPage() {
                 {status === 0 && canEdit && (
                     <Link href={`/store-requests/${id}/edit`} className={styles.editLink}>編集</Link>
                 )}
-                {canDelete && (
-                    <button type="button" className={`${styles.actionButton} ${styles.btnOutline}`} disabled={actionLoading}
-                        onClick={() => handleAction(() => changeStoreRequestActivation(id, !request.isActive))}>
-                        {request.isActive ? "無効にする" : "有効にする"}
-                    </button>
-                )}
             </div>
         </main>
     );

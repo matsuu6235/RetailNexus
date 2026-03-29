@@ -151,21 +151,20 @@ export default function AuditLogsPage() {
             <span>{total} 件</span>
           </div>
 
-          <div className={tableStyles.tableContainer}>
+          <div className={tableStyles.tableContainer} style={{ maxHeight: "500px", overflowY: "auto" }}>
             <table className={tableStyles.table}>
-              <thead className={tableStyles.thead}>
+              <thead className={tableStyles.thead} style={{ position: "sticky", top: 0, zIndex: 1 }}>
                 <tr>
                   <th className={tableStyles.th}>日時</th>
-                  <th className={tableStyles.th}>ユーザー</th>
+                  <th className={tableStyles.th} style={{ minWidth: "120px" }}>ユーザー</th>
                   <th className={tableStyles.th}>操作</th>
                   <th className={tableStyles.th}>エンティティ</th>
-                  <th className={tableStyles.th}>レコードID</th>
                   <th className={tableStyles.th}>変更内容</th>
                 </tr>
               </thead>
               <tbody>
                 {items.length === 0 && (
-                  <tr><td colSpan={6} className={tableStyles.empty}>データがありません</td></tr>
+                  <tr><td colSpan={5} className={tableStyles.empty}>データがありません</td></tr>
                 )}
                 {items.map((item, index) => {
                   const rowClass = `${tableStyles.row} ${index % 2 === 0 ? tableStyles.rowEven : tableStyles.rowOdd}`;
@@ -183,7 +182,6 @@ export default function AuditLogsPage() {
                         </span>
                       </td>
                       <td className={tableStyles.td}>{item.entityName}</td>
-                      <td className={tableStyles.td} style={{ fontSize: "11px", fontFamily: "monospace", maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis" }}>{item.entityId}</td>
                       <td className={tableStyles.td}>
                         <span style={{ fontSize: "12px", color: "#64748b" }}>
                           {changedKeys.length > 0 ? changedKeys.join(", ") : "-"}
