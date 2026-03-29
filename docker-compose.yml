@@ -31,16 +31,14 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    entrypoint: >
-      sh -c "
-        dotnet ef database update --project /src/RetailNexus.Infrastructure/RetailNexus.Infrastructure.csproj --startup-project /src/RetailNexus.Api/RetailNexus.Api.csproj --no-build 2>/dev/null;
-        dotnet RetailNexus.Api.dll
-      "
+    entrypoint: ["dotnet", "RetailNexus.Api.dll"]
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:5150}
     ports:
       - "3000:3000"
     depends_on:

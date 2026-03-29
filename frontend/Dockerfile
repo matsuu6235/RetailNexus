@@ -7,7 +7,8 @@ RUN npm ci
 
 # ソースコードをコピーしビルド
 COPY . .
-ENV NEXT_PUBLIC_API_BASE_URL=http://localhost:5150
+ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:5150
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 RUN npm run build
 
 # 実行用イメージ
@@ -16,7 +17,6 @@ WORKDIR /app
 
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
-COPY --from=build /app/public ./public
 
 EXPOSE 3000
 ENV PORT=3000
