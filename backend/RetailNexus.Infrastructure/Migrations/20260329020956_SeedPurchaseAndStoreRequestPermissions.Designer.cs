@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RetailNexus.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using RetailNexus.Infrastructure.Persistence;
 namespace RetailNexus.Infrastructure.Migrations
 {
     [DbContext(typeof(RetailNexusDbContext))]
-    partial class RetailNexusDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260329020956_SeedPurchaseAndStoreRequestPermissions")]
+    partial class SeedPurchaseAndStoreRequestPermissions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -923,11 +926,6 @@ namespace RetailNexus.Infrastructure.Migrations
 
             modelBuilder.Entity("RetailNexus.Domain.Entities.PurchaseOrder", b =>
                 {
-                    b.HasOne("RetailNexus.Domain.Entities.User", "Approver")
-                        .WithMany()
-                        .HasForeignKey("ApprovedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("RetailNexus.Domain.Entities.Store", "Store")
                         .WithMany()
                         .HasForeignKey("StoreId")
@@ -939,8 +937,6 @@ namespace RetailNexus.Infrastructure.Migrations
                         .HasForeignKey("SupplierId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Approver");
 
                     b.Navigation("Store");
 
@@ -1006,11 +1002,6 @@ namespace RetailNexus.Infrastructure.Migrations
 
             modelBuilder.Entity("RetailNexus.Domain.Entities.StoreRequest", b =>
                 {
-                    b.HasOne("RetailNexus.Domain.Entities.User", "Approver")
-                        .WithMany()
-                        .HasForeignKey("ApprovedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("RetailNexus.Domain.Entities.Store", "FromStore")
                         .WithMany()
                         .HasForeignKey("FromStoreId")
@@ -1022,8 +1013,6 @@ namespace RetailNexus.Infrastructure.Migrations
                         .HasForeignKey("ToStoreId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Approver");
 
                     b.Navigation("FromStore");
 

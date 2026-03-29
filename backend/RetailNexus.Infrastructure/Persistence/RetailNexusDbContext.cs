@@ -35,6 +35,10 @@ public class RetailNexusDbContext : DbContext
     public DbSet<Store> Stores => Set<Store>();
     public DbSet<StoreType> StoreTypes => Set<StoreType>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
+    public DbSet<PurchaseOrderDetail> PurchaseOrderDetails => Set<PurchaseOrderDetail>();
+    public DbSet<StoreRequest> StoreRequests => Set<StoreRequest>();
+    public DbSet<StoreRequestDetail> StoreRequestDetails => Set<StoreRequestDetail>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
