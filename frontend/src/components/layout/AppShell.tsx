@@ -19,6 +19,8 @@ const navItems: NavItem[] = [
   { label: "エリアマスタ", href: "/areas", permission: "areas.view" },
   { label: "店舗マスタ", href: "/stores", permission: "stores.view" },
   { label: "店舗種別マスタ", href: "/store-types", permission: "store-types.view" },
+  { label: "発注管理", href: "/purchase-orders", permission: "purchases.view" },
+  { label: "発送依頼", href: "/store-requests", permission: "store-requests.view" },
   { label: "ユーザー管理", href: "/users", permission: "users.view" },
   { label: "ロール管理", href: "/roles", permission: "roles.view" },
   { label: "監査ログ", href: "/audit-logs", permission: "auditlog.view" },
