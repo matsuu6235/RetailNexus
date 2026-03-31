@@ -2,6 +2,7 @@ using RetailNexus.Domain.Enums;
 
 namespace RetailNexus.Domain.Entities;
 
+
 public class PurchaseOrder
 {
     public Guid PurchaseOrderId { get; private set; } = Guid.NewGuid();
@@ -72,6 +73,9 @@ public class PurchaseOrder
 
     public void SubmitForApproval(Guid actorUserId)
     {
+        if (Status != PurchaseOrderStatus.Draft)
+            throw new InvalidOperationException($"承認申請は下書き状態のみ可能です。現在のステータス: {Status.ToDisplayName()}");
+
         Status = PurchaseOrderStatus.AwaitingApproval;
         UpdatedBy = actorUserId;
         UpdatedAt = DateTimeOffset.UtcNow;
@@ -79,6 +83,9 @@ public class PurchaseOrder
 
     public void Approve(Guid approverUserId)
     {
+        if (Status != PurchaseOrderStatus.AwaitingApproval)
+            throw new InvalidOperationException($"承認は承認待ち状態のみ可能です。現在のステータス: {Status.ToDisplayName()}");
+
         Status = PurchaseOrderStatus.Approved;
         ApprovedBy = approverUserId;
         ApprovedAt = DateTimeOffset.UtcNow;
@@ -88,6 +95,9 @@ public class PurchaseOrder
 
     public void Reject(Guid actorUserId)
     {
+        if (Status != PurchaseOrderStatus.AwaitingApproval)
+            throw new InvalidOperationException($"差戻しは承認待ち状態のみ可能です。現在のステータス: {Status.ToDisplayName()}");
+
         Status = PurchaseOrderStatus.Draft;
         ApprovedBy = null;
         ApprovedAt = null;

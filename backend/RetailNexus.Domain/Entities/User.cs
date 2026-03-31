@@ -3,7 +3,7 @@
 public class User
 {
     public Guid UserId { get; init; }
-    public string LoginId { get;　private set; } = string.Empty;
+    public string LoginId { get; private set; } = string.Empty;
     public string UserName { get; private set; } = string.Empty;
     public string? Email { get; private set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;

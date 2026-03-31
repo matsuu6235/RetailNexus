@@ -72,6 +72,9 @@ public class StoreRequest
 
     public void SubmitForApproval(Guid actorUserId)
     {
+        if (Status != StoreRequestStatus.Draft)
+            throw new InvalidOperationException($"承認申請は下書き状態のみ可能です。現在のステータス: {Status.ToDisplayName()}");
+
         Status = StoreRequestStatus.AwaitingApproval;
         UpdatedBy = actorUserId;
         UpdatedAt = DateTimeOffset.UtcNow;
@@ -79,6 +82,9 @@ public class StoreRequest
 
     public void Approve(Guid approverUserId)
     {
+        if (Status != StoreRequestStatus.AwaitingApproval)
+            throw new InvalidOperationException($"承認は承認待ち状態のみ可能です。現在のステータス: {Status.ToDisplayName()}");
+
         Status = StoreRequestStatus.Approved;
         ApprovedBy = approverUserId;
         ApprovedAt = DateTimeOffset.UtcNow;
@@ -88,6 +94,9 @@ public class StoreRequest
 
     public void Reject(Guid actorUserId)
     {
+        if (Status != StoreRequestStatus.AwaitingApproval)
+            throw new InvalidOperationException($"差戻しは承認待ち状態のみ可能です。現在のステータス: {Status.ToDisplayName()}");
+
         Status = StoreRequestStatus.Draft;
         ApprovedBy = null;
         ApprovedAt = null;

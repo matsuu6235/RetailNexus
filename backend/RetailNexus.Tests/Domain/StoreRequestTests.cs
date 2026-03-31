@@ -94,15 +94,57 @@ public class StoreRequestTests
     public void Reject_ShouldResetStatusAndClearApproverInfo()
     {
         var request = CreateRequest();
-        var approverId = Guid.NewGuid();
         request.SubmitForApproval(_actorUserId);
-        request.Approve(approverId);
 
         request.Reject(_actorUserId);
 
         request.Status.Should().Be(StoreRequestStatus.Draft);
         request.ApprovedBy.Should().BeNull();
         request.ApprovedAt.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(StoreRequestStatus.AwaitingApproval)]
+    [InlineData(StoreRequestStatus.Approved)]
+    [InlineData(StoreRequestStatus.Shipped)]
+    public void SubmitForApproval_ShouldThrow_WhenNotDraft(StoreRequestStatus initialStatus)
+    {
+        var request = CreateRequest();
+        request.SetStatus(initialStatus, _actorUserId);
+
+        var act = () => request.SubmitForApproval(_actorUserId);
+
+        act.Should().Throw<InvalidOperationException>().Which.Message.Should().Contain("下書き状態のみ");
+    }
+
+    [Theory]
+    [InlineData(StoreRequestStatus.Draft)]
+    [InlineData(StoreRequestStatus.Approved)]
+    [InlineData(StoreRequestStatus.Shipped)]
+    public void Approve_ShouldThrow_WhenNotAwaitingApproval(StoreRequestStatus initialStatus)
+    {
+        var request = CreateRequest();
+        if (initialStatus != StoreRequestStatus.Draft)
+            request.SetStatus(initialStatus, _actorUserId);
+
+        var act = () => request.Approve(Guid.NewGuid());
+
+        act.Should().Throw<InvalidOperationException>().Which.Message.Should().Contain("承認待ち状態のみ");
+    }
+
+    [Theory]
+    [InlineData(StoreRequestStatus.Draft)]
+    [InlineData(StoreRequestStatus.Approved)]
+    [InlineData(StoreRequestStatus.Shipped)]
+    public void Reject_ShouldThrow_WhenNotAwaitingApproval(StoreRequestStatus initialStatus)
+    {
+        var request = CreateRequest();
+        if (initialStatus != StoreRequestStatus.Draft)
+            request.SetStatus(initialStatus, _actorUserId);
+
+        var act = () => request.Reject(_actorUserId);
+
+        act.Should().Throw<InvalidOperationException>().Which.Message.Should().Contain("承認待ち状態のみ");
     }
 
     [Fact]
