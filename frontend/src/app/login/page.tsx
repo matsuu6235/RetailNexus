@@ -8,8 +8,8 @@ import styles from "./page.module.css";
 export default function LoginPage() {
   const router = useRouter();
 
-  const [loginId, setLoginId] = useState("admin");
-  const [password, setPassword] = useState("password123");
+  const [loginId, setLoginId] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

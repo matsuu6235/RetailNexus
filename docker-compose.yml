@@ -3,8 +3,8 @@ services:
     image: postgres:17
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       POSTGRES_DB: retailnexus
     ports:
       - "5432:5432"
@@ -24,8 +24,8 @@ services:
     ports:
       - "5150:5150"
     environment:
-      ConnectionStrings__Default: "Host=db;Port=5432;Database=retailnexus;Username=postgres;Password=postgres"
-      Jwt__Key: "RetailNexusDockerSecretKey_ChangeInProduction_12345"
+      ConnectionStrings__Default: "Host=db;Port=5432;Database=retailnexus;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
+      Jwt__Key: ${JWT_KEY:?JWT_KEY is required}
       Jwt__Issuer: "RetailNexus"
       Jwt__Audience: "RetailNexus"
       Jwt__AccessTokenMinutes: "30"

@@ -147,11 +147,14 @@ if (app.Environment.IsDevelopment())
     // Admin ロール（マイグレーションで投入済み）
     var adminRoleId = Guid.Parse("00000000-0000-0000-0000-000000000001");
 
+    var defaultAdminPassword = builder.Configuration["SeedAdmin:Password"]
+        ?? throw new InvalidOperationException("SeedAdmin:Password is not configured. Set it via environment variable or appsettings.");
+
     var existingAdmin = await db.Users.FirstOrDefaultAsync(u => u.LoginId == "admin");
     if (existingAdmin is null)
     {
         var admin = new RetailNexus.Domain.Entities.User(
-            "admin", "管理者", "admin@example.com", BCrypt.Net.BCrypt.HashPassword("password123"), true, null, null);
+            "admin", "管理者", "admin@example.com", BCrypt.Net.BCrypt.HashPassword(defaultAdminPassword), true, null, null);
         db.Users.Add(admin);
         await db.SaveChangesAsync();
 
