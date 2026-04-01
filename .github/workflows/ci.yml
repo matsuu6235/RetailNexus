@@ -92,6 +92,8 @@ jobs:
           script: |
             cd ~/RetailNexus
             git pull origin main
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+            JWT_KEY=${{ secrets.JWT_KEY }} \
             NEXT_PUBLIC_API_BASE_URL=${{ secrets.APP_URL }}:5150 \
             CORS_ORIGIN=${{ secrets.APP_URL }}:3000 \
             docker-compose up -d --build
