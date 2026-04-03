@@ -114,13 +114,18 @@ src/
 
 ### Docker（推奨）
 
-Docker Desktop がインストールされていれば、1コマンドで全環境が起動します。
+Docker Desktop がインストールされていれば、数ステップで全環境が起動します。
 
 ```bash
+# 1. 環境変数ファイルを作成
+cp .env.example .env
+# .env を開いて POSTGRES_PASSWORD と JWT_KEY を設定
+
+# 2. 起動
 docker compose up --build
 # API:       http://localhost:5150/swagger
 # フロント:  http://localhost:3000
-# DB:        localhost:5432 (postgres/postgres)
+# DB:        localhost:5432
 ```
 
 停止: `docker compose down`（データ保持）
@@ -138,8 +143,23 @@ docker compose up --build
 
 ```bash
 cd backend
-# appsettings.Development.json の ConnectionStrings.Default を編集
+
+# appsettings.Development.json を作成し、DB接続文字列を設定
+cat <<'EOF' > RetailNexus.Api/appsettings.Development.json
+{
+  "ConnectionStrings": {
+    "Default": "Host=localhost;Port=5432;Database=retailnexus;Username=postgres;Password=your_password_here"
+  },
+  "Jwt": {
+    "Key": "your-jwt-secret-key-at-least-32-characters"
+  }
+}
+EOF
+
+# マイグレーション実行
 dotnet ef database update --project RetailNexus.Infrastructure --startup-project RetailNexus.Api
+
+# 起動
 dotnet run --project RetailNexus.Api
 # → http://localhost:5150/swagger
 ```
@@ -148,11 +168,27 @@ dotnet run --project RetailNexus.Api
 
 ```bash
 cd frontend
-cp .env.local.example .env.local   # NEXT_PUBLIC_API_BASE_URL=http://localhost:5150
+cp .env.local.example .env.local   # 必要に応じて API_BASE_URL を変更
 npm install
 npm run dev
 # → http://localhost:3000
 ```
+
+#### シードデータ（任意）
+
+マスタデータ（エリア・店舗種別・商品カテゴリ・仕入先・店舗・商品）を投入します。
+
+```bash
+psql -h localhost -U postgres -d retailnexus -f db/seed.sql
+```
+
+#### 初期ログイン
+
+| ログインID | パスワード | ロール |
+|---|---|---|
+| `admin` | `DevOnly_P@ssw0rd!` | 管理者（全権限） |
+
+※ パスワードは `appsettings.json` の `SeedAdmin:Password` で変更可能です。
 
 #### テスト
 
