@@ -1,11 +1,13 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using RetailNexus.Api.Authorization;
 using RetailNexus.Api.Contracts;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Application.Services;
 using RetailNexus.Domain.Entities;
+using RetailNexus.Resources;
 
 namespace RetailNexus.Api.Controllers;
 
@@ -17,17 +19,20 @@ public sealed class ProductsController : BaseController
     private readonly IProductCategoryRepository _categoryRepo;
     private readonly IValidator<CreateProductRequest> _createValidator;
     private readonly IValidator<UpdateProductRequest> _updateValidator;
+    private readonly IStringLocalizer<SharedMessages> _localizer;
 
     public ProductsController(
         IProductRepository productRepo,
         IProductCategoryRepository categoryRepo,
         IValidator<CreateProductRequest> createValidator,
-        IValidator<UpdateProductRequest> updateValidator)
+        IValidator<UpdateProductRequest> updateValidator,
+        IStringLocalizer<SharedMessages> localizer)
     {
         _productRepo = productRepo;
         _categoryRepo = categoryRepo;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
+        _localizer = localizer;
     }
 
     public sealed record CreateProductRequest(string JanCode, string ProductName, decimal Price, decimal Cost, string ProductCategoryCode) : IProductRequest;
@@ -55,7 +60,7 @@ public sealed class ProductsController : BaseController
         var categoryCode = req.ProductCategoryCode.Trim();
         var category = await _categoryRepo.GetByCodeAsync(categoryCode, ct);
         if (category is null)
-            return BadRequest(new { ProductCategoryCode = new[] { "指定された商品カテゴリが存在しません。" } });
+            return BadRequest(new { ProductCategoryCode = new[] { _localizer["Validation_EntityNotFound", "商品カテゴリ"].Value } });
 
         var abbreviation = category.CategoryAbbreviation;
         var maxCode = await _productRepo.GetMaxProductCodeByPrefixAsync(abbreviation, ct);

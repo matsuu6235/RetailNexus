@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using RetailNexus.Api.Authorization;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
+using RetailNexus.Resources;
 
 namespace RetailNexus.Api.Controllers;
 
@@ -12,11 +14,13 @@ public sealed class UsersController : BaseController
 {
     private readonly IUserRepository _userRepo;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IStringLocalizer<SharedMessages> _localizer;
 
-    public UsersController(IUserRepository userRepo, IPasswordHasher passwordHasher)
+    public UsersController(IUserRepository userRepo, IPasswordHasher passwordHasher, IStringLocalizer<SharedMessages> localizer)
     {
         _userRepo = userRepo;
         _passwordHasher = passwordHasher;
+        _localizer = localizer;
     }
 
     public sealed record CreateUserRequest(string LoginId, string UserName, string? Email, string Password, bool IsActive, List<Guid> RoleIds);
@@ -58,17 +62,17 @@ public sealed class UsersController : BaseController
             return Unauthorized();
 
         if (string.IsNullOrWhiteSpace(req.LoginId))
-            return BadRequest(new { LoginId = new[] { "ログインIDは必須です。" } });
+            return BadRequest(new { LoginId = new[] { _localizer["Validation_Required", "ログインID"].Value } });
         if (string.IsNullOrWhiteSpace(req.UserName))
-            return BadRequest(new { UserName = new[] { "ユーザー名は必須です。" } });
+            return BadRequest(new { UserName = new[] { _localizer["Validation_Required", "ユーザー名"].Value } });
         if (string.IsNullOrWhiteSpace(req.Password))
-            return BadRequest(new { Password = new[] { "パスワードは必須です。" } });
+            return BadRequest(new { Password = new[] { _localizer["Validation_Required", "パスワード"].Value } });
         if (req.Password.Length < 8)
-            return BadRequest(new { Password = new[] { "パスワードは8文字以上で入力してください。" } });
+            return BadRequest(new { Password = new[] { _localizer["Validation_MinLength", "パスワード", 8].Value } });
 
         var existing = await _userRepo.FindByLoginIdAsync(req.LoginId.Trim(), ct);
         if (existing is not null)
-            return BadRequest(new { LoginId = new[] { "このログインIDは既に使用されています。" } });
+            return BadRequest(new { LoginId = new[] { _localizer["Validation_Duplicate", "ログインID"].Value } });
 
         var hash = _passwordHasher.Hash(req.Password);
         var user = new User(req.LoginId.Trim(), req.UserName.Trim(), req.Email, hash, req.IsActive, actorId, actorId);
@@ -93,9 +97,9 @@ public sealed class UsersController : BaseController
             return Unauthorized();
 
         if (string.IsNullOrWhiteSpace(req.LoginId))
-            return BadRequest(new { LoginId = new[] { "ログインIDは必須です。" } });
+            return BadRequest(new { LoginId = new[] { _localizer["Validation_Required", "ログインID"].Value } });
         if (string.IsNullOrWhiteSpace(req.UserName))
-            return BadRequest(new { UserName = new[] { "ユーザー名は必須です。" } });
+            return BadRequest(new { UserName = new[] { _localizer["Validation_Required", "ユーザー名"].Value } });
 
         var user = await _userRepo.FindByIdWithRolesAsync(id, ct);
         if (user is null)
@@ -103,7 +107,7 @@ public sealed class UsersController : BaseController
 
         var duplicate = await _userRepo.FindByLoginIdAsync(req.LoginId.Trim(), ct);
         if (duplicate is not null && duplicate.UserId != id)
-            return BadRequest(new { LoginId = new[] { "このログインIDは既に使用されています。" } });
+            return BadRequest(new { LoginId = new[] { _localizer["Validation_Duplicate", "ログインID"].Value } });
 
         user.UpdateProfile(req.LoginId.Trim(), req.UserName.Trim(), req.Email, actorId);
 
@@ -120,9 +124,9 @@ public sealed class UsersController : BaseController
     public async Task<IActionResult> ResetPassword(Guid id, [FromBody] ResetPasswordRequest req, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(req.NewPassword))
-            return BadRequest(new { NewPassword = new[] { "パスワードは必須です。" } });
+            return BadRequest(new { NewPassword = new[] { _localizer["Validation_Required", "パスワード"].Value } });
         if (req.NewPassword.Length < 8)
-            return BadRequest(new { NewPassword = new[] { "パスワードは8文字以上で入力してください。" } });
+            return BadRequest(new { NewPassword = new[] { _localizer["Validation_MinLength", "パスワード", 8].Value } });
 
         var user = await _userRepo.FindByIdAsync(id, ct);
         if (user is null)

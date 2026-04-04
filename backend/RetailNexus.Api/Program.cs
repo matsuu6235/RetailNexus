@@ -20,6 +20,7 @@ builder.Host.UseSerilog((context, config) => config
     .WriteTo.Console()
     .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day));
 
+builder.Services.AddLocalization();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

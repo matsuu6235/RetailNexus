@@ -1,31 +1,33 @@
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 using RetailNexus.Api.Contracts;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Controllers;
+using RetailNexus.Resources;
 
 namespace RetailNexus.Api.Validators;
 
 public class StoreRequestValidator<T> : AbstractValidator<T> where T : IStoreRequest
 {
-    protected StoreRequestValidator()
+    protected StoreRequestValidator(IStringLocalizer<SharedMessages> localizer)
     {
         RuleFor(x => x.StoreName)
-            .NotEmpty().WithMessage("店舗名は必須です。")
-            .MaximumLength(50).WithMessage("店舗名は50文字以内で入力してください。");
+            .NotEmpty().WithMessage(localizer["Validation_Required", "店舗名"])
+            .MaximumLength(50).WithMessage(localizer["Validation_MaxLength", "店舗名", 50]);
     }
 
-    protected IRuleBuilderOptions<T, Guid> AreaIdBaseRules()
+    protected IRuleBuilderOptions<T, Guid> AreaIdBaseRules(IStringLocalizer<SharedMessages> localizer)
     {
         return RuleFor(x => x.AreaId)
             .Cascade(CascadeMode.Stop)
-            .NotEmpty().WithMessage("エリアIDは必須です。");
+            .NotEmpty().WithMessage(localizer["Validation_Required", "エリアID"]);
     }
 
-    protected IRuleBuilderOptions<T, Guid> StoreTypeIdBaseRules()
+    protected IRuleBuilderOptions<T, Guid> StoreTypeIdBaseRules(IStringLocalizer<SharedMessages> localizer)
     {
         return RuleFor(x => x.StoreTypeId)
             .Cascade(CascadeMode.Stop)
-            .NotEmpty().WithMessage("店舗種別IDは必須です。");
+            .NotEmpty().WithMessage(localizer["Validation_Required", "店舗種別ID"]);
     }
 }
 
@@ -34,21 +36,22 @@ public sealed class CreateStoreRequestValidator : StoreRequestValidator<StoresCo
     public CreateStoreRequestValidator(
         IStoreRepository storeRepo,
         IAreaRepository areaRepo,
-        IStoreTypeRepository storeTypeRepo)
+        IStoreTypeRepository storeTypeRepo,
+        IStringLocalizer<SharedMessages> localizer) : base(localizer)
     {
-        AreaIdBaseRules()
+        AreaIdBaseRules(localizer)
             .MustAsync(async (areaId, ct) =>
             {
                 var area = await areaRepo.GetByIdAsync(areaId, ct);
                 return area?.IsActive is true;
-            }).WithMessage("指定されたエリアが存在しないか、無効になっています。");
+            }).WithMessage(localizer["Validation_EntityNotFoundOrInactive", "エリア"]);
 
-        StoreTypeIdBaseRules()
+        StoreTypeIdBaseRules(localizer)
             .MustAsync(async (storeTypeId, ct) =>
             {
                 var storeType = await storeTypeRepo.GetByIdAsync(storeTypeId, ct);
                 return storeType?.IsActive is true;
-            }).WithMessage("指定された店舗種別が存在しないか、無効になっています。");
+            }).WithMessage(localizer["Validation_EntityNotFoundOrInactive", "店舗種別"]);
     }
 }
 
@@ -57,20 +60,21 @@ public sealed class UpdateStoreRequestValidator : StoreRequestValidator<StoresCo
     public UpdateStoreRequestValidator(
         IStoreRepository storeRepo,
         IAreaRepository areaRepo,
-        IStoreTypeRepository storeTypeRepo)
+        IStoreTypeRepository storeTypeRepo,
+        IStringLocalizer<SharedMessages> localizer) : base(localizer)
     {
-        AreaIdBaseRules()
+        AreaIdBaseRules(localizer)
             .MustAsync(async (areaId, ct) =>
             {
                 var area = await areaRepo.GetByIdAsync(areaId, ct);
                 return area is not null;
-            }).WithMessage("指定されたエリアが存在しません。");
+            }).WithMessage(localizer["Validation_EntityNotFound", "エリア"]);
 
-        StoreTypeIdBaseRules()
+        StoreTypeIdBaseRules(localizer)
             .MustAsync(async (storeTypeId, ct) =>
             {
                 var storeType = await storeTypeRepo.GetByIdAsync(storeTypeId, ct);
                 return storeType is not null;
-            }).WithMessage("指定された店舗種別が存在しません。");
+            }).WithMessage(localizer["Validation_EntityNotFound", "店舗種別"]);
     }
 }

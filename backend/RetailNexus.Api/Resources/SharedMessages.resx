@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- ========== 共通バリデーション ========== -->
+  <data name="Validation_Required" xml:space="preserve">
+    <value>{0}は必須です。</value>
+  </data>
+  <data name="Validation_MaxLength" xml:space="preserve">
+    <value>{0}は{1}文字以内で入力してください。</value>
+  </data>
+  <data name="Validation_MinLength" xml:space="preserve">
+    <value>{0}は{1}文字以上で入力してください。</value>
+  </data>
+  <data name="Validation_ExactLength" xml:space="preserve">
+    <value>{0}は{1}桁で入力してください。</value>
+  </data>
+  <data name="Validation_DigitsOnly" xml:space="preserve">
+    <value>{0}は数字のみ入力できます。</value>
+  </data>
+  <data name="Validation_Duplicate" xml:space="preserve">
+    <value>この{0}は既に使用されています。</value>
+  </data>
+  <data name="Validation_MinValue" xml:space="preserve">
+    <value>{0}は{1}以上で入力してください。</value>
+  </data>
+  <data name="Validation_GreaterThan" xml:space="preserve">
+    <value>{0}は{1}以上で入力してください。</value>
+  </data>
+  <data name="Validation_EmailFormat" xml:space="preserve">
+    <value>メールアドレスの形式が正しくありません。</value>
+  </data>
+  <data name="Validation_PhoneFormat" xml:space="preserve">
+    <value>{0}は数字とハイフン（-）のみ入力できます。</value>
+  </data>
+  <data name="Validation_AlphaRange" xml:space="preserve">
+    <value>{0}は英字{1}〜{2}文字で入力してください。</value>
+  </data>
+  <data name="Validation_EntityNotFound" xml:space="preserve">
+    <value>指定された{0}が存在しません。</value>
+  </data>
+  <data name="Validation_EntityNotFoundOrInactive" xml:space="preserve">
+    <value>指定された{0}が存在しないか、無効になっています。</value>
+  </data>
+  <data name="Validation_ListDuplicate" xml:space="preserve">
+    <value>{0}IDリストに重複があります。</value>
+  </data>
+  <data name="Validation_ListInvalidIds" xml:space="preserve">
+    <value>存在しない{0}IDが含まれています。</value>
+  </data>
+  <data name="Validation_ListMinCount" xml:space="preserve">
+    <value>{0}を1行以上入力してください。</value>
+  </data>
+
+  <!-- ========== エンティティ固有 ========== -->
+  <data name="PurchaseOrder_DuplicateProduct" xml:space="preserve">
+    <value>同一商品が複数行に含まれています。数量を変更してください。</value>
+  </data>
+  <data name="StoreRequest_SameStore" xml:space="preserve">
+    <value>依頼元と依頼先は異なる店舗を選択してください。</value>
+  </data>
+  <data name="StoreRequest_DuplicateProduct" xml:space="preserve">
+    <value>同一商品が複数行に含まれています。数量を変更してください。</value>
+  </data>
+
+  <!-- ========== HTTP/システムエラー ========== -->
+  <data name="Error_BadRequest" xml:space="preserve">
+    <value>リクエストの形式が正しくありません。</value>
+  </data>
+  <data name="Error_InternalServer" xml:space="preserve">
+    <value>サーバーエラーが発生しました。</value>
+  </data>
+</root>

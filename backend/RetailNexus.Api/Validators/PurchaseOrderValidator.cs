@@ -1,84 +1,86 @@
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 using RetailNexus.Api.Controllers;
+using RetailNexus.Resources;
 
 namespace RetailNexus.Api.Validators;
 
 public sealed class CreatePurchaseOrderRequestValidator : AbstractValidator<PurchaseOrdersController.CreatePurchaseOrderRequest>
 {
-    public CreatePurchaseOrderRequestValidator()
+    public CreatePurchaseOrderRequestValidator(IStringLocalizer<SharedMessages> localizer)
     {
         RuleFor(x => x.SupplierId)
-            .NotEmpty().WithMessage("仕入先は必須です。");
+            .NotEmpty().WithMessage(localizer["Validation_Required", "仕入先"]);
 
         RuleFor(x => x.StoreId)
-            .NotEmpty().WithMessage("発注元は必須です。");
+            .NotEmpty().WithMessage(localizer["Validation_Required", "発注元"]);
 
         RuleFor(x => x.OrderDate)
-            .NotEmpty().WithMessage("発注日は必須です。");
+            .NotEmpty().WithMessage(localizer["Validation_Required", "発注日"]);
 
         RuleFor(x => x.Note)
-            .MaximumLength(500).WithMessage("備考は500文字以内で入力してください。")
+            .MaximumLength(500).WithMessage(localizer["Validation_MaxLength", "備考", 500])
             .When(x => !string.IsNullOrEmpty(x.Note));
 
         RuleFor(x => x.Details)
             .Cascade(CascadeMode.Stop)
-            .NotEmpty().WithMessage("明細を1行以上入力してください。")
+            .NotEmpty().WithMessage(localizer["Validation_ListMinCount", "明細"])
             .Must(details =>
             {
                 var productIds = details.Select(d => d.ProductId).Where(id => id != Guid.Empty).ToList();
                 return productIds.Count == productIds.Distinct().Count();
-            }).WithMessage("同一商品が複数行に含まれています。数量を変更してください。");
+            }).WithMessage(localizer["PurchaseOrder_DuplicateProduct"]);
 
         RuleForEach(x => x.Details).ChildRules(detail =>
         {
             detail.RuleFor(d => d.ProductId)
-                .NotEmpty().WithMessage("商品は必須です。");
+                .NotEmpty().WithMessage(localizer["Validation_Required", "商品"]);
 
             detail.RuleFor(d => d.Quantity)
-                .GreaterThan(0).WithMessage("数量は1以上で入力してください。");
+                .GreaterThan(0).WithMessage(localizer["Validation_GreaterThan", "数量", 1]);
 
             detail.RuleFor(d => d.UnitPrice)
-                .GreaterThanOrEqualTo(0).WithMessage("単価は0以上で入力してください。");
+                .GreaterThanOrEqualTo(0).WithMessage(localizer["Validation_MinValue", "単価", 0]);
         });
     }
 }
 
 public sealed class UpdatePurchaseOrderRequestValidator : AbstractValidator<PurchaseOrdersController.UpdatePurchaseOrderRequest>
 {
-    public UpdatePurchaseOrderRequestValidator()
+    public UpdatePurchaseOrderRequestValidator(IStringLocalizer<SharedMessages> localizer)
     {
         RuleFor(x => x.SupplierId)
-            .NotEmpty().WithMessage("仕入先は必須です。");
+            .NotEmpty().WithMessage(localizer["Validation_Required", "仕入先"]);
 
         RuleFor(x => x.StoreId)
-            .NotEmpty().WithMessage("発注元は必須です。");
+            .NotEmpty().WithMessage(localizer["Validation_Required", "発注元"]);
 
         RuleFor(x => x.OrderDate)
-            .NotEmpty().WithMessage("発注日は必須です。");
+            .NotEmpty().WithMessage(localizer["Validation_Required", "発注日"]);
 
         RuleFor(x => x.Note)
-            .MaximumLength(500).WithMessage("備考は500文字以内で入力してください。")
+            .MaximumLength(500).WithMessage(localizer["Validation_MaxLength", "備考", 500])
             .When(x => !string.IsNullOrEmpty(x.Note));
 
         RuleFor(x => x.Details)
             .Cascade(CascadeMode.Stop)
-            .NotEmpty().WithMessage("明細を1行以上入力してください。")
+            .NotEmpty().WithMessage(localizer["Validation_ListMinCount", "明細"])
             .Must(details =>
             {
                 var productIds = details.Select(d => d.ProductId).Where(id => id != Guid.Empty).ToList();
                 return productIds.Count == productIds.Distinct().Count();
-            }).WithMessage("同一商品が複数行に含まれています。数量を変更してください。");
+            }).WithMessage(localizer["PurchaseOrder_DuplicateProduct"]);
 
         RuleForEach(x => x.Details).ChildRules(detail =>
         {
             detail.RuleFor(d => d.ProductId)
-                .NotEmpty().WithMessage("商品は必須です。");
+                .NotEmpty().WithMessage(localizer["Validation_Required", "商品"]);
 
             detail.RuleFor(d => d.Quantity)
-                .GreaterThan(0).WithMessage("数量は1以上で入力してください。");
+                .GreaterThan(0).WithMessage(localizer["Validation_GreaterThan", "数量", 1]);
 
             detail.RuleFor(d => d.UnitPrice)
-                .GreaterThanOrEqualTo(0).WithMessage("単価は0以上で入力してください。");
+                .GreaterThanOrEqualTo(0).WithMessage(localizer["Validation_MinValue", "単価", 0]);
         });
     }
 }

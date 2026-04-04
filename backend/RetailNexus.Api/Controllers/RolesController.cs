@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using RetailNexus.Api.Authorization;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
+using RetailNexus.Resources;
 
 namespace RetailNexus.Api.Controllers;
 
@@ -11,10 +13,12 @@ namespace RetailNexus.Api.Controllers;
 public sealed class RolesController : BaseController
 {
     private readonly IRoleRepository _roleRepo;
+    private readonly IStringLocalizer<SharedMessages> _localizer;
 
-    public RolesController(IRoleRepository roleRepo)
+    public RolesController(IRoleRepository roleRepo, IStringLocalizer<SharedMessages> localizer)
     {
         _roleRepo = roleRepo;
+        _localizer = localizer;
     }
 
     public sealed record CreateRoleRequest(string RoleName, string? Description, bool IsActive, List<Guid> PermissionIds);
@@ -59,11 +63,11 @@ public sealed class RolesController : BaseController
     public async Task<IActionResult> Create([FromBody] CreateRoleRequest req, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(req.RoleName))
-            return BadRequest(new { RoleName = new[] { "ロール名は必須です。" } });
+            return BadRequest(new { RoleName = new[] { _localizer["Validation_Required", "ロール名"].Value } });
 
         var existing = await _roleRepo.FindByNameAsync(req.RoleName.Trim(), ct);
         if (existing is not null)
-            return BadRequest(new { RoleName = new[] { "このロール名は既に使用されています。" } });
+            return BadRequest(new { RoleName = new[] { _localizer["Validation_Duplicate", "ロール名"].Value } });
 
         var role = new Role(req.RoleName.Trim(), req.Description?.Trim());
         role.IsActive = req.IsActive;
@@ -85,7 +89,7 @@ public sealed class RolesController : BaseController
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRoleRequest req, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(req.RoleName))
-            return BadRequest(new { RoleName = new[] { "ロール名は必須です。" } });
+            return BadRequest(new { RoleName = new[] { _localizer["Validation_Required", "ロール名"].Value } });
 
         var role = await _roleRepo.FindByIdWithPermissionsAsync(id, ct);
         if (role is null)
@@ -93,7 +97,7 @@ public sealed class RolesController : BaseController
 
         var duplicate = await _roleRepo.FindByNameAsync(req.RoleName.Trim(), ct);
         if (duplicate is not null && duplicate.RoleId != id)
-            return BadRequest(new { RoleName = new[] { "このロール名は既に使用されています。" } });
+            return BadRequest(new { RoleName = new[] { _localizer["Validation_Duplicate", "ロール名"].Value } });
 
         role.RoleName = req.RoleName.Trim();
         role.Description = req.Description?.Trim();

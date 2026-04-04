@@ -1,5 +1,7 @@
 using System.Net;
 using System.Text.Json;
+using Microsoft.Extensions.Localization;
+using RetailNexus.Resources;
 
 namespace RetailNexus.Api.Middleware;
 
@@ -8,12 +10,14 @@ public class ExceptionHandlingMiddleware
     private readonly RequestDelegate _next;
     private readonly IHostEnvironment _env;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+    private readonly IStringLocalizer<SharedMessages> _localizer;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next, IHostEnvironment env, ILogger<ExceptionHandlingMiddleware> logger)
+    public ExceptionHandlingMiddleware(RequestDelegate next, IHostEnvironment env, ILogger<ExceptionHandlingMiddleware> logger, IStringLocalizer<SharedMessages> localizer)
     {
         _next = next;
         _env = env;
         _logger = logger;
+        _localizer = localizer;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -36,8 +40,8 @@ public class ExceptionHandlingMiddleware
         {
             UnauthorizedAccessException => (HttpStatusCode.Unauthorized, exception.Message),
             KeyNotFoundException => (HttpStatusCode.NotFound, exception.Message),
-            BadHttpRequestException => (HttpStatusCode.BadRequest, "リクエストの形式が正しくありません。"),
-            _ => (HttpStatusCode.InternalServerError, "サーバーエラーが発生しました。")
+            BadHttpRequestException => (HttpStatusCode.BadRequest, _localizer["Error_BadRequest"].Value),
+            _ => (HttpStatusCode.InternalServerError, _localizer["Error_InternalServer"].Value)
         };
 
         // エラーログ出力

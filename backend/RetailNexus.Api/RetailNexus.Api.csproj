@@ -28,4 +28,19 @@
       <ProjectReference Include="..\RetailNexus.Infrastructure\RetailNexus.Infrastructure.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Update="Resources\SharedMessages.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>SharedMessages.resx</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Update="Resources\SharedMessages.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>SharedMessages.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+    </ItemGroup>
+
 </Project>
