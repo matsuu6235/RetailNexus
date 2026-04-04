@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fallback } from "@/lib/messages";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -39,7 +40,7 @@ export default function PurchaseOrderDetailPage() {
             const data = await getPurchaseOrderById(id);
             setOrder(data);
         } catch (e) {
-            setError(e instanceof Error ? e.message : "発注の取得に失敗しました。");
+            setError(e instanceof Error ? e.message : fallback.fetchFailed("発注"));
         } finally {
             setLoading(false);
         }
@@ -55,7 +56,7 @@ export default function PurchaseOrderDetailPage() {
             if (result) setOrder(result);
             else await fetchOrder();
         } catch (e) {
-            setError(e instanceof Error ? e.message : "操作に失敗しました。");
+            setError(e instanceof Error ? e.message : fallback.operationFailed);
         } finally {
             setActionLoading(false);
         }

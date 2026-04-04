@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fallback } from "@/lib/messages";
 import Link from "next/link";
 import { getStoreRequests, type StoreRequestSearchParams } from "@/lib/api/storeRequests";
 import { getStores } from "@/lib/api/stores";
@@ -50,7 +51,7 @@ export default function StoreRequestsPage() {
                 const res = await getStoreRequests(page, PAGE_SIZE, filters);
                 if (!cancelled) { setRequests(res.items); setTotal(res.total); }
             } catch (e) {
-                if (!cancelled) setError(e instanceof Error ? e.message : "発送依頼一覧の取得に失敗しました。");
+                if (!cancelled) setError(e instanceof Error ? e.message : fallback.listFetchFailed("発送依頼"));
             } finally {
                 if (!cancelled) setLoading(false);
             }

@@ -11,6 +11,7 @@ import {
 } from "@/lib/api/suppliers";
 import { validateSupplier, type SupplierFieldErrors } from "@/lib/validators/supplierValidator";
 import { useActivation } from "@/lib/hooks/useActivation";
+import { fallback } from "@/lib/messages";
 import styles from "@/components/modal/FormModal.module.css";
 
 type SupplierFormProps = {
@@ -56,7 +57,7 @@ export default function SupplierForm({ mode, editId, onSave, onCancel }: Supplie
         }
       } catch (e) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : "仕入先情報の取得に失敗しました。");
+          setError(e instanceof Error ? e.message : fallback.fetchFailed("仕入先情報"));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -109,8 +110,8 @@ export default function SupplierForm({ mode, editId, onSave, onCancel }: Supplie
         err instanceof Error
           ? err.message
           : mode === "create"
-            ? "仕入先の作成に失敗しました。"
-            : "仕入先の更新に失敗しました。"
+            ? fallback.createFailed("仕入先")
+            : fallback.updateFailed("仕入先")
       );
     } finally {
       setSubmitting(false);

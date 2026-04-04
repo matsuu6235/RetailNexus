@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { validation, fallback } from "@/lib/messages";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getPurchaseOrderById, updatePurchaseOrder } from "@/lib/api/purchaseOrders";
@@ -88,7 +89,7 @@ export default function PurchaseOrderEditPage() {
                 }));
                 setDetails(loadedDetails);
             } catch (e) {
-                setError(e instanceof Error ? e.message : "データの取得に失敗しました。");
+                setError(e instanceof Error ? e.message : fallback.fetchFailed("データ"));
             } finally {
                 setLoading(false);
             }
@@ -125,7 +126,7 @@ export default function PurchaseOrderEditPage() {
         setDetailErrors(allDetailErrors);
 
         if (details.length === 0) {
-            setError("明細を1行以上入力してください。");
+            setError(validation.listMinCount("明細"));
             return;
         }
 
@@ -151,7 +152,7 @@ export default function PurchaseOrderEditPage() {
 
             router.push(`/purchase-orders/${id}`);
         } catch (e) {
-            setError(e instanceof Error ? e.message : "発注の更新に失敗しました。");
+            setError(e instanceof Error ? e.message : fallback.updateFailed("発注"));
         } finally {
             setSubmitting(false);
         }

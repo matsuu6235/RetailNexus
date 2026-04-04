@@ -1,3 +1,5 @@
+import { validation } from "@/lib/messages";
+
 type AreaFormFields = {
   areaCd: string;
   areaName: string;
@@ -9,17 +11,17 @@ export function validateArea(form: AreaFormFields): AreaFieldErrors {
   const errors: AreaFieldErrors = {};
 
   if (!form.areaCd.trim()) {
-    errors.areaCd = "エリアコードは必須です。";
+    errors.areaCd = validation.required("エリアコード");
   } else if (!/^\d+$/.test(form.areaCd.trim())) {
-    errors.areaCd = "エリアコードは数字のみ入力できます。";
+    errors.areaCd = validation.digitsOnly("エリアコード");
   } else if (form.areaCd.trim().length > 2) {
-    errors.areaCd = "エリアコードは2文字以内で入力してください。";
+    errors.areaCd = validation.maxLength("エリアコード", 2);
   }
 
   if (!form.areaName.trim()) {
-    errors.areaName = "エリア名は必須です。";
+    errors.areaName = validation.required("エリア名");
   } else if (form.areaName.trim().length > 20) {
-    errors.areaName = "エリア名は20文字以内で入力してください。";
+    errors.areaName = validation.maxLength("エリア名", 20);
   }
 
   return errors;

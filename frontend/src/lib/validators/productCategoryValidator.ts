@@ -1,3 +1,5 @@
+import { validation } from "@/lib/messages";
+
 type ProductCategoryFormFields = {
   productCategoryCd: string;
   categoryAbbreviation: string;
@@ -10,23 +12,23 @@ export function validateProductCategory(form: ProductCategoryFormFields): Produc
   const errors: ProductCategoryFieldErrors = {};
 
   if (!form.productCategoryCd.trim()) {
-    errors.productCategoryCd = "商品カテゴリコードは必須です。";
+    errors.productCategoryCd = validation.required("商品カテゴリコード");
   } else if (!/^\d+$/.test(form.productCategoryCd.trim())) {
-    errors.productCategoryCd = "商品カテゴリコードは数字のみ入力できます。";
+    errors.productCategoryCd = validation.digitsOnly("商品カテゴリコード");
   } else if (form.productCategoryCd.trim().length > 3) {
-    errors.productCategoryCd = "商品カテゴリコードは3文字以内で入力してください。";
+    errors.productCategoryCd = validation.maxLength("商品カテゴリコード", 3);
   }
 
   if (!form.categoryAbbreviation.trim()) {
-    errors.categoryAbbreviation = "カテゴリ略称は必須です。";
+    errors.categoryAbbreviation = validation.required("カテゴリ略称");
   } else if (!/^[A-Za-z]{2,5}$/.test(form.categoryAbbreviation.trim())) {
-    errors.categoryAbbreviation = "カテゴリ略称は英字2〜5文字で入力してください。";
+    errors.categoryAbbreviation = validation.alphaRange("カテゴリ略称", 2, 5);
   }
 
   if (!form.productCategoryName.trim()) {
-    errors.productCategoryName = "商品カテゴリ名は必須です。";
+    errors.productCategoryName = validation.required("商品カテゴリ名");
   } else if (form.productCategoryName.trim().length > 30) {
-    errors.productCategoryName = "商品カテゴリ名は30文字以内で入力してください。";
+    errors.productCategoryName = validation.maxLength("商品カテゴリ名", 30);
   }
 
   return errors;

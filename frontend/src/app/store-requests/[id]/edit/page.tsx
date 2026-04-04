@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { validation, fallback } from "@/lib/messages";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getStoreRequestById, updateStoreRequest } from "@/lib/api/storeRequests";
@@ -78,7 +79,7 @@ export default function StoreRequestEditPage() {
                 }));
                 setDetails(loadedDetails);
             } catch (e) {
-                setError(e instanceof Error ? e.message : "データの取得に失敗しました。");
+                setError(e instanceof Error ? e.message : fallback.fetchFailed("データ"));
             } finally {
                 setLoading(false);
             }
@@ -105,7 +106,7 @@ export default function StoreRequestEditPage() {
         }
         setDetailErrors(allDetailErrors);
 
-        if (details.length === 0) { setError("明細を1行以上入力してください。"); return; }
+        if (details.length === 0) { setError(validation.listMinCount("明細")); return; }
         if (Object.keys(headerErrors).length > 0 || hasDetailError) return;
 
         try {
@@ -127,7 +128,7 @@ export default function StoreRequestEditPage() {
 
             router.push(`/store-requests/${id}`);
         } catch (e) {
-            setError(e instanceof Error ? e.message : "発送依頼の更新に失敗しました。");
+            setError(e instanceof Error ? e.message : fallback.updateFailed("発送依頼"));
         } finally {
             setSubmitting(false);
         }

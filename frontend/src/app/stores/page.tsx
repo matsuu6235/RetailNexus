@@ -5,6 +5,7 @@ import { useModal } from "@/lib/hooks/useModal";
 import { getStores } from "@/lib/api/stores";
 import { getAllAreas } from "@/lib/api/areas";
 import { getStoreTypes } from "@/lib/api/storeTypes";
+import { fallback } from "@/lib/messages";
 import type { Store } from "@/types/stores";
 import type { Area } from "@/types/areas";
 import type { StoreType } from "@/types/storeTypes";
@@ -55,7 +56,7 @@ export default function StoresPage() {
         }
       } catch (e) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : "検索条件の取得に失敗しました。");
+          setError(e instanceof Error ? e.message : fallback.searchFetchFailed);
         }
       }
     })();
@@ -87,7 +88,7 @@ export default function StoresPage() {
         }
       } catch (e) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : "店舗一覧の取得に失敗しました。");
+          setError(e instanceof Error ? e.message : fallback.listFetchFailed("店舗"));
         }
       } finally {
         if (!cancelled) setLoading(false);

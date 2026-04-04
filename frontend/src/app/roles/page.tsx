@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fallback } from "@/lib/messages";
 import { useModal } from "@/lib/hooks/useModal";
 import { getRoles } from "@/lib/api/roles";
 import type { Role } from "@/types/roles";
@@ -23,7 +24,7 @@ export default function RolesPage() {
       const roles = await getRoles();
       setItems(roles);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "ロール一覧の取得に失敗しました。");
+      setError(e instanceof Error ? e.message : fallback.listFetchFailed("ロール"));
     } finally {
       setLoading(false);
     }

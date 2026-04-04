@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { validation, fallback } from "@/lib/messages";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createStoreRequest } from "@/lib/api/storeRequests";
@@ -56,7 +57,7 @@ export default function StoreRequestNewPage() {
                 setStores(storeRes.items);
                 setProducts(productRes.items);
             } catch {
-                setError("マスタデータの取得に失敗しました。");
+                setError(fallback.masterFetchFailed);
             }
         })();
     }, []);
@@ -81,7 +82,7 @@ export default function StoreRequestNewPage() {
         }
         setDetailErrors(allDetailErrors);
 
-        if (details.length === 0) { setError("明細を1行以上入力してください。"); return; }
+        if (details.length === 0) { setError(validation.listMinCount("明細")); return; }
         if (Object.keys(headerErrors).length > 0 || hasDetailError) return;
 
         try {
@@ -102,7 +103,7 @@ export default function StoreRequestNewPage() {
 
             router.push(`/store-requests/${res.storeRequestId}`);
         } catch (e) {
-            setError(e instanceof Error ? e.message : "発送依頼の作成に失敗しました。");
+            setError(e instanceof Error ? e.message : fallback.createFailed("発送依頼"));
         } finally {
             setSubmitting(false);
         }

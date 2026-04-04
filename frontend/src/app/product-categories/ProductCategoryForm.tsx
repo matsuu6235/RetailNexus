@@ -11,6 +11,7 @@ import {
 } from "@/lib/api/productCategories";
 import { validateProductCategory, type ProductCategoryFieldErrors } from "@/lib/validators/productCategoryValidator";
 import { useActivation } from "@/lib/hooks/useActivation";
+import { fallback } from "@/lib/messages";
 import styles from "@/components/modal/FormModal.module.css";
 
 type ProductCategoryFormProps = {
@@ -54,7 +55,7 @@ export default function ProductCategoryForm({ mode, editId, onSave, onCancel }: 
         }
       } catch (e) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : "商品カテゴリ情報の取得に失敗しました。");
+          setError(e instanceof Error ? e.message : fallback.fetchFailed("商品カテゴリ情報"));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -103,7 +104,7 @@ export default function ProductCategoryForm({ mode, editId, onSave, onCancel }: 
 
       onSave();
     } catch (err) {
-      setError(err instanceof Error ? err.message : mode === "create" ? "商品カテゴリの作成に失敗しました。" : "商品カテゴリの更新に失敗しました。");
+      setError(err instanceof Error ? err.message : mode === "create" ? fallback.createFailed("商品カテゴリ") : fallback.updateFailed("商品カテゴリ"));
     } finally {
       setSubmitting(false);
     }

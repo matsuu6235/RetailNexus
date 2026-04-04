@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fallback } from "@/lib/messages";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -38,7 +39,7 @@ export default function StoreRequestDetailPage() {
             const data = await getStoreRequestById(id);
             setRequest(data);
         } catch (e) {
-            setError(e instanceof Error ? e.message : "発送依頼の取得に失敗しました。");
+            setError(e instanceof Error ? e.message : fallback.fetchFailed("発送依頼"));
         } finally {
             setLoading(false);
         }
@@ -54,7 +55,7 @@ export default function StoreRequestDetailPage() {
             if (result) setRequest(result);
             else await fetchRequest();
         } catch (e) {
-            setError(e instanceof Error ? e.message : "操作に失敗しました。");
+            setError(e instanceof Error ? e.message : fallback.operationFailed);
         } finally {
             setActionLoading(false);
         }

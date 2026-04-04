@@ -1,3 +1,5 @@
+import { httpError } from "@/lib/messages";
+
 const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 if (!baseUrl) {
@@ -12,13 +14,13 @@ function getAccessToken(): string | null {
 async function handleJsonResponse<T>(path: string, res: Response, method: string): Promise<T> {
   if (!res.ok) {
     if (res.status === 401) {
-      throw new Error("ログインセッションが切れました。再度ログインしてください。");
+      throw new Error(httpError.sessionExpired);
     }
     if (res.status === 403) {
-      throw new Error("アクセス権限がありません。");
+      throw new Error(httpError.forbidden);
     }
     if (res.status >= 500) {
-      throw new Error("サーバーエラーが発生しました。しばらく時間をおいて再度お試しください。");
+      throw new Error(httpError.serverError);
     }
     const text = await res.text().catch(() => "");
     try {
@@ -32,7 +34,7 @@ async function handleJsonResponse<T>(path: string, res: Response, method: string
     } catch (e) {
       if (e instanceof Error && e.message !== text) throw e;
     }
-    throw new Error(text || `エラーが発生しました。(${res.status})`);
+    throw new Error(text || httpError.unknownError(res.status));
   }
   if (res.status === 204) {
     // No Content

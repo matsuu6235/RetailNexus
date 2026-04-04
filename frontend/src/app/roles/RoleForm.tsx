@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fallback } from "@/lib/messages";
 import { createRole, getRoleById, updateRole, getPermissions, changeRoleActivation } from "@/lib/api/roles";
 import type { Permission } from "@/types/roles";
 import { useActivation } from "@/lib/hooks/useActivation";
@@ -107,7 +108,7 @@ export default function RoleForm({ mode, editId, onSave, onCancel }: RoleFormPro
         }
       } catch (e) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : "データの取得に失敗しました。");
+          setError(e instanceof Error ? e.message : fallback.fetchFailed("データ"));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -171,7 +172,7 @@ export default function RoleForm({ mode, editId, onSave, onCancel }: RoleFormPro
 
       onSave();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "保存に失敗しました。");
+      setError(err instanceof Error ? err.message : fallback.saveFailed);
     } finally {
       setSubmitting(false);
     }

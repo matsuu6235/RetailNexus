@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { fallback } from "@/lib/messages";
 
 function moveItem<T>(items: T[], fromId: string, toId: string, getId: (item: T) => string): T[] {
   const fromIndex = items.findIndex((item) => getId(item) === fromId);
@@ -49,7 +50,7 @@ export function useDragReorder<T extends { displayOrder: number }>({
       setItems(normalized);
       setOriginalOrderIds(normalized.map(getId));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "表示順の保存に失敗しました。");
+      setError(e instanceof Error ? e.message : fallback.reorderFailed);
     } finally {
       setSavingOrder(false);
     }

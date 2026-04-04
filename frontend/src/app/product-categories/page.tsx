@@ -5,6 +5,7 @@ import {
     getAllProductCategories,
     reorderProductCategories,
 } from "@/lib/api/productCategories";
+import { fallback } from "@/lib/messages";
 import type { ProductCategory } from "@/types/productCategories";
 import { useModal } from "@/lib/hooks/useModal";
 import { useDragReorder } from "@/lib/hooks/useDragReorder";
@@ -48,7 +49,7 @@ export default function ProductCategoriesPage() {
             setItems(normalized);
             setOriginalOrderIds(normalized.map(getCategoryId));
         } catch (e) {
-            setError(e instanceof Error ? e.message : "商品カテゴリ一覧の取得に失敗しました。");
+            setError(e instanceof Error ? e.message : fallback.listFetchFailed("商品カテゴリ"));
         } finally {
             setLoading(false);
         }

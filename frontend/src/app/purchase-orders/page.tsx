@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fallback } from "@/lib/messages";
 import Link from "next/link";
 import { getPurchaseOrders, type PurchaseOrderSearchParams } from "@/lib/api/purchaseOrders";
 import { getSuppliers } from "@/lib/api/suppliers";
@@ -67,7 +68,7 @@ export default function PurchaseOrdersPage() {
                 }
             } catch (e) {
                 if (!cancelled) {
-                    setError(e instanceof Error ? e.message : "発注一覧の取得に失敗しました。");
+                    setError(e instanceof Error ? e.message : fallback.listFetchFailed("発注"));
                 }
             } finally {
                 if (!cancelled) setLoading(false);

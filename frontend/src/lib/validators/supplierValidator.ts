@@ -1,3 +1,5 @@
+import { validation } from "@/lib/messages";
+
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 type SupplierFormFields = {
@@ -12,24 +14,24 @@ export function validateSupplier(form: SupplierFormFields): SupplierFieldErrors 
   const errors: SupplierFieldErrors = {};
 
   if (!form.supplierName.trim()) {
-    errors.supplierName = "仕入先名は必須です。";
+    errors.supplierName = validation.required("仕入先名");
   } else if (form.supplierName.trim().length > 50) {
-    errors.supplierName = "仕入先名は50文字以内で入力してください。";
+    errors.supplierName = validation.maxLength("仕入先名", 50);
   }
 
   if (form.phoneNumber) {
     if (!/^[\d-]+$/.test(form.phoneNumber)) {
-      errors.phoneNumber = "電話番号は数字とハイフン（-）のみ入力できます。";
+      errors.phoneNumber = validation.phoneFormat("電話番号");
     } else if (form.phoneNumber.length > 20) {
-      errors.phoneNumber = "電話番号は20文字以内で入力してください。";
+      errors.phoneNumber = validation.maxLength("電話番号", 20);
     }
   }
 
   if (form.email) {
     if (form.email.length > 255) {
-      errors.email = "メールアドレスは255文字以内で入力してください。";
+      errors.email = validation.maxLength("メールアドレス", 255);
     } else if (!EMAIL_REGEX.test(form.email)) {
-      errors.email = "メールアドレスの形式が正しくありません。";
+      errors.email = validation.emailFormat;
     }
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { validation, fallback } from "@/lib/messages";
 import { createUser, getUserById, updateUser, resetPassword, changeUserActivation } from "@/lib/api/users";
 import { getRoles } from "@/lib/api/roles";
 import type { Role } from "@/types/roles";
@@ -50,9 +51,9 @@ function validate(form: FormData, mode: "create" | "edit"): FieldErrors {
 
   if (mode === "create") {
     if (!form.password) {
-      errors.password = "パスワードは必須です。";
+      errors.password = validation.required("パスワード");
     } else if (form.password.length < 8) {
-      errors.password = "パスワードは8文字以上で入力してください。";
+      errors.password = validation.minLength("パスワード", 8);
     }
   }
 
@@ -108,7 +109,7 @@ export default function UserForm({ mode, editId, onSave, onCancel }: UserFormPro
         }
       } catch (e) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : "データの取得に失敗しました。");
+          setError(e instanceof Error ? e.message : fallback.fetchFailed("データ"));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -164,7 +165,7 @@ export default function UserForm({ mode, editId, onSave, onCancel }: UserFormPro
 
       onSave();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "保存に失敗しました。");
+      setError(err instanceof Error ? err.message : fallback.saveFailed);
     } finally {
       setSubmitting(false);
     }
@@ -175,11 +176,11 @@ export default function UserForm({ mode, editId, onSave, onCancel }: UserFormPro
     setPasswordResetSuccess(false);
 
     if (!newPassword) {
-      setPasswordError("パスワードは必須です。");
+      setPasswordError(validation.required("パスワード"));
       return;
     }
     if (newPassword.length < 8) {
-      setPasswordError("パスワードは8文字以上で入力してください。");
+      setPasswordError(validation.minLength("パスワード", 8));
       return;
     }
 

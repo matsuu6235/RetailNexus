@@ -1,3 +1,5 @@
+import { validation } from "@/lib/messages";
+
 type StoreTypeFormFields = {
   storeTypeCd: string;
   storeTypeName: string;
@@ -9,17 +11,17 @@ export function validateStoreType(form: StoreTypeFormFields): StoreTypeFieldErro
   const errors: StoreTypeFieldErrors = {};
 
   if (!form.storeTypeCd.trim()) {
-    errors.storeTypeCd = "店舗種別コードは必須です。";
+    errors.storeTypeCd = validation.required("店舗種別コード");
   } else if (!/^\d+$/.test(form.storeTypeCd.trim())) {
-    errors.storeTypeCd = "店舗種別コードは数字のみ入力できます。";
+    errors.storeTypeCd = validation.digitsOnly("店舗種別コード");
   } else if (form.storeTypeCd.trim().length > 2) {
-    errors.storeTypeCd = "店舗種別コードは2文字以内で入力してください。";
+    errors.storeTypeCd = validation.maxLength("店舗種別コード", 2);
   }
 
   if (!form.storeTypeName.trim()) {
-    errors.storeTypeName = "店舗種別名は必須です。";
+    errors.storeTypeName = validation.required("店舗種別名");
   } else if (form.storeTypeName.trim().length > 20) {
-    errors.storeTypeName = "店舗種別名は20文字以内で入力してください。";
+    errors.storeTypeName = validation.maxLength("店舗種別名", 20);
   }
 
   return errors;

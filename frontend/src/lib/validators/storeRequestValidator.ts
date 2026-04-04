@@ -1,3 +1,5 @@
+import { validation } from "@/lib/messages";
+
 export type StoreRequestFormFields = {
   fromStoreId: string;
   toStoreId: string;
@@ -19,23 +21,23 @@ export function validateStoreRequestHeader(form: StoreRequestFormFields): StoreR
   const errors: StoreRequestFieldErrors = {};
 
   if (!form.fromStoreId) {
-    errors.fromStoreId = "依頼元は必須です。";
+    errors.fromStoreId = validation.required("依頼元");
   }
 
   if (!form.toStoreId) {
-    errors.toStoreId = "依頼先は必須です。";
+    errors.toStoreId = validation.required("依頼先");
   }
 
   if (form.fromStoreId && form.toStoreId && form.fromStoreId === form.toStoreId) {
-    errors.toStoreId = "依頼元と依頼先は異なる店舗を選択してください。";
+    errors.toStoreId = validation.sameStore;
   }
 
   if (!form.requestDate) {
-    errors.requestDate = "依頼日は必須です。";
+    errors.requestDate = validation.required("依頼日");
   }
 
   if (form.note && form.note.length > 500) {
-    errors.note = "備考は500文字以内で入力してください。";
+    errors.note = validation.maxLength("備考", 500);
   }
 
   return errors;
@@ -45,14 +47,14 @@ export function validateStoreRequestDetail(detail: DetailFormFields): DetailFiel
   const errors: DetailFieldErrors = {};
 
   if (!detail.productId) {
-    errors.productId = "商品は必須です。";
+    errors.productId = validation.required("商品");
   }
 
   const qty = Number(detail.quantity);
   if (!detail.quantity || isNaN(qty)) {
-    errors.quantity = "数量は必須です。";
+    errors.quantity = validation.required("数量");
   } else if (qty <= 0 || !Number.isInteger(qty)) {
-    errors.quantity = "数量は1以上の整数で入力してください。";
+    errors.quantity = validation.greaterThan("数量", 1);
   }
 
   return errors;

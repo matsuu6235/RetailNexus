@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fallback } from "@/lib/messages";
 import { getAuditLogs } from "@/lib/api/auditLogs";
 import type { AuditLog } from "@/types/auditLogs";
 import Modal from "@/components/modal/Modal";
@@ -78,7 +79,7 @@ export default function AuditLogsPage() {
       setItems(res.items);
       setTotal(res.total);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "監査ログの取得に失敗しました。");
+      setError(e instanceof Error ? e.message : fallback.listFetchFailed("監査ログ"));
     } finally {
       setLoading(false);
     }

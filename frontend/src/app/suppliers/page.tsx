@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useModal } from "@/lib/hooks/useModal";
 import { getSuppliers } from "@/lib/api/suppliers";
+import { fallback } from "@/lib/messages";
 import type { Supplier } from "@/types/suppliers";
 import styles from "./page.module.css";
 import tableStyles from "@/components/table/MasterTable.module.css";
@@ -56,7 +57,7 @@ export default function SuppliersPage() {
                 }
             } catch (e) {
                 if (!cancelled) {
-                    setError(e instanceof Error ? e.message : "仕入先一覧の取得に失敗しました。");
+                    setError(e instanceof Error ? e.message : fallback.listFetchFailed("仕入先"));
                 }
             } finally {
                 if (!cancelled) {

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/services/authService";
+import { fallback } from "@/lib/messages";
 import styles from "./page.module.css";
 
 export default function LoginPage() {
@@ -22,7 +23,7 @@ export default function LoginPage() {
       await login({ loginId, password });
       router.push("/products");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "ログインに失敗しました。";
+      const message = err instanceof Error ? err.message : fallback.loginFailed;
       setError(message);
     } finally {
       setLoading(false);

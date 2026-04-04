@@ -11,6 +11,7 @@ import {
 } from "@/lib/api/storeTypes";
 import { validateStoreType, type StoreTypeFieldErrors } from "@/lib/validators/storeTypeValidator";
 import { useActivation } from "@/lib/hooks/useActivation";
+import { fallback } from "@/lib/messages";
 import styles from "@/components/modal/FormModal.module.css";
 
 type StoreTypeFormProps = {
@@ -50,7 +51,7 @@ export default function StoreTypeForm({ mode, editId, onSave, onCancel }: StoreT
         }
       } catch (e) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : "データの取得に失敗しました。");
+          setError(e instanceof Error ? e.message : fallback.fetchFailed("データ"));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -95,7 +96,7 @@ export default function StoreTypeForm({ mode, editId, onSave, onCancel }: StoreT
 
       onSave();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "保存に失敗しました。");
+      setError(e instanceof Error ? e.message : fallback.saveFailed);
     } finally {
       setSubmitting(false);
     }

@@ -15,6 +15,7 @@ import type { Area } from "@/types/areas";
 import type { StoreType } from "@/types/storeTypes";
 import { validateStore, type StoreFieldErrors } from "@/lib/validators/storeValidator";
 import { useActivation } from "@/lib/hooks/useActivation";
+import { fallback } from "@/lib/messages";
 import styles from "@/components/modal/FormModal.module.css";
 
 interface StoreFormProps {
@@ -78,7 +79,7 @@ export default function StoreForm({ mode, editId, onSave, onCancel }: StoreFormP
         }
       } catch (e) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : "データの取得に失敗しました。");
+          setError(e instanceof Error ? e.message : fallback.fetchFailed("データ"));
           setLoading(false);
         }
       }
@@ -123,7 +124,7 @@ export default function StoreForm({ mode, editId, onSave, onCancel }: StoreFormP
 
       onSave();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "保存に失敗しました。");
+      setError(e instanceof Error ? e.message : fallback.saveFailed);
     } finally {
       setSubmitting(false);
     }

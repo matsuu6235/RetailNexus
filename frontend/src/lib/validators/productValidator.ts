@@ -1,3 +1,5 @@
+import { validation } from "@/lib/messages";
+
 type ProductFormFields = {
   janCode: string;
   productName: string;
@@ -16,28 +18,28 @@ export function validateProduct(form: ProductFormFields): ProductFieldErrors {
 
   if (form.janCode) {
     if (!/^\d+$/.test(form.janCode.trim())) {
-      errors.janCode = "JANコードは数字のみ入力できます。";
+      errors.janCode = validation.digitsOnly("JANコード");
     } else if (form.janCode.trim().length !== 13) {
-      errors.janCode = "JANコードは13桁で入力してください。";
+      errors.janCode = validation.exactLength("JANコード", 13);
     }
   }
 
   if (!form.productName.trim()) {
-    errors.productName = "商品名は必須です。";
+    errors.productName = validation.required("商品名");
   } else if (form.productName.trim().length > 200) {
-    errors.productName = "商品名は200文字以内で入力してください。";
+    errors.productName = validation.maxLength("商品名", 200);
   }
 
   if (form.price < 0) {
-    errors.price = "売価は0以上で入力してください。";
+    errors.price = validation.minValue("売価", 0);
   }
 
   if (form.cost < 0) {
-    errors.cost = "原価は0以上で入力してください。";
+    errors.cost = validation.minValue("原価", 0);
   }
 
   if (!form.productCategoryCode.trim()) {
-    errors.productCategoryCode = "カテゴリは必須です。";
+    errors.productCategoryCode = validation.required("カテゴリ");
   }
 
   return errors;

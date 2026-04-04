@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fallback } from "@/lib/messages";
 import { useModal } from "@/lib/hooks/useModal";
 import { getUsers } from "@/lib/api/users";
 import type { User } from "@/types/users";
@@ -31,7 +32,7 @@ export default function UsersPage() {
       const users = await getUsers();
       setItems(users);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "ユーザー一覧の取得に失敗しました。");
+      setError(e instanceof Error ? e.message : fallback.listFetchFailed("ユーザー"));
     } finally {
       setLoading(false);
     }

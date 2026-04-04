@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createArea, getAreaById, updateArea, changeAreaActivation, type CreateAreaRequest, type UpdateAreaRequest } from "@/lib/api/areas";
 import { validateArea, type AreaFieldErrors } from "@/lib/validators/areaValidator";
 import { useActivation } from "@/lib/hooks/useActivation";
+import { fallback } from "@/lib/messages";
 import styles from "@/components/modal/FormModal.module.css";
 
 type AreaFormProps = {
@@ -45,7 +46,7 @@ export default function AreaForm({ mode, editId, onSave, onCancel }: AreaFormPro
         }
       } catch (e) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : "エリア情報の取得に失敗しました。");
+          setError(e instanceof Error ? e.message : fallback.fetchFailed("エリア情報"));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -92,7 +93,7 @@ export default function AreaForm({ mode, editId, onSave, onCancel }: AreaFormPro
 
       onSave();
     } catch (err) {
-      setError(err instanceof Error ? err.message : mode === "create" ? "エリアの作成に失敗しました。" : "エリアの更新に失敗しました。");
+      setError(err instanceof Error ? err.message : mode === "create" ? fallback.createFailed("エリア") : fallback.updateFailed("エリア"));
     } finally {
       setSubmitting(false);
     }

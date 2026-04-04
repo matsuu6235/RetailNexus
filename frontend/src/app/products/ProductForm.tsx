@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { fallback } from "@/lib/messages";
 import {
   createProduct,
   getProductById,
@@ -76,7 +77,7 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
         }
       } catch (e) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : "データの取得に失敗しました。");
+          setError(e instanceof Error ? e.message : fallback.fetchFailed("データ"));
           setLoading(false);
         }
       }
@@ -138,7 +139,7 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
       }
       onSave();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "保存に失敗しました。");
+      setError(e instanceof Error ? e.message : fallback.saveFailed);
     } finally {
       setSubmitting(false);
     }

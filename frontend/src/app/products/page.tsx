@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fallback } from "@/lib/messages";
 import { useModal } from "@/lib/hooks/useModal";
 import { getProducts } from "@/lib/api/products";
 import { getAllProductCategories } from "@/lib/api/productCategories";
@@ -79,7 +80,7 @@ export default function ProductsPage() {
         }
       } catch (e) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : "商品一覧の取得に失敗しました。");
+          setError(e instanceof Error ? e.message : fallback.listFetchFailed("商品"));
         }
       } finally {
         if (!cancelled) {

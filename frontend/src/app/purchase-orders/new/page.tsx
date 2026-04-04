@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { validation, fallback } from "@/lib/messages";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createPurchaseOrder } from "@/lib/api/purchaseOrders";
@@ -56,7 +57,7 @@ export default function PurchaseOrderNewPage() {
                 setStores(storeRes.items);
                 setProducts(productRes.items);
             } catch {
-                setError("マスタデータの取得に失敗しました。");
+                setError(fallback.masterFetchFailed);
             }
         })();
     }, []);
@@ -100,7 +101,7 @@ export default function PurchaseOrderNewPage() {
         setDetailErrors(allDetailErrors);
 
         if (details.length === 0) {
-            setError("明細を1行以上入力してください。");
+            setError(validation.listMinCount("明細"));
             return;
         }
 
@@ -125,7 +126,7 @@ export default function PurchaseOrderNewPage() {
 
             router.push(`/purchase-orders/${res.purchaseOrderId}`);
         } catch (e) {
-            setError(e instanceof Error ? e.message : "発注の作成に失敗しました。");
+            setError(e instanceof Error ? e.message : fallback.createFailed("発注"));
         } finally {
             setSubmitting(false);
         }

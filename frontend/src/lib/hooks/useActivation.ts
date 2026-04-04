@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { hasPermission } from "@/services/authService";
+import { fallback } from "@/lib/messages";
 
 interface UseActivationOptions {
   permissionCode: string;
@@ -30,7 +31,7 @@ export function useActivation({ permissionCode, initialIsActive = true, changeFn
       await changeFn(editId, !currentIsActive);
       setCurrentIsActive(!currentIsActive);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "状態の変更に失敗しました。");
+      setError(err instanceof Error ? err.message : fallback.activationFailed);
     } finally {
       setChangingActivation(false);
     }

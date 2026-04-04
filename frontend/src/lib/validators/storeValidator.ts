@@ -1,3 +1,5 @@
+import { validation } from "@/lib/messages";
+
 type StoreFormFields = {
   storeName: string;
   areaId: string;
@@ -10,17 +12,17 @@ export function validateStore(form: StoreFormFields): StoreFieldErrors {
   const errors: StoreFieldErrors = {};
 
   if (!form.storeName.trim()) {
-    errors.storeName = "店舗名は必須です。";
+    errors.storeName = validation.required("店舗名");
   } else if (form.storeName.trim().length > 50) {
-    errors.storeName = "店舗名は50文字以内で入力してください。";
+    errors.storeName = validation.maxLength("店舗名", 50);
   }
 
   if (!form.areaId) {
-    errors.areaId = "エリアは必須です。";
+    errors.areaId = validation.required("エリア");
   }
 
   if (!form.storeTypeId) {
-    errors.storeTypeId = "店舗種別は必須です。";
+    errors.storeTypeId = validation.required("店舗種別");
   }
 
   return errors;

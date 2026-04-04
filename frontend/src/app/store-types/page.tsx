@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getStoreTypes, reorderStoreTypes } from "@/lib/api/storeTypes";
+import { fallback } from "@/lib/messages";
 import type { StoreType } from "@/types/storeTypes";
 import { useModal } from "@/lib/hooks/useModal";
 import { useDragReorder } from "@/lib/hooks/useDragReorder";
@@ -45,7 +46,7 @@ export default function StoreTypesPage() {
       setItems(normalized);
       setOriginalOrderIds(normalized.map(getStoreTypeId));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "店舗種別一覧の取得に失敗しました。");
+      setError(e instanceof Error ? e.message : fallback.listFetchFailed("店舗種別"));
     } finally {
       setLoading(false);
     }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getAllAreas, reorderAreas } from "@/lib/api/areas";
+import { fallback } from "@/lib/messages";
 import type { Area } from "@/types/areas";
 import { useModal } from "@/lib/hooks/useModal";
 import { useDragReorder } from "@/lib/hooks/useDragReorder";
@@ -45,7 +46,7 @@ export default function AreasPage() {
       setItems(normalized);
       setOriginalOrderIds(normalized.map(getAreaId));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "エリア一覧の取得に失敗しました。");
+      setError(e instanceof Error ? e.message : fallback.listFetchFailed("エリア"));
     } finally {
       setLoading(false);
     }

@@ -1,3 +1,5 @@
+import { httpError } from "@/lib/messages";
+
 const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL!;
 
 type LoginRequest = {
@@ -21,7 +23,7 @@ export async function login(body: LoginRequest): Promise<LoginResponse> {
   });
 
   if (!res.ok) {
-    throw new Error("ログインIDまたはパスワードが正しくありません。");
+    throw new Error(httpError.loginFailed);
   }
 
   const data = (await res.json()) as LoginResponse;
