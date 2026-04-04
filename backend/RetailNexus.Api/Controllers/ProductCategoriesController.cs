@@ -1,18 +1,16 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Api.Authorization;
+using RetailNexus.Api.Controllers;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
 
 namespace RetailNexus.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public sealed class ProductCategoriesController : ControllerBase
+public sealed class ProductCategoriesController : BaseController
 {
     private readonly IProductCategoryRepository _repo;
     private readonly IValidator<CreateProductCategoryRequest> _createValidator;
@@ -56,9 +54,7 @@ public sealed class ProductCategoriesController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        page = Math.Max(page, 1);
-        pageSize = Math.Clamp(pageSize, 1, 200);
-        var skip = (page - 1) * pageSize;
+        (var skip, page, pageSize) = NormalizePagination(page, pageSize);
 
         var total = await _repo.CountAsync(productCategoryCd, productCategoryName, isActive, ct);
         var items = await _repo.ListAsync(productCategoryCd, productCategoryName, isActive, skip, pageSize, ct);
@@ -168,15 +164,6 @@ public sealed class ProductCategoriesController : ControllerBase
             .OrderBy(x => x.DisplayOrder)
             .ThenBy(x => x.ProductCategoryCd)
             .Select(Map));
-    }
-
-    private bool TryGetCurrentUserId(out Guid userId)
-    {
-        var raw = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
-                  ?? User.FindFirstValue(ClaimTypes.NameIdentifier)
-                  ?? User.FindFirstValue("sub");
-
-        return Guid.TryParse(raw, out userId);
     }
 
     private static ProductCategoryResponse Map(ProductCategory x)

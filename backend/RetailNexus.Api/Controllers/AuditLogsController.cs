@@ -6,10 +6,9 @@ using RetailNexus.Domain.Entities;
 
 namespace RetailNexus.Api.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public sealed class AuditLogsController : ControllerBase
+public sealed class AuditLogsController : BaseController
 {
     private readonly IAuditLogRepository _repo;
 
@@ -41,9 +40,7 @@ public sealed class AuditLogsController : ControllerBase
         [FromQuery] int pageSize = 50,
         CancellationToken ct = default)
     {
-        page = Math.Max(page, 1);
-        pageSize = Math.Clamp(pageSize, 1, 200);
-        var skip = (page - 1) * pageSize;
+        (var skip, page, pageSize) = NormalizePagination(page, pageSize);
 
         var total = await _repo.CountAsync(from, to, userName, action, entityName, ct);
         var items = await _repo.ListAsync(from, to, userName, action, entityName, skip, pageSize, ct);

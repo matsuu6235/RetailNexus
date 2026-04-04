@@ -1,19 +1,17 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Api.Authorization;
 using RetailNexus.Application.Interfaces;
+using RetailNexus.Application.Services;
 using RetailNexus.Domain.Entities;
 using RetailNexus.Domain.Enums;
 
 namespace RetailNexus.Api.Controllers;
 
-[ApiController]
 [Route("api/store-requests")]
 [Authorize]
-public sealed class StoreRequestsController : ControllerBase
+public sealed class StoreRequestsController : BaseController
 {
     private readonly IStoreRequestRepository _repo;
     private readonly IValidator<CreateStoreRequestRequest> _createValidator;
@@ -128,10 +126,7 @@ public sealed class StoreRequestsController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        page = Math.Max(page, 1);
-        pageSize = Math.Clamp(pageSize, 1, 200);
-
-        var skip = (page - 1) * pageSize;
+        (var skip, page, pageSize) = NormalizePagination(page, pageSize);
         var total = await _repo.CountAsync(requestNumber, fromStoreId, toStoreId, status, requestDateFrom, requestDateTo, isActive, ct);
         var items = await _repo.ListAsync(requestNumber, fromStoreId, toStoreId, status, requestDateFrom, requestDateTo, isActive, skip, pageSize, ct);
 
@@ -164,13 +159,7 @@ public sealed class StoreRequestsController : ControllerBase
             return BadRequest(validation.ToDictionary());
 
         var maxNumber = await _repo.GetMaxRequestNumberAsync(ct);
-        var nextSeq = 1;
-        if (maxNumber is not null)
-        {
-            var numericPart = maxNumber[3..]; // "SR-000001" → "000001"
-            nextSeq = int.Parse(numericPart) + 1;
-        }
-        var requestNumber = $"SR-{nextSeq:D6}";
+        var requestNumber = CodeGenerator.NextRequestNumber(maxNumber);
 
         var storeRequest = new StoreRequest(
             requestNumber,
@@ -342,15 +331,6 @@ public sealed class StoreRequestsController : ControllerBase
     }
 
     // ── Helpers ──
-
-    private bool TryGetCurrentUserId(out Guid userId)
-    {
-        var raw = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
-                  ?? User.FindFirstValue(ClaimTypes.NameIdentifier)
-                  ?? User.FindFirstValue("sub");
-
-        return Guid.TryParse(raw, out userId);
-    }
 
     private static StoreRequestListResponse MapList(StoreRequest x)
         => new(

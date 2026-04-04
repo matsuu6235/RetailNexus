@@ -1,18 +1,16 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Api.Authorization;
 using RetailNexus.Application.Interfaces;
+using RetailNexus.Application.Services;
 using RetailNexus.Domain.Entities;
 
 namespace RetailNexus.Api.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public sealed class SuppliersController : ControllerBase
+public sealed class SuppliersController : BaseController
 {
     private readonly ISupplierRepository _repo;
     private readonly IValidator<CreateSupplierRequest> _createValidator;
@@ -70,10 +68,7 @@ public sealed class SuppliersController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        page = Math.Max(page, 1);
-        pageSize = Math.Clamp(pageSize, 1, 200);
-
-        var skip = (page - 1) * pageSize;
+        (var skip, page, pageSize) = NormalizePagination(page, pageSize);
         var total = await _repo.CountAsync(supplierCode, supplierName, phoneNumber, email, isActive, ct);
         var items = await _repo.ListAsync(supplierCode, supplierName, phoneNumber, email, isActive, skip, pageSize, ct);
 
@@ -111,12 +106,7 @@ public sealed class SuppliersController : ControllerBase
             return BadRequest(validation.ToDictionary());
 
         var maxCode = await _repo.GetMaxSupplierCodeAsync(ct);
-        var nextSeq = 1;
-        if (maxCode is not null)
-        {
-            nextSeq = int.Parse(maxCode) + 1;
-        }
-        var supplierCode = $"{nextSeq:D5}";
+        var supplierCode = CodeGenerator.NextSupplierCode(maxCode);
 
         var supplier = new Supplier(supplierCode, req.SupplierName.Trim(), req.PhoneNumber, req.Email, req.IsActive, actorUserId);
 
@@ -166,15 +156,6 @@ public sealed class SuppliersController : ControllerBase
         await _repo.SaveChangesAsync(ct);
 
         return Ok(Map(supplier));
-    }
-
-    private bool TryGetCurrentUserId(out Guid userId)
-    {
-        var raw = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
-                  ?? User.FindFirstValue(ClaimTypes.NameIdentifier)
-                  ?? User.FindFirstValue("sub");
-
-        return Guid.TryParse(raw, out userId);
     }
 
     private static SupplierResponse Map(Supplier x)

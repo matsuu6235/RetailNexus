@@ -1,18 +1,17 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Api.Authorization;
+using RetailNexus.Api.Controllers;
 using RetailNexus.Application.Interfaces;
+using RetailNexus.Application.Services;
 using RetailNexus.Domain.Entities;
 
 namespace RetailNexus.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public sealed class StoresController : ControllerBase
+public sealed class StoresController : BaseController
 {
     private readonly IStoreRepository _storeRepo;
     private readonly IValidator<CreateStoreRequest> _createValidator;
@@ -58,9 +57,7 @@ public sealed class StoresController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        page = Math.Max(page, 1);
-        pageSize = Math.Clamp(pageSize, 1, 200);
-        var skip = (page - 1) * pageSize;
+        (var skip, page, pageSize) = NormalizePagination(page, pageSize);
 
         var total = await _storeRepo.CountAsync(storeCd, storeName, areaId, storeTypeId, isActive, ct);
         var items = await _storeRepo.ListAsync(storeCd, storeName, areaId, storeTypeId, isActive, skip, pageSize, ct);
@@ -88,12 +85,7 @@ public sealed class StoresController : ControllerBase
             return BadRequest(validation.ToDictionary());
 
         var maxCode = await _storeRepo.GetMaxStoreCodeAsync(ct);
-        var nextSeq = 1;
-        if (maxCode is not null)
-        {
-            nextSeq = int.Parse(maxCode) + 1;
-        }
-        var storeCd = $"{nextSeq:D6}";
+        var storeCd = CodeGenerator.NextStoreCode(maxCode);
 
         var entity = new Store(storeCd, req.StoreName.Trim(), req.AreaId, req.StoreTypeId, req.IsActive, userId);
 
@@ -145,15 +137,6 @@ public sealed class StoresController : ControllerBase
         await _storeRepo.SaveChangesAsync(ct);
 
         return Ok(Map(entity));
-    }
-
-    private bool TryGetCurrentUserId(out Guid userId)
-    {
-        var raw = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
-                  ?? User.FindFirstValue(ClaimTypes.NameIdentifier)
-                  ?? User.FindFirstValue("sub");
-
-        return Guid.TryParse(raw, out userId);
     }
 
     private static StoreResponse Map(Store x)

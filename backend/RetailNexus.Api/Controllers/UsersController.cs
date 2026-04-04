@@ -1,6 +1,3 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,10 +8,9 @@ using RetailNexus.Infrastructure.Persistence;
 
 namespace RetailNexus.Api.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public sealed class UsersController : ControllerBase
+public sealed class UsersController : BaseController
 {
     private readonly IUserRepository _userRepo;
     private readonly RetailNexusDbContext _db;
@@ -169,14 +165,6 @@ public sealed class UsersController : ControllerBase
         await _userRepo.SaveChangesAsync(ct);
 
         return NoContent();
-    }
-
-    private bool TryGetCurrentUserId(out Guid userId)
-    {
-        var raw = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
-                  ?? User.FindFirstValue(ClaimTypes.NameIdentifier)
-                  ?? User.FindFirstValue("sub");
-        return Guid.TryParse(raw, out userId);
     }
 
     private static UserResponse MapUser(User u) => new(

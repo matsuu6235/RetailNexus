@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RetailNexus.Api.Controllers;
 using RetailNexus.Application.Features.Auth.Login;
 
 namespace RetailNexus.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
-public sealed class AuthController : ControllerBase
+public sealed class AuthController : BaseController
 {
     private readonly LoginHandler _handler;
 

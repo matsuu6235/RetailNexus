@@ -1,19 +1,17 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Api.Authorization;
 using RetailNexus.Application.Interfaces;
+using RetailNexus.Application.Services;
 using RetailNexus.Domain.Entities;
 using RetailNexus.Domain.Enums;
 
 namespace RetailNexus.Api.Controllers;
 
-[ApiController]
 [Route("api/purchase-orders")]
 [Authorize]
-public sealed class PurchaseOrdersController : ControllerBase
+public sealed class PurchaseOrdersController : BaseController
 {
     private readonly IPurchaseOrderRepository _repo;
     private readonly IValidator<CreatePurchaseOrderRequest> _createValidator;
@@ -132,10 +130,7 @@ public sealed class PurchaseOrdersController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        page = Math.Max(page, 1);
-        pageSize = Math.Clamp(pageSize, 1, 200);
-
-        var skip = (page - 1) * pageSize;
+        (var skip, page, pageSize) = NormalizePagination(page, pageSize);
         var total = await _repo.CountAsync(orderNumber, supplierId, storeId, status, orderDateFrom, orderDateTo, isActive, ct);
         var items = await _repo.ListAsync(orderNumber, supplierId, storeId, status, orderDateFrom, orderDateTo, isActive, skip, pageSize, ct);
 
@@ -168,13 +163,7 @@ public sealed class PurchaseOrdersController : ControllerBase
             return BadRequest(validation.ToDictionary());
 
         var maxNumber = await _repo.GetMaxOrderNumberAsync(ct);
-        var nextSeq = 1;
-        if (maxNumber is not null)
-        {
-            var numericPart = maxNumber[3..]; // "PO-000001" → "000001"
-            nextSeq = int.Parse(numericPart) + 1;
-        }
-        var orderNumber = $"PO-{nextSeq:D6}";
+        var orderNumber = CodeGenerator.NextOrderNumber(maxNumber);
 
         var order = new PurchaseOrder(
             orderNumber,
@@ -347,15 +336,6 @@ public sealed class PurchaseOrdersController : ControllerBase
     }
 
     // ── Helpers ──
-
-    private bool TryGetCurrentUserId(out Guid userId)
-    {
-        var raw = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
-                  ?? User.FindFirstValue(ClaimTypes.NameIdentifier)
-                  ?? User.FindFirstValue("sub");
-
-        return Guid.TryParse(raw, out userId);
-    }
 
     private static PurchaseOrderListResponse MapList(PurchaseOrder x)
         => new(

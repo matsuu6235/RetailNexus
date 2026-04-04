@@ -8,10 +8,9 @@ using RetailNexus.Infrastructure.Persistence;
 
 namespace RetailNexus.Api.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public sealed class RolesController : ControllerBase
+public sealed class RolesController : BaseController
 {
     private readonly IRoleRepository _roleRepo;
     private readonly RetailNexusDbContext _db;

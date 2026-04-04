@@ -1,16 +1,14 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Api.Authorization;
+using RetailNexus.Api.Controllers;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
 
-[ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public sealed class StoreTypesController : ControllerBase
+public sealed class StoreTypesController : BaseController
 {
     private readonly IStoreTypeRepository _repo;
     private readonly IValidator<CreateStoreTypeRequest> _createValidator;
@@ -157,15 +155,6 @@ public sealed class StoreTypesController : ControllerBase
             .OrderBy(x => x.DisplayOrder)
             .ThenBy(x => x.StoreTypeCd)
             .Select(Map));
-    }
-
-    private bool TryGetCurrentUserId(out Guid userId)
-    {
-        var raw = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
-                  ?? User.FindFirstValue(ClaimTypes.NameIdentifier)
-                  ?? User.FindFirstValue("sub");
-
-        return Guid.TryParse(raw, out userId);
     }
 
     private static StoreTypeResponse Map(StoreType x)

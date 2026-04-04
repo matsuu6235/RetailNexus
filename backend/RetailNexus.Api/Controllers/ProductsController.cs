@@ -1,18 +1,16 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Api.Authorization;
 using RetailNexus.Application.Interfaces;
+using RetailNexus.Application.Services;
 using RetailNexus.Domain.Entities;
 
 namespace RetailNexus.Api.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public sealed class ProductsController : ControllerBase
+public sealed class ProductsController : BaseController
 {
     private readonly IProductRepository _productRepo;
     private readonly IProductCategoryRepository _categoryRepo;
@@ -60,13 +58,7 @@ public sealed class ProductsController : ControllerBase
 
         var abbreviation = category.CategoryAbbreviation;
         var maxCode = await _productRepo.GetMaxProductCodeByPrefixAsync(abbreviation, ct);
-        var nextSeq = 1;
-        if (maxCode is not null)
-        {
-            var numericPart = maxCode[(abbreviation.Length + 1)..];
-            nextSeq = int.Parse(numericPart) + 1;
-        }
-        var productCode = $"{abbreviation}-{nextSeq:D6}";
+        var productCode = CodeGenerator.NextProductCode(maxCode, abbreviation);
 
         TryGetCurrentUserId(out var userId);
 
@@ -155,10 +147,7 @@ public sealed class ProductsController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        page = Math.Max(page, 1);
-        pageSize = Math.Clamp(pageSize, 1, 200);
-
-        var skip = (page - 1) * pageSize;
+        (var skip, page, pageSize) = NormalizePagination(page, pageSize);
 
         var total = await _productRepo.CountAsync(productCode, janCode, productName, productCategoryCode, isActive, ct);
         var items = await _productRepo.ListAsync(productCode, janCode, productName, productCategoryCode, isActive, skip, pageSize, ct);
@@ -170,14 +159,6 @@ public sealed class ProductsController : ControllerBase
             pageSize,
             items = items.Select(Map)
         });
-    }
-
-    private bool TryGetCurrentUserId(out Guid userId)
-    {
-        var raw = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
-                  ?? User.FindFirstValue(ClaimTypes.NameIdentifier)
-                  ?? User.FindFirstValue("sub");
-        return Guid.TryParse(raw, out userId);
     }
 
     private static ProductResponse Map(Product x)
