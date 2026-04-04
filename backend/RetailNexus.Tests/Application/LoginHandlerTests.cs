@@ -10,11 +10,16 @@ public class LoginHandlerTests
 {
     private readonly Mock<IUserRepository> _userRepoMock = new();
     private readonly Mock<IJwtService> _jwtServiceMock = new();
+    private readonly Mock<IPasswordHasher> _passwordHasherMock = new();
     private readonly LoginHandler _handler;
 
     public LoginHandlerTests()
     {
-        _handler = new LoginHandler(_userRepoMock.Object, _jwtServiceMock.Object);
+        _passwordHasherMock
+            .Setup(h => h.Verify(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((string password, string hash) => BCrypt.Net.BCrypt.Verify(password, hash));
+
+        _handler = new LoginHandler(_userRepoMock.Object, _jwtServiceMock.Object, _passwordHasherMock.Object);
     }
 
     private static User CreateActiveUser(string loginId = "admin", string? password = null)

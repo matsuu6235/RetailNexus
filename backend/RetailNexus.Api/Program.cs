@@ -114,6 +114,7 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
 builder.Services.AddScoped<IStoreRequestRepository, StoreRequestRepository>();
+builder.Services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
 
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
@@ -147,6 +148,7 @@ if (app.Environment.IsDevelopment())
     // Admin ロール（マイグレーションで投入済み）
     var adminRoleId = Guid.Parse("00000000-0000-0000-0000-000000000001");
 
+    var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
     var defaultAdminPassword = builder.Configuration["SeedAdmin:Password"]
         ?? throw new InvalidOperationException("SeedAdmin:Password is not configured. Set it via environment variable or appsettings.");
 
@@ -154,7 +156,7 @@ if (app.Environment.IsDevelopment())
     if (existingAdmin is null)
     {
         var admin = new RetailNexus.Domain.Entities.User(
-            "admin", "管理者", "admin@example.com", BCrypt.Net.BCrypt.HashPassword(defaultAdminPassword), true, null, null);
+            "admin", "管理者", "admin@example.com", passwordHasher.Hash(defaultAdminPassword), true, null, null);
         db.Users.Add(admin);
         await db.SaveChangesAsync();
 
@@ -176,7 +178,7 @@ if (app.Environment.IsDevelopment())
         // 既存の平文パスワードをBCryptハッシュに変換
         if (!existingAdmin.PasswordHash.StartsWith("$2"))
         {
-            existingAdmin.PasswordHash = BCrypt.Net.BCrypt.HashPassword(existingAdmin.PasswordHash);
+            existingAdmin.PasswordHash = passwordHasher.Hash(existingAdmin.PasswordHash);
         }
 
         await db.SaveChangesAsync();

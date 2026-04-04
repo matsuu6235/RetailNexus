@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using RetailNexus.Api.Authorization;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
-using RetailNexus.Infrastructure.Persistence;
 
 namespace RetailNexus.Api.Controllers;
 
@@ -13,12 +11,12 @@ namespace RetailNexus.Api.Controllers;
 public sealed class UsersController : BaseController
 {
     private readonly IUserRepository _userRepo;
-    private readonly RetailNexusDbContext _db;
+    private readonly IPasswordHasher _passwordHasher;
 
-    public UsersController(IUserRepository userRepo, RetailNexusDbContext db)
+    public UsersController(IUserRepository userRepo, IPasswordHasher passwordHasher)
     {
         _userRepo = userRepo;
-        _db = db;
+        _passwordHasher = passwordHasher;
     }
 
     public sealed record CreateUserRequest(string LoginId, string UserName, string? Email, string Password, bool IsActive, List<Guid> RoleIds);
@@ -72,18 +70,15 @@ public sealed class UsersController : BaseController
         if (existing is not null)
             return BadRequest(new { LoginId = new[] { "このログインIDは既に使用されています。" } });
 
-        var hash = BCrypt.Net.BCrypt.HashPassword(req.Password);
+        var hash = _passwordHasher.Hash(req.Password);
         var user = new User(req.LoginId.Trim(), req.UserName.Trim(), req.Email, hash, req.IsActive, actorId, actorId);
         await _userRepo.AddAsync(user, ct);
         await _userRepo.SaveChangesAsync(ct);
 
         if (req.RoleIds.Count > 0)
         {
-            foreach (var roleId in req.RoleIds.Distinct())
-            {
-                _db.UserRoles.Add(new UserRole { UserId = user.UserId, RoleId = roleId });
-            }
-            await _db.SaveChangesAsync(ct);
+            await _userRepo.ReplaceUserRolesAsync(user.UserId, req.RoleIds, ct);
+            await _userRepo.SaveChangesAsync(ct);
         }
 
         var created = await _userRepo.FindByIdWithRolesAsync(user.UserId, ct);
@@ -113,14 +108,8 @@ public sealed class UsersController : BaseController
         user.UpdateProfile(req.LoginId.Trim(), req.UserName.Trim(), req.Email, actorId);
 
         // ロールの更新
-        var existingRoles = await _db.UserRoles.Where(ur => ur.UserId == id).ToListAsync(ct);
-        _db.UserRoles.RemoveRange(existingRoles);
-        foreach (var roleId in req.RoleIds.Distinct())
-        {
-            _db.UserRoles.Add(new UserRole { UserId = id, RoleId = roleId });
-        }
-
-        await _db.SaveChangesAsync(ct);
+        await _userRepo.ReplaceUserRolesAsync(id, req.RoleIds, ct);
+        await _userRepo.SaveChangesAsync(ct);
 
         var updated = await _userRepo.FindByIdWithRolesAsync(id, ct);
         return Ok(MapUser(updated!));
@@ -139,7 +128,7 @@ public sealed class UsersController : BaseController
         if (user is null)
             return NotFound();
 
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(req.NewPassword);
+        user.PasswordHash = _passwordHasher.Hash(req.NewPassword);
         user.UpdatedAt = DateTimeOffset.UtcNow;
         await _userRepo.SaveChangesAsync(ct);
 

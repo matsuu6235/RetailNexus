@@ -10,5 +10,6 @@ public interface IRoleRepository
     Task<Role?> FindByNameAsync(string roleName, CancellationToken ct);
     Task<List<Permission>> GetAllPermissionsAsync(CancellationToken ct);
     Task AddAsync(Role role, CancellationToken ct);
+    Task ReplaceRolePermissionsAsync(Guid roleId, IEnumerable<Guid> permissionIds, CancellationToken ct);
     Task SaveChangesAsync(CancellationToken ct);
 }

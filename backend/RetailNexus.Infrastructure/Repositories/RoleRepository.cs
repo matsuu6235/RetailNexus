@@ -39,6 +39,16 @@ public sealed class RoleRepository : IRoleRepository
     public async Task AddAsync(Role role, CancellationToken ct)
         => await _db.Roles.AddAsync(role, ct);
 
+    public async Task ReplaceRolePermissionsAsync(Guid roleId, IEnumerable<Guid> permissionIds, CancellationToken ct)
+    {
+        var existing = await _db.RolePermissions.Where(rp => rp.RoleId == roleId).ToListAsync(ct);
+        _db.RolePermissions.RemoveRange(existing);
+        foreach (var permId in permissionIds.Distinct())
+        {
+            _db.RolePermissions.Add(new RolePermission { RoleId = roleId, PermissionId = permId });
+        }
+    }
+
     public Task SaveChangesAsync(CancellationToken ct)
         => _db.SaveChangesAsync(ct);
 }

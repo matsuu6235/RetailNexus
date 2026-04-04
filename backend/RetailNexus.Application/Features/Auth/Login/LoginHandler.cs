@@ -6,11 +6,13 @@ public class LoginHandler
 {
     private readonly IUserRepository _users;
     private readonly IJwtService _jwt;
+    private readonly IPasswordHasher _passwordHasher;
 
-    public LoginHandler(IUserRepository users, IJwtService jwt)
+    public LoginHandler(IUserRepository users, IJwtService jwt, IPasswordHasher passwordHasher)
     {
         _users = users;
         _jwt = jwt;
+        _passwordHasher = passwordHasher;
     }
 
     public async Task<LoginResponse> HandleAsync(LoginCommand command, CancellationToken ct)
@@ -23,7 +25,7 @@ public class LoginHandler
             throw new UnauthorizedAccessException("Invalid credentials.");
         }
 
-        if (!BCrypt.Net.BCrypt.Verify(command.Password, user.PasswordHash))
+        if (!_passwordHasher.Verify(command.Password, user.PasswordHash))
         {
             throw new UnauthorizedAccessException("Invalid credentials.");
         }

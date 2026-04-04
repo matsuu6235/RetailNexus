@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using RetailNexus.Api.Authorization;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
-using RetailNexus.Infrastructure.Persistence;
 
 namespace RetailNexus.Api.Controllers;
 
@@ -13,12 +11,10 @@ namespace RetailNexus.Api.Controllers;
 public sealed class RolesController : BaseController
 {
     private readonly IRoleRepository _roleRepo;
-    private readonly RetailNexusDbContext _db;
 
-    public RolesController(IRoleRepository roleRepo, RetailNexusDbContext db)
+    public RolesController(IRoleRepository roleRepo)
     {
         _roleRepo = roleRepo;
-        _db = db;
     }
 
     public sealed record CreateRoleRequest(string RoleName, string? Description, bool IsActive, List<Guid> PermissionIds);
@@ -76,11 +72,8 @@ public sealed class RolesController : BaseController
 
         if (req.PermissionIds.Count > 0)
         {
-            foreach (var permId in req.PermissionIds.Distinct())
-            {
-                _db.RolePermissions.Add(new RolePermission { RoleId = role.RoleId, PermissionId = permId });
-            }
-            await _db.SaveChangesAsync(ct);
+            await _roleRepo.ReplaceRolePermissionsAsync(role.RoleId, req.PermissionIds, ct);
+            await _roleRepo.SaveChangesAsync(ct);
         }
 
         var created = await _roleRepo.FindByIdWithPermissionsAsync(role.RoleId, ct);
@@ -107,14 +100,8 @@ public sealed class RolesController : BaseController
         role.UpdatedAt = DateTimeOffset.UtcNow;
 
         // 権限の更新
-        var existingPerms = await _db.RolePermissions.Where(rp => rp.RoleId == id).ToListAsync(ct);
-        _db.RolePermissions.RemoveRange(existingPerms);
-        foreach (var permId in req.PermissionIds.Distinct())
-        {
-            _db.RolePermissions.Add(new RolePermission { RoleId = id, PermissionId = permId });
-        }
-
-        await _db.SaveChangesAsync(ct);
+        await _roleRepo.ReplaceRolePermissionsAsync(id, req.PermissionIds, ct);
+        await _roleRepo.SaveChangesAsync(ct);
 
         var updated = await _roleRepo.FindByIdWithPermissionsAsync(id, ct);
         return Ok(MapRole(updated!));

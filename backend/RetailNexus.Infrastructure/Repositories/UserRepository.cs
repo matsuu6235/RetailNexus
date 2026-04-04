@@ -56,6 +56,16 @@ public sealed class UserRepository : IUserRepository
     public async Task AddAsync(User user, CancellationToken ct)
         => await _db.Users.AddAsync(user, ct);
 
+    public async Task ReplaceUserRolesAsync(Guid userId, IEnumerable<Guid> roleIds, CancellationToken ct)
+    {
+        var existing = await _db.UserRoles.Where(ur => ur.UserId == userId).ToListAsync(ct);
+        _db.UserRoles.RemoveRange(existing);
+        foreach (var roleId in roleIds.Distinct())
+        {
+            _db.UserRoles.Add(new UserRole { UserId = userId, RoleId = roleId });
+        }
+    }
+
     public Task SaveChangesAsync(CancellationToken ct)
         => _db.SaveChangesAsync(ct);
 }

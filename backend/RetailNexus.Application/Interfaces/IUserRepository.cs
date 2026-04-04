@@ -12,5 +12,6 @@ public interface IUserRepository
     Task<List<string>> GetPermissionCodesAsync(Guid userId, CancellationToken ct);
     Task<List<string>> GetRoleNamesAsync(Guid userId, CancellationToken ct);
     Task AddAsync(User user, CancellationToken ct);
+    Task ReplaceUserRolesAsync(Guid userId, IEnumerable<Guid> roleIds, CancellationToken ct);
     Task SaveChangesAsync(CancellationToken ct);
 }
