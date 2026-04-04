@@ -1,17 +1,21 @@
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.TestHelper;
+using Microsoft.Extensions.Localization;
 using Moq;
 using RetailNexus.Api.Validators;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Controllers;
 using RetailNexus.Domain.Entities;
+using RetailNexus.Resources;
+using RetailNexus.Tests.Helpers;
 
 namespace RetailNexus.Tests.Validators;
 
 public class CreateProductCategoryValidatorTests
 {
     private readonly Mock<IProductCategoryRepository> _repoMock = new();
+    private readonly IStringLocalizer<SharedMessages> _localizer = MockLocalizerHelper.Create();
     private readonly CreateProductCategoryRequestValidator _validator;
 
     public CreateProductCategoryValidatorTests()
@@ -20,7 +24,7 @@ public class CreateProductCategoryValidatorTests
             .Setup(r => r.GetByCodeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProductCategory?)null);
 
-        _validator = new CreateProductCategoryRequestValidator(_repoMock.Object);
+        _validator = new CreateProductCategoryRequestValidator(_repoMock.Object, _localizer);
     }
 
     [Fact]
@@ -111,6 +115,7 @@ public class CreateProductCategoryValidatorTests
 public class UpdateProductCategoryValidatorTests
 {
     private readonly Mock<IProductCategoryRepository> _repoMock = new();
+    private readonly IStringLocalizer<SharedMessages> _localizer = MockLocalizerHelper.Create();
     private readonly UpdateProductCategoryRequestValidator _validator;
     private readonly Guid _entityId = Guid.NewGuid();
 
@@ -120,7 +125,7 @@ public class UpdateProductCategoryValidatorTests
             .Setup(r => r.GetByCodeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProductCategory?)null);
 
-        _validator = new UpdateProductCategoryRequestValidator(_repoMock.Object);
+        _validator = new UpdateProductCategoryRequestValidator(_repoMock.Object, _localizer);
     }
 
     private ValidationContext<ProductCategoriesController.UpdateProductCategoryRequest> CreateContext(
@@ -179,11 +184,12 @@ public class UpdateProductCategoryValidatorTests
 public class ReorderProductCategoriesValidatorTests
 {
     private readonly Mock<IProductCategoryRepository> _repoMock = new();
+    private readonly IStringLocalizer<SharedMessages> _localizer = MockLocalizerHelper.Create();
     private readonly ReorderProductCategoriesRequestValidator _validator;
 
     public ReorderProductCategoriesValidatorTests()
     {
-        _validator = new ReorderProductCategoriesRequestValidator(_repoMock.Object);
+        _validator = new ReorderProductCategoriesRequestValidator(_repoMock.Object, _localizer);
     }
 
     [Fact]

@@ -1,22 +1,26 @@
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.TestHelper;
+using Microsoft.Extensions.Localization;
 using Moq;
 using RetailNexus.Api.Controllers;
 using RetailNexus.Api.Validators;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
+using RetailNexus.Resources;
+using RetailNexus.Tests.Helpers;
 
 namespace RetailNexus.Tests.Validators;
 
 public class CreateSupplierValidatorTests
 {
     private readonly Mock<ISupplierRepository> _repoMock = new();
+    private readonly IStringLocalizer<SharedMessages> _localizer = MockLocalizerHelper.Create();
     private readonly CreateSupplierRequestValidator _validator;
 
     public CreateSupplierValidatorTests()
     {
-        _validator = new CreateSupplierRequestValidator(_repoMock.Object);
+        _validator = new CreateSupplierRequestValidator(_repoMock.Object, _localizer);
     }
 
     private static SuppliersController.CreateSupplierRequest ValidRequest()

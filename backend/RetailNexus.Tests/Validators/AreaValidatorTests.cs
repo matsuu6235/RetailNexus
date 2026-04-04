@@ -1,17 +1,21 @@
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.TestHelper;
+using Microsoft.Extensions.Localization;
 using Moq;
 using RetailNexus.Api.Validators;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Controllers;
 using RetailNexus.Domain.Entities;
+using RetailNexus.Resources;
+using RetailNexus.Tests.Helpers;
 
 namespace RetailNexus.Tests.Validators;
 
 public class CreateAreaValidatorTests
 {
     private readonly Mock<IAreaRepository> _repoMock = new();
+    private readonly IStringLocalizer<SharedMessages> _localizer = MockLocalizerHelper.Create();
     private readonly CreateAreaRequestValidator _validator;
 
     public CreateAreaValidatorTests()
@@ -20,7 +24,7 @@ public class CreateAreaValidatorTests
             .Setup(r => r.GetByCodeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Area?)null);
 
-        _validator = new CreateAreaRequestValidator(_repoMock.Object);
+        _validator = new CreateAreaRequestValidator(_repoMock.Object, _localizer);
     }
 
     [Fact]
@@ -123,6 +127,7 @@ public class CreateAreaValidatorTests
 public class UpdateAreaValidatorTests
 {
     private readonly Mock<IAreaRepository> _repoMock = new();
+    private readonly IStringLocalizer<SharedMessages> _localizer = MockLocalizerHelper.Create();
     private readonly UpdateAreaRequestValidator _validator;
     private readonly Guid _entityId = Guid.NewGuid();
 
@@ -132,7 +137,7 @@ public class UpdateAreaValidatorTests
             .Setup(r => r.GetByCodeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Area?)null);
 
-        _validator = new UpdateAreaRequestValidator(_repoMock.Object);
+        _validator = new UpdateAreaRequestValidator(_repoMock.Object, _localizer);
     }
 
     private ValidationContext<AreasController.UpdateAreaRequest> CreateContext(AreasController.UpdateAreaRequest request)
@@ -192,11 +197,12 @@ public class UpdateAreaValidatorTests
 public class ReorderAreasValidatorTests
 {
     private readonly Mock<IAreaRepository> _repoMock = new();
+    private readonly IStringLocalizer<SharedMessages> _localizer = MockLocalizerHelper.Create();
     private readonly ReorderAreasRequestValidator _validator;
 
     public ReorderAreasValidatorTests()
     {
-        _validator = new ReorderAreasRequestValidator(_repoMock.Object);
+        _validator = new ReorderAreasRequestValidator(_repoMock.Object, _localizer);
     }
 
     [Fact]

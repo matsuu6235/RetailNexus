@@ -1,16 +1,20 @@
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.TestHelper;
+using Microsoft.Extensions.Localization;
 using Moq;
 using RetailNexus.Api.Validators;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
+using RetailNexus.Resources;
+using RetailNexus.Tests.Helpers;
 
 namespace RetailNexus.Tests.Validators;
 
 public class CreateStoreTypeValidatorTests
 {
     private readonly Mock<IStoreTypeRepository> _repoMock = new();
+    private readonly IStringLocalizer<SharedMessages> _localizer = MockLocalizerHelper.Create();
     private readonly CreateStoreTypeRequestValidator _validator;
 
     public CreateStoreTypeValidatorTests()
@@ -19,7 +23,7 @@ public class CreateStoreTypeValidatorTests
             .Setup(r => r.GetByCodeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((StoreType?)null);
 
-        _validator = new CreateStoreTypeRequestValidator(_repoMock.Object);
+        _validator = new CreateStoreTypeRequestValidator(_repoMock.Object, _localizer);
     }
 
     [Fact]
@@ -100,11 +104,12 @@ public class CreateStoreTypeValidatorTests
 public class ReorderStoreTypesValidatorTests
 {
     private readonly Mock<IStoreTypeRepository> _repoMock = new();
+    private readonly IStringLocalizer<SharedMessages> _localizer = MockLocalizerHelper.Create();
     private readonly ReorderStoreTypesRequestValidator _validator;
 
     public ReorderStoreTypesValidatorTests()
     {
-        _validator = new ReorderStoreTypesRequestValidator(_repoMock.Object);
+        _validator = new ReorderStoreTypesRequestValidator(_repoMock.Object, _localizer);
     }
 
     [Fact]

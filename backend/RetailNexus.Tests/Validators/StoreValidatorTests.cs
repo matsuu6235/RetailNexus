@@ -1,11 +1,14 @@
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.TestHelper;
+using Microsoft.Extensions.Localization;
 using Moq;
 using RetailNexus.Api.Validators;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Controllers;
 using RetailNexus.Domain.Entities;
+using RetailNexus.Resources;
+using RetailNexus.Tests.Helpers;
 
 namespace RetailNexus.Tests.Validators;
 
@@ -14,6 +17,7 @@ public class CreateStoreValidatorTests
     private readonly Mock<IStoreRepository> _storeRepoMock = new();
     private readonly Mock<IAreaRepository> _areaRepoMock = new();
     private readonly Mock<IStoreTypeRepository> _storeTypeRepoMock = new();
+    private readonly IStringLocalizer<SharedMessages> _localizer = MockLocalizerHelper.Create();
     private readonly CreateStoreRequestValidator _validator;
     private readonly Guid _areaId = Guid.NewGuid();
     private readonly Guid _storeTypeId = Guid.NewGuid();
@@ -36,7 +40,7 @@ public class CreateStoreValidatorTests
             .Setup(r => r.GetByIdAsync(_storeTypeId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(activeStoreType);
 
-        _validator = new CreateStoreRequestValidator(_storeRepoMock.Object, _areaRepoMock.Object, _storeTypeRepoMock.Object);
+        _validator = new CreateStoreRequestValidator(_storeRepoMock.Object, _areaRepoMock.Object, _storeTypeRepoMock.Object, _localizer);
     }
 
     private StoresController.CreateStoreRequest ValidRequest()
@@ -119,6 +123,7 @@ public class UpdateStoreValidatorTests
     private readonly Mock<IStoreRepository> _storeRepoMock = new();
     private readonly Mock<IAreaRepository> _areaRepoMock = new();
     private readonly Mock<IStoreTypeRepository> _storeTypeRepoMock = new();
+    private readonly IStringLocalizer<SharedMessages> _localizer = MockLocalizerHelper.Create();
     private readonly UpdateStoreRequestValidator _validator;
     private readonly Guid _entityId = Guid.NewGuid();
     private readonly Guid _areaId = Guid.NewGuid();
@@ -142,7 +147,7 @@ public class UpdateStoreValidatorTests
             .Setup(r => r.GetByIdAsync(_storeTypeId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(storeType);
 
-        _validator = new UpdateStoreRequestValidator(_storeRepoMock.Object, _areaRepoMock.Object, _storeTypeRepoMock.Object);
+        _validator = new UpdateStoreRequestValidator(_storeRepoMock.Object, _areaRepoMock.Object, _storeTypeRepoMock.Object, _localizer);
     }
 
     private ValidationContext<StoresController.UpdateStoreRequest> CreateContext(StoresController.UpdateStoreRequest request)

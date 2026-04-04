@@ -1,11 +1,14 @@
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.TestHelper;
+using Microsoft.Extensions.Localization;
 using Moq;
 using RetailNexus.Api.Controllers;
 using RetailNexus.Api.Validators;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
+using RetailNexus.Resources;
+using RetailNexus.Tests.Helpers;
 
 namespace RetailNexus.Tests.Validators;
 
@@ -13,6 +16,7 @@ public class CreateProductValidatorTests
 {
     private readonly Mock<IProductRepository> _productRepoMock = new();
     private readonly Mock<IProductCategoryRepository> _categoryRepoMock = new();
+    private readonly IStringLocalizer<SharedMessages> _localizer = MockLocalizerHelper.Create();
     private readonly CreateProductRequestValidator _validator;
 
     public CreateProductValidatorTests()
@@ -26,7 +30,7 @@ public class CreateProductValidatorTests
             .Setup(r => r.GetByCodeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(activeCategory);
 
-        _validator = new CreateProductRequestValidator(_productRepoMock.Object, _categoryRepoMock.Object);
+        _validator = new CreateProductRequestValidator(_productRepoMock.Object, _categoryRepoMock.Object, _localizer);
     }
 
     private static ProductsController.CreateProductRequest ValidRequest()
@@ -164,6 +168,7 @@ public class UpdateProductValidatorTests
 {
     private readonly Mock<IProductRepository> _productRepoMock = new();
     private readonly Mock<IProductCategoryRepository> _categoryRepoMock = new();
+    private readonly IStringLocalizer<SharedMessages> _localizer = MockLocalizerHelper.Create();
     private readonly UpdateProductRequestValidator _validator;
     private readonly Guid _productId = Guid.NewGuid();
 
@@ -178,7 +183,7 @@ public class UpdateProductValidatorTests
             .Setup(r => r.GetByCodeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(activeCategory);
 
-        _validator = new UpdateProductRequestValidator(_productRepoMock.Object, _categoryRepoMock.Object);
+        _validator = new UpdateProductRequestValidator(_productRepoMock.Object, _categoryRepoMock.Object, _localizer);
     }
 
     private ValidationContext<ProductsController.UpdateProductRequest> CreateContext(ProductsController.UpdateProductRequest request)

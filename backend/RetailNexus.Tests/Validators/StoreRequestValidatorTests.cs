@@ -1,13 +1,22 @@
 using FluentAssertions;
 using FluentValidation.TestHelper;
+using Microsoft.Extensions.Localization;
 using RetailNexus.Api.Controllers;
 using RetailNexus.Api.Validators;
+using RetailNexus.Resources;
+using RetailNexus.Tests.Helpers;
 
 namespace RetailNexus.Tests.Validators;
 
 public class CreateStoreRequestValidatorTests
 {
-    private readonly CreateStoreRequestRequestValidator _validator = new();
+    private readonly IStringLocalizer<SharedMessages> _localizer = MockLocalizerHelper.Create();
+    private readonly CreateStoreRequestRequestValidator _validator;
+
+    public CreateStoreRequestValidatorTests()
+    {
+        _validator = new CreateStoreRequestRequestValidator(_localizer);
+    }
 
     private static StoreRequestsController.CreateStoreRequestRequest ValidRequest()
         => new(
@@ -139,7 +148,13 @@ public class CreateStoreRequestValidatorTests
 
 public class UpdateStoreRequestValidatorTests
 {
-    private readonly UpdateStoreRequestRequestValidator _validator = new();
+    private readonly IStringLocalizer<SharedMessages> _localizer = MockLocalizerHelper.Create();
+    private readonly UpdateStoreRequestRequestValidator _validator;
+
+    public UpdateStoreRequestValidatorTests()
+    {
+        _validator = new UpdateStoreRequestRequestValidator(_localizer);
+    }
 
     private static StoreRequestsController.UpdateStoreRequestRequest ValidRequest()
         => new(
