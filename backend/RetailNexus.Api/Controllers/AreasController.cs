@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Api.Authorization;
+using RetailNexus.Api.Contracts;
 using RetailNexus.Api.Controllers;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
@@ -29,8 +30,8 @@ public sealed class AreasController : BaseController
         _reorderValidator = reorderValidator;
     }
 
-    public sealed record CreateAreaRequest(string AreaCd, string AreaName, bool IsActive = true);
-    public sealed record UpdateAreaRequest(string AreaCd, string AreaName);
+    public sealed record CreateAreaRequest(string AreaCd, string AreaName, bool IsActive = true) : IAreaRequest;
+    public sealed record UpdateAreaRequest(string AreaCd, string AreaName) : IAreaRequest;
     public sealed record ReorderAreasRequest(IReadOnlyList<Guid> AreaIds);
     public sealed record AreaResponse(
         Guid AreaId,

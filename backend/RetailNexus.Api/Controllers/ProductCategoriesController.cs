@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Api.Authorization;
+using RetailNexus.Api.Contracts;
 using RetailNexus.Api.Controllers;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
@@ -29,8 +30,8 @@ public sealed class ProductCategoriesController : BaseController
         _reorderValidator = reorderValidator;
     }
 
-    public sealed record CreateProductCategoryRequest(string ProductCategoryCd, string CategoryAbbreviation, string ProductCategoryName, bool IsActive = true);
-    public sealed record UpdateProductCategoryRequest(string ProductCategoryCd, string CategoryAbbreviation, string ProductCategoryName);
+    public sealed record CreateProductCategoryRequest(string ProductCategoryCd, string CategoryAbbreviation, string ProductCategoryName, bool IsActive = true) : IProductCategoryRequest;
+    public sealed record UpdateProductCategoryRequest(string ProductCategoryCd, string CategoryAbbreviation, string ProductCategoryName) : IProductCategoryRequest;
     public sealed record ReorderProductCategoriesRequest(IReadOnlyList<Guid> ProductCategoryIds);
     public sealed record ProductCategoryResponse(
         Guid ProductCategoryId,

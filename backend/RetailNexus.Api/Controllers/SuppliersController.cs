@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Api.Authorization;
+using RetailNexus.Api.Contracts;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Application.Services;
 using RetailNexus.Domain.Entities;
@@ -30,12 +31,12 @@ public sealed class SuppliersController : BaseController
         string SupplierName,
         string? PhoneNumber,
         string? Email,
-        bool IsActive = true);
+        bool IsActive = true) : ISupplierRequest;
 
     public sealed record UpdateSupplierRequest(
         string SupplierName,
         string? PhoneNumber,
-        string? Email);
+        string? Email) : ISupplierRequest;
 
     public sealed record SupplierNewResponse(
         string SupplierCode,

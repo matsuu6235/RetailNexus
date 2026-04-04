@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Api.Authorization;
+using RetailNexus.Api.Contracts;
 using RetailNexus.Api.Controllers;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Application.Services;
@@ -27,8 +28,8 @@ public sealed class StoresController : BaseController
         _updateValidator = updateValidator;
     }
 
-    public sealed record CreateStoreRequest(string StoreName, Guid AreaId, Guid StoreTypeId, bool IsActive = true);
-    public sealed record UpdateStoreRequest(string StoreName, Guid AreaId, Guid StoreTypeId);
+    public sealed record CreateStoreRequest(string StoreName, Guid AreaId, Guid StoreTypeId, bool IsActive = true) : IStoreRequest;
+    public sealed record UpdateStoreRequest(string StoreName, Guid AreaId, Guid StoreTypeId) : IStoreRequest;
     public sealed record StoreResponse(
         Guid StoreId,
         string StoreCd,

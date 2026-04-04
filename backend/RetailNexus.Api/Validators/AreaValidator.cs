@@ -1,47 +1,52 @@
 using FluentValidation;
+using RetailNexus.Api.Contracts;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Controllers;
 
 namespace RetailNexus.Api.Validators;
 
-public sealed class CreateAreaRequestValidator : AbstractValidator<AreasController.CreateAreaRequest>
+public class AreaRequestValidator<T> : AbstractValidator<T> where T : IAreaRequest
+{
+    protected AreaRequestValidator()
+    {
+        RuleFor(x => x.AreaName)
+            .NotEmpty().WithMessage("エリア名は必須です。")
+            .MaximumLength(20).WithMessage("エリア名は20文字以内で入力してください。");
+    }
+
+    protected IRuleBuilderOptions<T, string> AreaCdBaseRules()
+    {
+        return RuleFor(x => x.AreaCd)
+            .Cascade(CascadeMode.Stop)
+            .NotEmpty().WithMessage("エリアコードは必須です。")
+            .MaximumLength(2).WithMessage("エリアコードは2文字以内で入力してください。");
+    }
+}
+
+public sealed class CreateAreaRequestValidator : AreaRequestValidator<AreasController.CreateAreaRequest>
 {
     public CreateAreaRequestValidator(IAreaRepository repo)
     {
-        RuleFor(x => x.AreaCd)
-            .Cascade(CascadeMode.Stop)
-            .NotEmpty().WithMessage("エリアコードは必須です。")
-            .MaximumLength(2).WithMessage("エリアコードは2文字以内で入力してください。")
+        AreaCdBaseRules()
             .MustAsync(async (code, ct) =>
             {
                 var existing = await repo.GetByCodeAsync(code.Trim(), ct);
                 return existing is null;
             }).WithMessage("このエリアコードは既に使用されています。");
-
-        RuleFor(x => x.AreaName)
-            .NotEmpty().WithMessage("エリア名は必須です。")
-            .MaximumLength(20).WithMessage("エリア名は20文字以内で入力してください。");
     }
 }
 
-public sealed class UpdateAreaRequestValidator : AbstractValidator<AreasController.UpdateAreaRequest>
+public sealed class UpdateAreaRequestValidator : AreaRequestValidator<AreasController.UpdateAreaRequest>
 {
     public UpdateAreaRequestValidator(IAreaRepository repo)
     {
-        RuleFor(x => x.AreaCd)
-            .Cascade(CascadeMode.Stop)
-            .NotEmpty().WithMessage("エリアコードは必須です。")
-            .MaximumLength(2).WithMessage("エリアコードは2文字以内で入力してください。")
+        AreaCdBaseRules()
             .MustAsync(async (request, code, context, ct) =>
             {
                 var entityId = (Guid)context.RootContextData["EntityId"];
                 var existing = await repo.GetByCodeAsync(code.Trim(), ct);
                 return existing is null || existing.AreaId == entityId;
             }).WithMessage("このエリアコードは既に使用されています。");
-
-        RuleFor(x => x.AreaName)
-            .NotEmpty().WithMessage("エリア名は必須です。")
-            .MaximumLength(20).WithMessage("エリア名は20文字以内で入力してください。");
     }
 }
 

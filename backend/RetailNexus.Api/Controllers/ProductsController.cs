@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Api.Authorization;
+using RetailNexus.Api.Contracts;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Application.Services;
 using RetailNexus.Domain.Entities;
@@ -29,8 +30,8 @@ public sealed class ProductsController : BaseController
         _updateValidator = updateValidator;
     }
 
-    public sealed record CreateProductRequest(string JanCode, string ProductName, decimal Price, decimal Cost, string ProductCategoryCode);
-    public sealed record UpdateProductRequest(string JanCode, string ProductName, decimal Price, decimal Cost, string ProductCategoryCode);
+    public sealed record CreateProductRequest(string JanCode, string ProductName, decimal Price, decimal Cost, string ProductCategoryCode) : IProductRequest;
+    public sealed record UpdateProductRequest(string JanCode, string ProductName, decimal Price, decimal Cost, string ProductCategoryCode) : IProductRequest;
     public sealed record ProductResponse(
         Guid Id,
         string ProductCode,

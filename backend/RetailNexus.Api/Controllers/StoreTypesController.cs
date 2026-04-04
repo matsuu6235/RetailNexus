@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Api.Authorization;
+using RetailNexus.Api.Contracts;
 using RetailNexus.Api.Controllers;
 using RetailNexus.Application.Interfaces;
 using RetailNexus.Domain.Entities;
@@ -27,8 +28,8 @@ public sealed class StoreTypesController : BaseController
         _reorderValidator = reorderValidator;
     }
 
-    public sealed record CreateStoreTypeRequest(string StoreTypeCd, string StoreTypeName, bool IsActive = true);
-    public sealed record UpdateStoreTypeRequest(string StoreTypeCd, string StoreTypeName);
+    public sealed record CreateStoreTypeRequest(string StoreTypeCd, string StoreTypeName, bool IsActive = true) : IStoreTypeRequest;
+    public sealed record UpdateStoreTypeRequest(string StoreTypeCd, string StoreTypeName) : IStoreTypeRequest;
     public sealed record ReorderStoreTypesRequest(IReadOnlyList<Guid> StoreTypeIds);
 
     public sealed record StoreTypeResponse(
