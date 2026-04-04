@@ -53,7 +53,7 @@ RetailNexus.Tests          → ユニットテスト（xUnit + FluentAssertions 
 
 - **リポジトリパターン**: インターフェースは `Application/Interfaces/`、実装は `Infrastructure/Repositories/`
 - **EF Core設定**: エンティティごとのFluentAPI設定は `Infrastructure/Persistence/Configurations/`（データアノテーション不使用、エンティティをPOCOに保つ）
-- **バリデーション**: FluentValidationバリデーターは `Api/Validators/` に配置
+- **バリデーション**: FluentValidationバリデーターは `Api/Validators/` に配置。エラーメッセージは `Api/Resources/SharedMessages.resx` で一元管理し、`IStringLocalizer<SharedMessages>` 経由で参照
 - **認証**: JWT Bearerトークン。`Infrastructure/Security/JwtService` が `UserId`・`Email`・`Role`・`Permission` クレームを含むトークンを生成
 - **認可**: カスタム属性 `[RequirePermission("products.create")]` で権限コード単位の認可制御。`Api/Authorization/` に実装
 - **パスワード**: BCrypt.Net-Next でハッシュ化。平文保存は行わない
@@ -121,7 +121,7 @@ src/
 - デフォルトはサーバーコンポーネント。インタラクティブなコンポーネント（フォーム等）にのみ `"use client"` を付与
 - JWTアクセストークンは `localStorage` の `"accessToken"` に保存。`lib/api/client.ts` が全リクエストに自動付与
 - `/auth/login` 以外の全APIエンドポイントは `Authorization: Bearer <token>` ヘッダーが必要
-- `client.ts` は 401（セッション切れ）・403（権限不足）を日本語メッセージで返す
+- `client.ts` は 401（セッション切れ）・403（権限不足）をメッセージ定数で返す
 - **リアルタイムバリデーション**: `handleChange` 内でバリデーター関数を呼び出し、変更したフィールドのみエラーを更新する
 - **サーバーエラー表示**: `client.ts` がAPIの `{"FieldName": ["message"]}` 形式をパースし、メッセージ文字列のみを `Error` としてスローする
 
@@ -142,6 +142,23 @@ if (Object.keys(errors).length > 0) { setFieldErrors(errors); return; }
 ```
 
 `products/new` は `price`・`cost` が `number` 型のため、`handleChange` 内で数値変換が必要。
+
+### エラーメッセージ管理
+
+エラーメッセージはコード内にハードコードせず、定数ファイルで一元管理する。将来の多言語化（i18n）に備えた構造。
+
+**バックエンド** — `.resx` + `IStringLocalizer`（.NET 標準ローカライズ機構）
+- リソースファイル: `Api/Resources/SharedMessages.resx`
+- バリデーター・コントローラー・ミドルウェアは `IStringLocalizer<SharedMessages>` を DI 注入して参照
+- キー命名規則: `Validation_Required`, `Validation_MaxLength` 等の共通テンプレート + `PurchaseOrder_DuplicateProduct` 等のエンティティ固有キー + `Error_BadRequest` 等のHTTPエラー
+- プレースホルダーは `{0}`, `{1}` 形式（`string.Format` 互換）
+- 多言語化時は `SharedMessages.en.resx` 等のロケール別ファイルを追加するだけで対応可能
+
+**フロントエンド** — `lib/messages.ts` 定数ファイル
+- `validation`: バリデーションメッセージ（`validation.required("フィールド名")` のようなテンプレート関数）
+- `httpError`: API/HTTPステータスエラー（`httpError.sessionExpired` 等）
+- `fallback`: 操作失敗時のフォールバックメッセージ（`fallback.fetchFailed("エンティティ名")` 等）
+- 多言語化時は `next-intl` の JSON ファイルに移行予定
 
 ### コードルール
 
