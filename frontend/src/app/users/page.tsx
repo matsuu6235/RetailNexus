@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useModal } from "@/lib/hooks/useModal";
 import { getUsers } from "@/lib/api/users";
 import type { User } from "@/types/users";
 import Modal from "@/components/modal/Modal";
@@ -21,8 +22,7 @@ export default function UsersPage() {
   const [nameFilter, setNameFilter] = useState("");
   const [isActiveFilter, setIsActiveFilter] = useState<"all" | "active" | "inactive">("all");
 
-  const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
-  const [editId, setEditId] = useState<string | null>(null);
+  const modal = useModal();
 
   const fetchData = async () => {
     try {
@@ -51,13 +51,8 @@ export default function UsersPage() {
     return matchLoginId && matchName && matchStatus;
   });
 
-  const handleModalClose = () => {
-    setModalMode(null);
-    setEditId(null);
-  };
-
   const handleSave = () => {
-    handleModalClose();
+    modal.close();
     fetchData();
   };
 
@@ -71,10 +66,7 @@ export default function UsersPage() {
 
         <button
           type="button"
-          onClick={() => {
-            setModalMode("create");
-            setEditId(null);
-          }}
+          onClick={modal.openCreate}
           className={styles.primaryButton}
         >
           ユーザー新規作成
@@ -174,10 +166,7 @@ export default function UsersPage() {
                       <td className={`${tableStyles.td} ${tableStyles.tdAction}`}>
                         <button
                           type="button"
-                          onClick={() => {
-                            setModalMode("edit");
-                            setEditId(item.userId);
-                          }}
+                          onClick={() => modal.openEdit(item.userId)}
                           className={tableStyles.editButton}
                         >
                           編集
@@ -192,13 +181,13 @@ export default function UsersPage() {
         </div>
       )}
 
-      <Modal open={modalMode !== null} title={modalMode === "create" ? "ユーザー新規作成" : "ユーザー編集"} onClose={handleModalClose}>
-        {modalMode && (
+      <Modal open={modal.modalMode !== null} title={modal.modalMode === "create" ? "ユーザー新規作成" : "ユーザー編集"} onClose={modal.close}>
+        {modal.modalMode && (
           <UserForm
-            mode={modalMode}
-            editId={editId ?? undefined}
+            mode={modal.modalMode}
+            editId={modal.editId ?? undefined}
             onSave={handleSave}
-            onCancel={handleModalClose}
+            onCancel={modal.close}
           />
         )}
       </Modal>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createArea, getAreaById, updateArea, changeAreaActivation, type CreateAreaRequest, type UpdateAreaRequest } from "@/lib/api/areas";
 import { validateArea, type AreaFieldErrors } from "@/lib/validators/areaValidator";
-import { hasPermission } from "@/services/authService";
+import { useActivation } from "@/lib/hooks/useActivation";
 import styles from "@/components/modal/FormModal.module.css";
 
 type AreaFormProps = {
@@ -22,9 +22,8 @@ export default function AreaForm({ mode, editId, onSave, onCancel }: AreaFormPro
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<AreaFieldErrors>({});
-  const [canDelete, setCanDelete] = useState(false);
-  const [currentIsActive, setCurrentIsActive] = useState(true);
-  const [changingActivation, setChangingActivation] = useState(false);
+  const [fetchedIsActive, setFetchedIsActive] = useState(true);
+  const activation = useActivation({ permissionCode: "areas.delete", initialIsActive: fetchedIsActive, changeFn: changeAreaActivation, editId });
 
   useEffect(() => {
     if (mode !== "edit" || !editId) return;
@@ -42,7 +41,7 @@ export default function AreaForm({ mode, editId, onSave, onCancel }: AreaFormPro
             areaCd: item.areaCd,
             areaName: item.areaName,
           });
-          setCurrentIsActive(item.isActive);
+          setFetchedIsActive(item.isActive);
         }
       } catch (e) {
         if (!cancelled) {
@@ -57,10 +56,6 @@ export default function AreaForm({ mode, editId, onSave, onCancel }: AreaFormPro
       cancelled = true;
     };
   }, [mode, editId]);
-
-  useEffect(() => {
-    setCanDelete(hasPermission("areas.delete"));
-  }, []);
 
   const handleChange = (field: keyof CreateAreaRequest, value: string | boolean) => {
     const updatedForm = { ...form, [field]: value };
@@ -121,7 +116,7 @@ export default function AreaForm({ mode, editId, onSave, onCancel }: AreaFormPro
         {fieldErrors.areaName && <small className={styles.errorText}>{fieldErrors.areaName}</small>}
       </label>
 
-      {error && <div className={styles.errorBox}>{error}</div>}
+      {(error || activation.error) && <div className={styles.errorBox}>{error || activation.error}</div>}
 
       <div className={styles.actions}>
         <button type="button" onClick={onCancel} className={styles.cancelButton}>
@@ -132,31 +127,21 @@ export default function AreaForm({ mode, editId, onSave, onCancel }: AreaFormPro
         </button>
       </div>
 
-      {mode === "edit" && canDelete && (
+      {mode === "edit" && activation.canDelete && (
         <fieldset className={styles.field} style={{ border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px", marginTop: "8px" }}>
           <legend style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a", padding: "0 4px" }}>有効状態の変更</legend>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span style={{ fontSize: "13px" }}>
-              現在の状態: <strong>{currentIsActive ? "有効" : "無効"}</strong>
+              現在の状態: <strong>{activation.currentIsActive ? "有効" : "無効"}</strong>
             </span>
             <button
               type="button"
-              onClick={async () => {
-                try {
-                  setChangingActivation(true);
-                  await changeAreaActivation(editId!, !currentIsActive);
-                  setCurrentIsActive(!currentIsActive);
-                } catch (err) {
-                  setError(err instanceof Error ? err.message : "状態の変更に失敗しました。");
-                } finally {
-                  setChangingActivation(false);
-                }
-              }}
-              disabled={changingActivation}
+              onClick={activation.toggle}
+              disabled={activation.changingActivation}
               className={styles.submitButton}
-              style={currentIsActive ? { backgroundColor: "#dc2626" } : {}}
+              style={activation.currentIsActive ? { backgroundColor: "#dc2626" } : {}}
             >
-              {changingActivation ? "変更中..." : currentIsActive ? "無効化する" : "有効化する"}
+              {activation.changingActivation ? "変更中..." : activation.currentIsActive ? "無効化する" : "有効化する"}
             </button>
           </div>
         </fieldset>

@@ -14,7 +14,7 @@ import { getStoreTypes } from "@/lib/api/storeTypes";
 import type { Area } from "@/types/areas";
 import type { StoreType } from "@/types/storeTypes";
 import { validateStore, type StoreFieldErrors } from "@/lib/validators/storeValidator";
-import { hasPermission } from "@/services/authService";
+import { useActivation } from "@/lib/hooks/useActivation";
 import styles from "@/components/modal/FormModal.module.css";
 
 interface StoreFormProps {
@@ -37,9 +37,8 @@ export default function StoreForm({ mode, editId, onSave, onCancel }: StoreFormP
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<StoreFieldErrors>({});
   const [loading, setLoading] = useState(true);
-  const [canDelete, setCanDelete] = useState(false);
-  const [currentIsActive, setCurrentIsActive] = useState(true);
-  const [changingActivation, setChangingActivation] = useState(false);
+  const [fetchedIsActive, setFetchedIsActive] = useState(true);
+  const activation = useActivation({ permissionCode: "stores.delete", initialIsActive: fetchedIsActive, changeFn: changeStoreActivation, editId });
 
   useEffect(() => {
     let cancelled = false;
@@ -73,7 +72,7 @@ export default function StoreForm({ mode, editId, onSave, onCancel }: StoreFormP
               areaId: store.areaId,
               storeTypeId: store.storeTypeId,
             });
-            setCurrentIsActive(store.isActive);
+            setFetchedIsActive(store.isActive);
             setLoading(false);
           }
         }
@@ -89,10 +88,6 @@ export default function StoreForm({ mode, editId, onSave, onCancel }: StoreFormP
       cancelled = true;
     };
   }, [mode, editId]);
-
-  useEffect(() => {
-    setCanDelete(hasPermission("stores.delete"));
-  }, []);
 
   const handleChange = (field: keyof CreateStoreRequest, value: string | boolean) => {
     const updatedForm = { ...form, [field]: value };
@@ -200,7 +195,7 @@ export default function StoreForm({ mode, editId, onSave, onCancel }: StoreFormP
         {fieldErrors.storeTypeId && <p className={styles.fieldError}>{fieldErrors.storeTypeId}</p>}
       </div>
 
-      {error && <div className={styles.errorBox}>{error}</div>}
+      {(error || activation.error) && <div className={styles.errorBox}>{error || activation.error}</div>}
 
       <div className={styles.actions}>
         <button type="button" onClick={onCancel} className={styles.cancelButton} disabled={submitting}>
@@ -211,31 +206,21 @@ export default function StoreForm({ mode, editId, onSave, onCancel }: StoreFormP
         </button>
       </div>
 
-      {mode === "edit" && canDelete && (
+      {mode === "edit" && activation.canDelete && (
         <fieldset className={styles.field} style={{ border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px", marginTop: "8px" }}>
           <legend style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a", padding: "0 4px" }}>有効状態の変更</legend>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span style={{ fontSize: "13px" }}>
-              現在の状態: <strong>{currentIsActive ? "有効" : "無効"}</strong>
+              現在の状態: <strong>{activation.currentIsActive ? "有効" : "無効"}</strong>
             </span>
             <button
               type="button"
-              onClick={async () => {
-                try {
-                  setChangingActivation(true);
-                  await changeStoreActivation(editId!, !currentIsActive);
-                  setCurrentIsActive(!currentIsActive);
-                } catch (err) {
-                  setError(err instanceof Error ? err.message : "状態の変更に失敗しました。");
-                } finally {
-                  setChangingActivation(false);
-                }
-              }}
-              disabled={changingActivation}
+              onClick={activation.toggle}
+              disabled={activation.changingActivation}
               className={styles.submitButton}
-              style={currentIsActive ? { backgroundColor: "#dc2626" } : {}}
+              style={activation.currentIsActive ? { backgroundColor: "#dc2626" } : {}}
             >
-              {changingActivation ? "変更中..." : currentIsActive ? "無効化する" : "有効化する"}
+              {activation.changingActivation ? "変更中..." : activation.currentIsActive ? "無効化する" : "有効化する"}
             </button>
           </div>
         </fieldset>

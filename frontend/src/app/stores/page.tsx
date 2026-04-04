@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useModal } from "@/lib/hooks/useModal";
 import { getStores } from "@/lib/api/stores";
 import { getAllAreas } from "@/lib/api/areas";
 import { getStoreTypes } from "@/lib/api/storeTypes";
@@ -35,8 +36,7 @@ export default function StoresPage() {
   const [storeTypeIdFilter, setStoreTypeIdFilter] = useState("");
   const [isActiveFilter, setIsActiveFilter] = useState<"all" | "active" | "inactive">("all");
 
-  const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
-  const [editId, setEditId] = useState<string | null>(null);
+  const modal = useModal();
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -103,13 +103,8 @@ export default function StoresPage() {
   const start = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const end = Math.min(page * PAGE_SIZE, total);
 
-  const handleModalClose = () => {
-    setModalMode(null);
-    setEditId(null);
-  };
-
   const handleSave = () => {
-    handleModalClose();
+    modal.close();
     setRefreshKey((k) => k + 1);
   };
 
@@ -121,7 +116,7 @@ export default function StoresPage() {
           <p className={styles.subtitle}>店舗の検索・編集・新規作成を行います。</p>
         </div>
 
-        <button type="button" onClick={() => { setModalMode("create"); setEditId(null); }} className={styles.primaryButton}>
+        <button type="button" onClick={modal.openCreate} className={styles.primaryButton}>
           店舗新規作成
         </button>
       </header>
@@ -237,7 +232,7 @@ export default function StoresPage() {
                           </span>
                         </td>
                         <td className={`${tableStyles.td} ${tableStyles.tdAction}`}>
-                          <button type="button" onClick={() => { setModalMode("edit"); setEditId(store.storeId); }} className={tableStyles.editButton}>
+                          <button type="button" onClick={() => modal.openEdit(store.storeId)} className={tableStyles.editButton}>
                             編集
                           </button>
                         </td>
@@ -263,9 +258,9 @@ export default function StoresPage() {
         </>
       )}
 
-      <Modal open={modalMode !== null} title={modalMode === "create" ? "店舗新規作成" : "店舗編集"} onClose={handleModalClose}>
-        {modalMode && (
-          <StoreForm mode={modalMode} editId={editId ?? undefined} onSave={handleSave} onCancel={handleModalClose} />
+      <Modal open={modal.modalMode !== null} title={modal.modalMode === "create" ? "店舗新規作成" : "店舗編集"} onClose={modal.close}>
+        {modal.modalMode && (
+          <StoreForm mode={modal.modalMode} editId={modal.editId ?? undefined} onSave={handleSave} onCancel={modal.close} />
         )}
       </Modal>
     </main>

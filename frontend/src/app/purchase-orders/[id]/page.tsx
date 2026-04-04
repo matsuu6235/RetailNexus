@@ -14,30 +14,9 @@ import {
 import type { PurchaseOrder, PurchaseOrderStatus } from "@/types/purchaseOrders";
 import { purchaseOrderStatusLabels } from "@/types/purchaseOrders";
 import { hasPermission } from "@/services/authService";
+import { formatDate, formatDateTime, formatYen } from "@/lib/utils/formatters";
+import { getStatusBadgeClass } from "@/lib/utils/statusBadge";
 import styles from "./page.module.css";
-
-function getStatusBadgeClass(status: PurchaseOrderStatus): string {
-    if (status === 0) return styles.statusDraft;
-    if (status === 1) return styles.statusAwaitingApproval;
-    if (status === 2) return styles.statusApproved;
-    if (status >= 3 && status <= 5) return styles.statusInProgress;
-    if (status === 6) return styles.statusReceived;
-    return styles.statusCancelled;
-}
-
-function formatDate(dateStr?: string | null): string {
-    if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString("ja-JP");
-}
-
-function formatDateTime(dateStr?: string | null): string {
-    if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleString("ja-JP");
-}
-
-function formatAmount(amount: number): string {
-    return amount.toLocaleString("ja-JP", { style: "currency", currency: "JPY" });
-}
 
 export default function PurchaseOrderDetailPage() {
     const params = useParams();
@@ -105,7 +84,7 @@ export default function PurchaseOrderDetailPage() {
                     <div>
                         <div className={styles.infoLabel}>ステータス</div>
                         <div className={styles.infoValue}>
-                            <span className={`${styles.statusBadge} ${getStatusBadgeClass(status)}`}>
+                            <span className={`${styles.statusBadge} ${getStatusBadgeClass(status, styles)}`}>
                                 {purchaseOrderStatusLabels[status]}
                             </span>
                         </div>
@@ -170,15 +149,15 @@ export default function PurchaseOrderDetailPage() {
                                 <td>{d.productCode}</td>
                                 <td>{d.productName}</td>
                                 <td style={{ textAlign: "right" }}>{d.quantity.toLocaleString()}</td>
-                                <td style={{ textAlign: "right" }}>{formatAmount(d.unitPrice)}</td>
-                                <td style={{ textAlign: "right" }}>{formatAmount(d.subTotal)}</td>
+                                <td style={{ textAlign: "right" }}>{formatYen(d.unitPrice)}</td>
+                                <td style={{ textAlign: "right" }}>{formatYen(d.subTotal)}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
                 </div>
                 <div className={styles.totalRow}>
-                    合計金額: {formatAmount(order.totalAmount)}
+                    合計金額: {formatYen(order.totalAmount)}
                 </div>
             </div>
 

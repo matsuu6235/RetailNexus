@@ -9,28 +9,12 @@ import type { PurchaseOrderListItem, PurchaseOrderStatus } from "@/types/purchas
 import { purchaseOrderStatusLabels } from "@/types/purchaseOrders";
 import type { Supplier } from "@/types/suppliers";
 import type { Store } from "@/types/stores";
+import { formatDate, formatYen } from "@/lib/utils/formatters";
+import { getStatusBadgeClass } from "@/lib/utils/statusBadge";
 import styles from "./page.module.css";
 import tableStyles from "@/components/table/MasterTable.module.css";
 
 const PAGE_SIZE = 20;
-
-function getStatusBadgeClass(status: PurchaseOrderStatus): string {
-    if (status === 0) return styles.statusDraft;
-    if (status === 1) return styles.statusAwaitingApproval;
-    if (status === 2) return styles.statusApproved;
-    if (status >= 3 && status <= 5) return styles.statusInProgress;
-    if (status === 6) return styles.statusReceived;
-    return styles.statusCancelled;
-}
-
-function formatDate(dateStr?: string | null): string {
-    if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString("ja-JP");
-}
-
-function formatAmount(amount: number): string {
-    return amount.toLocaleString("ja-JP", { style: "currency", currency: "JPY" });
-}
 
 export default function PurchaseOrdersPage() {
     const [orders, setOrders] = useState<PurchaseOrderListItem[]>([]);
@@ -228,9 +212,9 @@ export default function PurchaseOrdersPage() {
                                                 <td className={tableStyles.td}>{order.supplierName}</td>
                                                 <td className={tableStyles.td}>{order.storeName}</td>
                                                 <td className={tableStyles.td}>{formatDate(order.orderDate)}</td>
-                                                <td className={tableStyles.td} style={{ textAlign: "right" }}>{formatAmount(order.totalAmount)}</td>
+                                                <td className={tableStyles.td} style={{ textAlign: "right" }}>{formatYen(order.totalAmount)}</td>
                                                 <td className={`${tableStyles.td} ${tableStyles.tdStatus}`}>
-                                                    <span className={`${styles.statusBadge} ${getStatusBadgeClass(order.status)}`}>
+                                                    <span className={`${styles.statusBadge} ${getStatusBadgeClass(order.status, styles)}`}>
                                                         {purchaseOrderStatusLabels[order.status]}
                                                     </span>
                                                 </td>

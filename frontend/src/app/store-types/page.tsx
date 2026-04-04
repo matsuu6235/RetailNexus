@@ -3,32 +3,19 @@
 import { useEffect, useState } from "react";
 import { getStoreTypes, reorderStoreTypes } from "@/lib/api/storeTypes";
 import type { StoreType } from "@/types/storeTypes";
+import { useModal } from "@/lib/hooks/useModal";
+import { useDragReorder } from "@/lib/hooks/useDragReorder";
 import Modal from "@/components/modal/Modal";
 import StoreTypeForm from "./StoreTypeForm";
 import styles from "./page.module.css";
 import tableStyles from "@/components/table/MasterTable.module.css";
 
-function moveItem(items: StoreType[], fromId: string, toId: string): StoreType[] {
-  const fromIndex = items.findIndex((item) => item.storeTypeId === fromId);
-  const toIndex = items.findIndex((item) => item.storeTypeId === toId);
-
-  if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return items;
-
-  const next = [...items];
-  const [moved] = next.splice(fromIndex, 1);
-  next.splice(toIndex, 0, moved);
-  return next;
-}
-
-function normalizeDisplayOrder(items: StoreType[]): StoreType[] {
-  return items.map((item, index) => ({ ...item, displayOrder: index + 1 }));
-}
+const getStoreTypeId = (item: StoreType) => item.storeTypeId;
 
 export default function StoreTypesPage() {
   const [items, setItems] = useState<StoreType[]>([]);
   const [originalOrderIds, setOriginalOrderIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [savingOrder, setSavingOrder] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [codeInput, setCodeInput] = useState("");
@@ -39,20 +26,24 @@ export default function StoreTypesPage() {
   const [nameFilter, setNameFilter] = useState("");
   const [isActiveFilter, setIsActiveFilter] = useState<"all" | "active" | "inactive">("all");
 
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [dragOverId, setDragOverId] = useState<string | null>(null);
-
-  const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
-  const [editId, setEditId] = useState<string | null>(null);
+  const modal = useModal();
+  const drag = useDragReorder({
+    getId: getStoreTypeId,
+    items,
+    setItems,
+    originalOrderIds,
+    setOriginalOrderIds,
+    reorderFn: reorderStoreTypes,
+  });
 
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
       const response = await getStoreTypes();
-      const normalized = normalizeDisplayOrder(response);
+      const normalized = response.map((item, index) => ({ ...item, displayOrder: index + 1 }));
       setItems(normalized);
-      setOriginalOrderIds(normalized.map((item) => item.storeTypeId));
+      setOriginalOrderIds(normalized.map(getStoreTypeId));
     } catch (e) {
       setError(e instanceof Error ? e.message : "店舗種別一覧の取得に失敗しました。");
     } finally {
@@ -75,47 +66,12 @@ export default function StoreTypesPage() {
     return matchCode && matchName && matchStatus;
   });
 
-  const isDirty =
-    items.length > 0 &&
-    items.map((item) => item.storeTypeId).join(",") !== originalOrderIds.join(",");
-
-  const onSaveOrder = async () => {
-    try {
-      setSavingOrder(true);
-      setError(null);
-
-      await reorderStoreTypes(items.map((item) => item.storeTypeId));
-
-      const normalized = normalizeDisplayOrder(items);
-      setItems(normalized);
-      setOriginalOrderIds(normalized.map((item) => item.storeTypeId));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "表示順の保存に失敗しました。");
-    } finally {
-      setSavingOrder(false);
-    }
-  };
-
-  const onResetOrder = () => {
-    const orderMap = new Map(originalOrderIds.map((id, index) => [id, index]));
-    const resetItems = [...items].sort(
-      (a, b) => (orderMap.get(a.storeTypeId) ?? 0) - (orderMap.get(b.storeTypeId) ?? 0)
-    );
-
-    setItems(normalizeDisplayOrder(resetItems));
-    setDraggingId(null);
-    setDragOverId(null);
-  };
-
-  const handleModalClose = () => {
-    setModalMode(null);
-    setEditId(null);
-  };
-
   const handleSave = () => {
-    handleModalClose();
+    modal.close();
     fetchData();
   };
+
+  const displayError = error || drag.error;
 
   return (
     <main className={styles.page}>
@@ -127,10 +83,7 @@ export default function StoreTypesPage() {
 
         <button
           type="button"
-          onClick={() => {
-            setModalMode("create");
-            setEditId(null);
-          }}
+          onClick={modal.openCreate}
           className={styles.primaryButton}
         >
           店舗種別新規作成
@@ -178,27 +131,27 @@ export default function StoreTypesPage() {
         </div>
       </section>
 
-      {isDirty && (
+      {drag.isDirty && (
         <div className={styles.noticeBox}>
           <div>
             <strong>表示順が未保存です。</strong>
             <div className={styles.noticeText}>行をドラッグして並び順を変更し、「並び順を保存」を押してください。</div>
           </div>
           <div className={styles.noticeActions}>
-            <button type="button" onClick={onResetOrder} className={styles.secondaryButton} disabled={savingOrder}>
+            <button type="button" onClick={drag.onResetOrder} className={styles.secondaryButton} disabled={drag.savingOrder}>
               元に戻す
             </button>
-            <button type="button" onClick={onSaveOrder} className={styles.saveButton} disabled={savingOrder}>
-              {savingOrder ? "保存中..." : "並び順を保存"}
+            <button type="button" onClick={drag.onSaveOrder} className={styles.saveButton} disabled={drag.savingOrder}>
+              {drag.savingOrder ? "保存中..." : "並び順を保存"}
             </button>
           </div>
         </div>
       )}
 
       {loading && <p>読み込み中...</p>}
-      {error && <div className={styles.errorBox}>{error}</div>}
+      {displayError && <div className={styles.errorBox}>{displayError}</div>}
 
-      {!loading && !error && (
+      {!loading && !displayError && (
         <div className={tableStyles.wrapper}>
           <div className={tableStyles.summary}>
             <span>{filteredItems.length} 件</span>
@@ -226,8 +179,8 @@ export default function StoreTypesPage() {
 
                 {filteredItems.map((item, index) => {
                   const rowClass = `${tableStyles.row} ${index % 2 === 0 ? tableStyles.rowEven : tableStyles.rowOdd} ${
-                    draggingId === item.storeTypeId ? styles.draggingRow : ""
-                  } ${dragOverId === item.storeTypeId ? styles.dragOverRow : ""}`;
+                    drag.draggingId === item.storeTypeId ? styles.draggingRow : ""
+                  } ${drag.dragOverId === item.storeTypeId ? styles.dragOverRow : ""}`;
 
                   const statusClass = `${tableStyles.statusChip} ${item.isActive ? tableStyles.statusActive : tableStyles.statusInactive}`;
                   const statusDotClass = `${tableStyles.statusDot} ${item.isActive ? tableStyles.statusDotActive : tableStyles.statusDotInactive}`;
@@ -236,34 +189,12 @@ export default function StoreTypesPage() {
                     <tr
                       key={item.storeTypeId}
                       className={rowClass}
-                      onDragOver={(e) => {
-                        if (!draggingId) return;
-                        e.preventDefault();
-                        if (dragOverId !== item.storeTypeId) setDragOverId(item.storeTypeId);
-                      }}
-                      onDrop={(e) => {
-                        if (!draggingId) return;
-                        e.preventDefault();
-                        if (draggingId !== item.storeTypeId) {
-                          setItems((current) => normalizeDisplayOrder(moveItem(current, draggingId, item.storeTypeId)));
-                        }
-                        setDraggingId(null);
-                        setDragOverId(null);
-                      }}
+                      {...drag.getRowDragProps(item.storeTypeId)}
                     >
                       <td className={`${tableStyles.td} ${styles.handleCell}`}>
                         <button
                           type="button"
-                          draggable
-                          onDragStart={(e) => {
-                            setDraggingId(item.storeTypeId);
-                            e.dataTransfer.effectAllowed = "move";
-                            e.dataTransfer.setData("text/plain", item.storeTypeId);
-                          }}
-                          onDragEnd={() => {
-                            setDraggingId(null);
-                            setDragOverId(null);
-                          }}
+                          {...drag.getDragHandleProps(item.storeTypeId)}
                           className={styles.dragHandleButton}
                         >
                           <span className={styles.dragHandle}>≡</span>
@@ -281,10 +212,7 @@ export default function StoreTypesPage() {
                       <td className={`${tableStyles.td} ${tableStyles.tdAction}`}>
                         <button
                           type="button"
-                          onClick={() => {
-                            setModalMode("edit");
-                            setEditId(item.storeTypeId);
-                          }}
+                          onClick={() => modal.openEdit(item.storeTypeId)}
                           className={tableStyles.editButton}
                         >
                           編集
@@ -299,9 +227,9 @@ export default function StoreTypesPage() {
         </div>
       )}
 
-      <Modal open={modalMode !== null} title={modalMode === "create" ? "店舗種別新規作成" : "店舗種別編集"} onClose={handleModalClose}>
-        {modalMode && (
-          <StoreTypeForm mode={modalMode} editId={editId ?? undefined} onSave={handleSave} onCancel={handleModalClose} />
+      <Modal open={modal.modalMode !== null} title={modal.modalMode === "create" ? "店舗種別新規作成" : "店舗種別編集"} onClose={modal.close}>
+        {modal.modalMode && (
+          <StoreTypeForm mode={modal.modalMode} editId={modal.editId ?? undefined} onSave={handleSave} onCancel={modal.close} />
         )}
       </Modal>
     </main>

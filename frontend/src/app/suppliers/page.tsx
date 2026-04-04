@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useModal } from "@/lib/hooks/useModal";
 import { getSuppliers } from "@/lib/api/suppliers";
 import type { Supplier } from "@/types/suppliers";
 import styles from "./page.module.css";
@@ -30,8 +31,7 @@ export default function SuppliersPage() {
     const [emailFilter, setEmailFilter] = useState("");
     const [isActiveFilter, setIsActiveFilter] = useState<"all" | "active" | "inactive">("all");
 
-    const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
-    const [editId, setEditId] = useState<string | null>(null);
+    const modal = useModal();
     const [refreshKey, setRefreshKey] = useState(0);
 
     useEffect(() => {
@@ -70,13 +70,8 @@ export default function SuppliersPage() {
         };
     }, [page, supplierCodeFilter, supplierNameFilter, phoneNumberFilter, emailFilter, isActiveFilter, refreshKey]);
 
-    const handleModalClose = () => {
-        setModalMode(null);
-        setEditId(null);
-    };
-
     const handleSave = () => {
-        handleModalClose();
+        modal.close();
         setRefreshKey((k) => k + 1);
     };
 
@@ -94,10 +89,7 @@ export default function SuppliersPage() {
 
                 <button
                     type="button"
-                    onClick={() => {
-                        setModalMode("create");
-                        setEditId(null);
-                    }}
+                    onClick={modal.openCreate}
                     className={styles.primaryButton}
                 >
                     仕入先新規作成
@@ -233,10 +225,7 @@ export default function SuppliersPage() {
                                                 <td className={`${tableStyles.td} ${tableStyles.tdAction}`}>
                                                     <button
                                                         type="button"
-                                                        onClick={() => {
-                                                            setModalMode("edit");
-                                                            setEditId(supplier.supplierId);
-                                                        }}
+                                                        onClick={() => modal.openEdit(supplier.supplierId)}
                                                         className={tableStyles.editButton}
                                                     >
                                                         編集
@@ -266,9 +255,9 @@ export default function SuppliersPage() {
                 </>
             )}
 
-            <Modal open={modalMode !== null} title={modalMode === "create" ? "仕入先新規作成" : "仕入先編集"} onClose={handleModalClose}>
-                {modalMode && (
-                    <SupplierForm mode={modalMode} editId={editId ?? undefined} onSave={handleSave} onCancel={handleModalClose} />
+            <Modal open={modal.modalMode !== null} title={modal.modalMode === "create" ? "仕入先新規作成" : "仕入先編集"} onClose={modal.close}>
+                {modal.modalMode && (
+                    <SupplierForm mode={modal.modalMode} editId={modal.editId ?? undefined} onSave={handleSave} onCancel={modal.close} />
                 )}
             </Modal>
         </main>

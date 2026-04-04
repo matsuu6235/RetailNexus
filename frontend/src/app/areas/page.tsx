@@ -3,32 +3,19 @@
 import { useEffect, useState } from "react";
 import { getAllAreas, reorderAreas } from "@/lib/api/areas";
 import type { Area } from "@/types/areas";
+import { useModal } from "@/lib/hooks/useModal";
+import { useDragReorder } from "@/lib/hooks/useDragReorder";
 import Modal from "@/components/modal/Modal";
 import AreaForm from "./AreaForm";
 import styles from "./page.module.css";
 import tableStyles from "@/components/table/MasterTable.module.css";
 
-function moveItem(items: Area[], fromId: string, toId: string): Area[] {
-  const fromIndex = items.findIndex((item) => item.areaId === fromId);
-  const toIndex = items.findIndex((item) => item.areaId === toId);
-
-  if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return items;
-
-  const next = [...items];
-  const [moved] = next.splice(fromIndex, 1);
-  next.splice(toIndex, 0, moved);
-  return next;
-}
-
-function normalizeDisplayOrder(items: Area[]): Area[] {
-  return items.map((item, index) => ({ ...item, displayOrder: index + 1 }));
-}
+const getAreaId = (item: Area) => item.areaId;
 
 export default function AreasPage() {
   const [items, setItems] = useState<Area[]>([]);
   const [originalOrderIds, setOriginalOrderIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [savingOrder, setSavingOrder] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [codeInput, setCodeInput] = useState("");
@@ -39,20 +26,24 @@ export default function AreasPage() {
   const [nameFilter, setNameFilter] = useState("");
   const [isActiveFilter, setIsActiveFilter] = useState<"all" | "active" | "inactive">("all");
 
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [dragOverId, setDragOverId] = useState<string | null>(null);
-
-  const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
-  const [editId, setEditId] = useState<string | null>(null);
+  const modal = useModal();
+  const drag = useDragReorder({
+    getId: getAreaId,
+    items,
+    setItems,
+    originalOrderIds,
+    setOriginalOrderIds,
+    reorderFn: reorderAreas,
+  });
 
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
       const response = await getAllAreas();
-      const normalized = normalizeDisplayOrder(response);
+      const normalized = response.map((item, index) => ({ ...item, displayOrder: index + 1 }));
       setItems(normalized);
-      setOriginalOrderIds(normalized.map((item) => item.areaId));
+      setOriginalOrderIds(normalized.map(getAreaId));
     } catch (e) {
       setError(e instanceof Error ? e.message : "エリア一覧の取得に失敗しました。");
     } finally {
@@ -75,45 +66,12 @@ export default function AreasPage() {
     return matchCode && matchName && matchStatus;
   });
 
-  const isDirty =
-    items.length > 0 &&
-    items.map((item) => item.areaId).join(",") !== originalOrderIds.join(",");
-
-  const onSaveOrder = async () => {
-    try {
-      setSavingOrder(true);
-      setError(null);
-      await reorderAreas(items.map((item) => item.areaId));
-      const normalized = normalizeDisplayOrder(items);
-      setItems(normalized);
-      setOriginalOrderIds(normalized.map((item) => item.areaId));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "表示順の保存に失敗しました。");
-    } finally {
-      setSavingOrder(false);
-    }
-  };
-
-  const onResetOrder = () => {
-    const orderMap = new Map(originalOrderIds.map((id, index) => [id, index]));
-    const resetItems = [...items].sort(
-      (a, b) => (orderMap.get(a.areaId) ?? 0) - (orderMap.get(b.areaId) ?? 0)
-    );
-
-    setItems(normalizeDisplayOrder(resetItems));
-    setDraggingId(null);
-    setDragOverId(null);
-  };
-
-  const handleModalClose = () => {
-    setModalMode(null);
-    setEditId(null);
-  };
-
   const handleSave = () => {
-    handleModalClose();
+    modal.close();
     fetchData();
   };
+
+  const displayError = error || drag.error;
 
   return (
     <main className={styles.page}>
@@ -125,10 +83,7 @@ export default function AreasPage() {
 
         <button
           type="button"
-          onClick={() => {
-            setModalMode("create");
-            setEditId(null);
-          }}
+          onClick={modal.openCreate}
           className={styles.primaryButton}
         >
           エリア新規作成
@@ -176,27 +131,27 @@ export default function AreasPage() {
         </div>
       </section>
 
-      {isDirty && (
+      {drag.isDirty && (
         <div className={styles.noticeBox}>
           <div>
             <strong>表示順が未保存です。</strong>
             <div className={styles.noticeText}>行をドラッグして並び順を変更し、「並び順を保存」を押してください。</div>
           </div>
           <div className={styles.noticeActions}>
-            <button type="button" onClick={onResetOrder} className={styles.secondaryButton} disabled={savingOrder}>
+            <button type="button" onClick={drag.onResetOrder} className={styles.secondaryButton} disabled={drag.savingOrder}>
               元に戻す
             </button>
-            <button type="button" onClick={onSaveOrder} className={styles.saveButton} disabled={savingOrder}>
-              {savingOrder ? "保存中..." : "並び順を保存"}
+            <button type="button" onClick={drag.onSaveOrder} className={styles.saveButton} disabled={drag.savingOrder}>
+              {drag.savingOrder ? "保存中..." : "並び順を保存"}
             </button>
           </div>
         </div>
       )}
 
       {loading && <p>読み込み中...</p>}
-      {error && <div className={styles.errorBox}>{error}</div>}
+      {displayError && <div className={styles.errorBox}>{displayError}</div>}
 
-      {!loading && !error && (
+      {!loading && !displayError && (
         <div className={tableStyles.wrapper}>
           <div className={tableStyles.summary}>
             <span>{filteredItems.length} 件</span>
@@ -224,8 +179,8 @@ export default function AreasPage() {
 
                 {filteredItems.map((item, index) => {
                   const rowClass = `${tableStyles.row} ${index % 2 === 0 ? tableStyles.rowEven : tableStyles.rowOdd} ${
-                    draggingId === item.areaId ? styles.draggingRow : ""
-                  } ${dragOverId === item.areaId ? styles.dragOverRow : ""}`;
+                    drag.draggingId === item.areaId ? styles.draggingRow : ""
+                  } ${drag.dragOverId === item.areaId ? styles.dragOverRow : ""}`;
 
                   const statusClass = `${tableStyles.statusChip} ${item.isActive ? tableStyles.statusActive : tableStyles.statusInactive}`;
                   const statusDotClass = `${tableStyles.statusDot} ${item.isActive ? tableStyles.statusDotActive : tableStyles.statusDotInactive}`;
@@ -234,34 +189,12 @@ export default function AreasPage() {
                     <tr
                       key={item.areaId}
                       className={rowClass}
-                      onDragOver={(e) => {
-                        if (!draggingId) return;
-                        e.preventDefault();
-                        if (dragOverId !== item.areaId) setDragOverId(item.areaId);
-                      }}
-                      onDrop={(e) => {
-                        if (!draggingId) return;
-                        e.preventDefault();
-                        if (draggingId !== item.areaId) {
-                          setItems((current) => normalizeDisplayOrder(moveItem(current, draggingId, item.areaId)));
-                        }
-                        setDraggingId(null);
-                        setDragOverId(null);
-                      }}
+                      {...drag.getRowDragProps(item.areaId)}
                     >
                       <td className={`${tableStyles.td} ${styles.handleCell}`}>
                         <button
                           type="button"
-                          draggable
-                          onDragStart={(e) => {
-                            setDraggingId(item.areaId);
-                            e.dataTransfer.effectAllowed = "move";
-                            e.dataTransfer.setData("text/plain", item.areaId);
-                          }}
-                          onDragEnd={() => {
-                            setDraggingId(null);
-                            setDragOverId(null);
-                          }}
+                          {...drag.getDragHandleProps(item.areaId)}
                           className={styles.dragHandleButton}
                         >
                           <span className={styles.dragHandle}>≡</span>
@@ -279,10 +212,7 @@ export default function AreasPage() {
                       <td className={`${tableStyles.td} ${tableStyles.tdAction}`}>
                         <button
                           type="button"
-                          onClick={() => {
-                            setModalMode("edit");
-                            setEditId(item.areaId);
-                          }}
+                          onClick={() => modal.openEdit(item.areaId)}
                           className={tableStyles.editButton}
                         >
                           編集
@@ -297,13 +227,13 @@ export default function AreasPage() {
         </div>
       )}
 
-      <Modal open={modalMode !== null} title={modalMode === "create" ? "エリア新規作成" : "エリア編集"} onClose={handleModalClose}>
-        {modalMode && (
+      <Modal open={modal.modalMode !== null} title={modal.modalMode === "create" ? "エリア新規作成" : "エリア編集"} onClose={modal.close}>
+        {modal.modalMode && (
           <AreaForm
-            mode={modalMode}
-            editId={editId ?? undefined}
+            mode={modal.modalMode}
+            editId={modal.editId ?? undefined}
             onSave={handleSave}
-            onCancel={handleModalClose}
+            onCancel={modal.close}
           />
         )}
       </Modal>

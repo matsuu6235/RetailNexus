@@ -1,22 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useModal } from "@/lib/hooks/useModal";
 import { getProducts } from "@/lib/api/products";
 import { getAllProductCategories } from "@/lib/api/productCategories";
 import type { Product } from "@/types/products";
 import type { ProductCategory } from "@/types/productCategories";
 import Modal from "@/components/modal/Modal";
 import ProductForm from "./ProductForm";
+import { formatYen } from "@/lib/utils/formatters";
 import styles from "./page.module.css";
 
 const PAGE_SIZE = 20;
-
-function formatYen(value: number) {
-  return new Intl.NumberFormat("ja-JP", {
-    style: "currency",
-    currency: "JPY",
-  }).format(value);
-}
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -38,8 +33,7 @@ export default function ProductsPage() {
   const [categoryCodeFilter, setCategoryCodeFilter] = useState("");
   const [activeFilter, setActiveFilter] = useState<"all" | "active" | "inactive">("all");
 
-  const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
-  const [editId, setEditId] = useState<string | null>(null);
+  const modal = useModal();
   const [refreshKey, setRefreshKey] = useState(0);
 
   const moveToPage = (nextPage: number) => {
@@ -104,13 +98,8 @@ export default function ProductsPage() {
   const start = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const end = Math.min(page * PAGE_SIZE, total);
 
-  const handleModalClose = () => {
-    setModalMode(null);
-    setEditId(null);
-  };
-
   const handleSave = () => {
-    handleModalClose();
+    modal.close();
     setRefreshKey((k) => k + 1);
   };
 
@@ -124,10 +113,7 @@ export default function ProductsPage() {
 
         <button
           type="button"
-          onClick={() => {
-            setModalMode("create");
-            setEditId(null);
-          }}
+          onClick={modal.openCreate}
           className={styles.primaryButton}
         >
           商品新規作成
@@ -260,10 +246,7 @@ export default function ProductsPage() {
                         <td className={styles.td}>
                           <button
                             type="button"
-                            onClick={() => {
-                              setModalMode("edit");
-                              setEditId(p.id);
-                            }}
+                            onClick={() => modal.openEdit(p.id)}
                             className={styles.editButton}
                           >
                             編集
@@ -304,9 +287,9 @@ export default function ProductsPage() {
         </>
       )}
 
-      <Modal open={modalMode !== null} title={modalMode === "create" ? "商品新規作成" : "商品編集"} onClose={handleModalClose}>
-        {modalMode && (
-          <ProductForm mode={modalMode} editId={editId ?? undefined} onSave={handleSave} onCancel={handleModalClose} />
+      <Modal open={modal.modalMode !== null} title={modal.modalMode === "create" ? "商品新規作成" : "商品編集"} onClose={modal.close}>
+        {modal.modalMode && (
+          <ProductForm mode={modal.modalMode} editId={modal.editId ?? undefined} onSave={handleSave} onCancel={modal.close} />
         )}
       </Modal>
     </main>

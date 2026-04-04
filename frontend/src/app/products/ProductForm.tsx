@@ -17,7 +17,7 @@ import {
   type ProductFieldErrors,
   type UpdateProductFieldErrors,
 } from "@/lib/validators/productValidator";
-import { hasPermission } from "@/services/authService";
+import { useActivation } from "@/lib/hooks/useActivation";
 import styles from "@/components/modal/FormModal.module.css";
 
 interface ProductFormProps {
@@ -41,9 +41,8 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<ProductFieldErrors | UpdateProductFieldErrors>({});
   const [loading, setLoading] = useState(true);
-  const [canDelete, setCanDelete] = useState(false);
-  const [currentIsActive, setCurrentIsActive] = useState(true);
-  const [changingActivation, setChangingActivation] = useState(false);
+  const [fetchedIsActive, setFetchedIsActive] = useState(true);
+  const activation = useActivation({ permissionCode: "products.delete", initialIsActive: fetchedIsActive, changeFn: changeProductActivation, editId });
 
   useEffect(() => {
     let cancelled = false;
@@ -70,7 +69,7 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
               cost: product.cost,
               productCategoryCode: product.productCategoryCode,
             });
-            setCurrentIsActive(product.isActive);
+            setFetchedIsActive(product.isActive);
             setCategories(cats);
             setLoading(false);
           }
@@ -87,10 +86,6 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
       cancelled = true;
     };
   }, [mode, editId]);
-
-  useEffect(() => {
-    setCanDelete(hasPermission("products.delete"));
-  }, []);
 
   const handleChange = (field: string, value: string | boolean) => {
     const numericValue = field === "price" || field === "cost" ? (value === "" ? 0 : Number(value)) : value;
@@ -242,7 +237,7 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
         )}
       </label>
 
-      {error && <div className={styles.errorBox}>{error}</div>}
+      {(error || activation.error) && <div className={styles.errorBox}>{error || activation.error}</div>}
 
       <div className={styles.actions}>
         <button type="button" onClick={onCancel} className={styles.cancelButton} disabled={submitting}>
@@ -253,31 +248,21 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
         </button>
       </div>
 
-      {mode === "edit" && canDelete && (
+      {mode === "edit" && activation.canDelete && (
         <fieldset className={styles.field} style={{ border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px", marginTop: "8px" }}>
           <legend style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a", padding: "0 4px" }}>有効状態の変更</legend>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span style={{ fontSize: "13px" }}>
-              現在の状態: <strong>{currentIsActive ? "有効" : "無効"}</strong>
+              現在の状態: <strong>{activation.currentIsActive ? "有効" : "無効"}</strong>
             </span>
             <button
               type="button"
-              onClick={async () => {
-                try {
-                  setChangingActivation(true);
-                  await changeProductActivation(editId!, !currentIsActive);
-                  setCurrentIsActive(!currentIsActive);
-                } catch (err) {
-                  setError(err instanceof Error ? err.message : "状態の変更に失敗しました。");
-                } finally {
-                  setChangingActivation(false);
-                }
-              }}
-              disabled={changingActivation}
+              onClick={activation.toggle}
+              disabled={activation.changingActivation}
               className={styles.submitButton}
-              style={currentIsActive ? { backgroundColor: "#dc2626" } : {}}
+              style={activation.currentIsActive ? { backgroundColor: "#dc2626" } : {}}
             >
-              {changingActivation ? "変更中..." : currentIsActive ? "無効化する" : "有効化する"}
+              {activation.changingActivation ? "変更中..." : activation.currentIsActive ? "無効化する" : "有効化する"}
             </button>
           </div>
         </fieldset>

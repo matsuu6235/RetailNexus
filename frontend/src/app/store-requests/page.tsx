@@ -7,24 +7,12 @@ import { getStores } from "@/lib/api/stores";
 import type { StoreRequestListItem, StoreRequestStatus } from "@/types/storeRequests";
 import { storeRequestStatusLabels } from "@/types/storeRequests";
 import type { Store } from "@/types/stores";
+import { formatDate } from "@/lib/utils/formatters";
+import { getStatusBadgeClass } from "@/lib/utils/statusBadge";
 import styles from "./page.module.css";
 import tableStyles from "@/components/table/MasterTable.module.css";
 
 const PAGE_SIZE = 20;
-
-function getStatusBadgeClass(status: StoreRequestStatus): string {
-    if (status === 0) return styles.statusDraft;
-    if (status === 1) return styles.statusAwaitingApproval;
-    if (status === 2) return styles.statusApproved;
-    if (status >= 3 && status <= 5) return styles.statusInProgress;
-    if (status === 6) return styles.statusReceived;
-    return styles.statusCancelled;
-}
-
-function formatDate(dateStr?: string | null): string {
-    if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString("ja-JP");
-}
 
 export default function StoreRequestsPage() {
     const [requests, setRequests] = useState<StoreRequestListItem[]>([]);
@@ -189,7 +177,7 @@ export default function StoreRequestsPage() {
                                                 <td className={tableStyles.td}>{req.toStoreName}</td>
                                                 <td className={tableStyles.td}>{formatDate(req.requestDate)}</td>
                                                 <td className={`${tableStyles.td} ${tableStyles.tdStatus}`}>
-                                                    <span className={`${styles.statusBadge} ${getStatusBadgeClass(req.status)}`}>
+                                                    <span className={`${styles.statusBadge} ${getStatusBadgeClass(req.status, styles)}`}>
                                                         {storeRequestStatusLabels[req.status]}
                                                     </span>
                                                 </td>

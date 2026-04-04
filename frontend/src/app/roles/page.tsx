@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useModal } from "@/lib/hooks/useModal";
 import { getRoles } from "@/lib/api/roles";
 import type { Role } from "@/types/roles";
 import Modal from "@/components/modal/Modal";
@@ -13,8 +14,7 @@ export default function RolesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
-  const [editId, setEditId] = useState<string | null>(null);
+  const modal = useModal();
 
   const fetchData = async () => {
     try {
@@ -33,13 +33,8 @@ export default function RolesPage() {
     fetchData();
   }, []);
 
-  const handleModalClose = () => {
-    setModalMode(null);
-    setEditId(null);
-  };
-
   const handleSave = () => {
-    handleModalClose();
+    modal.close();
     fetchData();
   };
 
@@ -53,10 +48,7 @@ export default function RolesPage() {
 
         <button
           type="button"
-          onClick={() => {
-            setModalMode("create");
-            setEditId(null);
-          }}
+          onClick={modal.openCreate}
           className={styles.primaryButton}
         >
           ロール新規作成
@@ -111,10 +103,7 @@ export default function RolesPage() {
                       <td className={`${tableStyles.td} ${tableStyles.tdAction}`}>
                         <button
                           type="button"
-                          onClick={() => {
-                            setModalMode("edit");
-                            setEditId(item.roleId);
-                          }}
+                          onClick={() => modal.openEdit(item.roleId)}
                           className={tableStyles.editButton}
                         >
                           編集
@@ -129,13 +118,13 @@ export default function RolesPage() {
         </div>
       )}
 
-      <Modal open={modalMode !== null} title={modalMode === "create" ? "ロール新規作成" : "ロール編集"} onClose={handleModalClose}>
-        {modalMode && (
+      <Modal open={modal.modalMode !== null} title={modal.modalMode === "create" ? "ロール新規作成" : "ロール編集"} onClose={modal.close}>
+        {modal.modalMode && (
           <RoleForm
-            mode={modalMode}
-            editId={editId ?? undefined}
+            mode={modal.modalMode}
+            editId={modal.editId ?? undefined}
             onSave={handleSave}
-            onCancel={handleModalClose}
+            onCancel={modal.close}
           />
         )}
       </Modal>

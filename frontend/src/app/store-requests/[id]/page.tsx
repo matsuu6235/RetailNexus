@@ -14,26 +14,9 @@ import {
 import type { StoreRequest, StoreRequestStatus } from "@/types/storeRequests";
 import { storeRequestStatusLabels } from "@/types/storeRequests";
 import { hasPermission } from "@/services/authService";
+import { formatDate, formatDateTime } from "@/lib/utils/formatters";
+import { getStatusBadgeClass } from "@/lib/utils/statusBadge";
 import styles from "../../purchase-orders/[id]/page.module.css";
-
-function getStatusBadgeClass(status: StoreRequestStatus): string {
-    if (status === 0) return styles.statusDraft;
-    if (status === 1) return styles.statusAwaitingApproval;
-    if (status === 2) return styles.statusApproved;
-    if (status >= 3 && status <= 5) return styles.statusInProgress;
-    if (status === 6) return styles.statusReceived;
-    return styles.statusCancelled;
-}
-
-function formatDate(dateStr?: string | null): string {
-    if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString("ja-JP");
-}
-
-function formatDateTime(dateStr?: string | null): string {
-    if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleString("ja-JP");
-}
 
 export default function StoreRequestDetailPage() {
     const params = useParams();
@@ -100,7 +83,7 @@ export default function StoreRequestDetailPage() {
                     <div>
                         <div className={styles.infoLabel}>ステータス</div>
                         <div className={styles.infoValue}>
-                            <span className={`${styles.statusBadge} ${getStatusBadgeClass(status)}`}>
+                            <span className={`${styles.statusBadge} ${getStatusBadgeClass(status, styles)}`}>
                                 {storeRequestStatusLabels[status]}
                             </span>
                         </div>
