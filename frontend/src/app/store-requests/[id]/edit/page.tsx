@@ -16,9 +16,11 @@ import {
     type DetailFormFields,
     type DetailFieldErrors,
 } from "@/lib/validators/storeRequestValidator";
+import { useDetailRows } from "@/lib/hooks/useDetailRows";
 import newStyles from "../../../purchase-orders/new/page.module.css";
 
-type DetailRow = DetailFormFields & { key: number; storeRequestDetailId?: string };
+type EditDetailFormFields = DetailFormFields & { storeRequestDetailId?: string };
+type DetailRow = EditDetailFormFields & { key: number };
 
 const today = new Date().toISOString().split("T")[0];
 
@@ -39,9 +41,10 @@ export default function StoreRequestEditPage() {
     });
     const [fieldErrors, setFieldErrors] = useState<StoreRequestFieldErrors>({});
 
-    const [details, setDetails] = useState<DetailRow[]>([]);
-    const [detailErrors, setDetailErrors] = useState<Record<number, DetailFieldErrors>>({});
-    const [nextKey, setNextKey] = useState(1);
+    const { details, setDetails, detailErrors, setDetailErrors, duplicateProductIds, handleDetailChange, addDetailRow, removeDetailRow } = useDetailRows<EditDetailFormFields, DetailFieldErrors>({
+        emptyRow: { productId: "", quantity: "" },
+        validateRow: validateStoreRequestDetail,
+    });
 
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -74,7 +77,6 @@ export default function StoreRequestEditPage() {
                     quantity: String(d.quantity),
                 }));
                 setDetails(loadedDetails);
-                setNextKey(loadedDetails.length + 1);
             } catch (e) {
                 setError(e instanceof Error ? e.message : "データの取得に失敗しました。");
             } finally {
@@ -89,48 +91,6 @@ export default function StoreRequestEditPage() {
         const errors = validateStoreRequestHeader(updated);
         setFieldErrors((prev) => ({ ...prev, [field]: errors[field] }));
     };
-
-    const handleDetailChange = (key: number, field: keyof DetailFormFields, value: string) => {
-        const updates: Partial<DetailFormFields> = { [field]: value };
-
-        if (field === "productId" && value) {
-            const isDuplicate = details.some((d) => d.key !== key && d.productId === value);
-            if (isDuplicate) {
-                setDetailErrors((prev) => ({
-                    ...prev,
-                    [key]: { ...prev[key], productId: "この商品は既に追加されています。数量を変更してください。" },
-                }));
-                return;
-            }
-        }
-
-        setDetails((prev) => prev.map((d) => (d.key === key ? { ...d, ...updates } : d)));
-        const row = details.find((d) => d.key === key);
-        if (row) {
-            const updated = { ...row, ...updates };
-            const errors = validateStoreRequestDetail(updated);
-            setDetailErrors((prev) => ({ ...prev, [key]: { ...prev[key], [field]: errors[field] } }));
-        }
-    };
-
-    const addDetailRow = () => {
-        setDetails((prev) => [...prev, { key: nextKey, productId: "", quantity: "" }]);
-        setNextKey((k) => k + 1);
-    };
-
-    const removeDetailRow = (key: number) => {
-        setDetails((prev) => prev.filter((d) => d.key !== key));
-        setDetailErrors((prev) => { const copy = { ...prev }; delete copy[key]; return copy; });
-    };
-
-    // 重複商品ID検出
-    const duplicateProductIds = new Set<string>();
-    const seenProductIds = new Map<string, number>();
-    for (const d of details) {
-        if (!d.productId) continue;
-        if (seenProductIds.has(d.productId)) duplicateProductIds.add(d.productId);
-        seenProductIds.set(d.productId, d.key);
-    }
 
     const handleSubmit = async () => {
         const headerErrors = validateStoreRequestHeader(form);

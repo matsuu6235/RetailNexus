@@ -18,6 +18,7 @@ import {
     type DetailFormFields,
     type DetailFieldErrors,
 } from "@/lib/validators/purchaseOrderValidator";
+import { useDetailRows } from "@/lib/hooks/useDetailRows";
 import styles from "./page.module.css";
 
 type DetailRow = DetailFormFields & { key: number };
@@ -39,12 +40,6 @@ export default function PurchaseOrderNewPage() {
         note: "",
     });
     const [fieldErrors, setFieldErrors] = useState<PurchaseOrderFieldErrors>({});
-
-    const [details, setDetails] = useState<DetailRow[]>([
-        { key: 1, productId: "", quantity: "", unitPrice: "" },
-    ]);
-    const [detailErrors, setDetailErrors] = useState<Record<number, DetailFieldErrors>>({});
-    const [nextKey, setNextKey] = useState(2);
 
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -73,49 +68,14 @@ export default function PurchaseOrderNewPage() {
         setFieldErrors((prev) => ({ ...prev, [field]: errors[field] }));
     };
 
-    const handleDetailChange = (key: number, field: keyof DetailFormFields, value: string) => {
-        let updates: Partial<DetailFormFields> = { [field]: value };
-
-        // 商品選択時に重複チェック＋仕入単価を自動セット
-        if (field === "productId" && value) {
-            const isDuplicate = details.some((d) => d.key !== key && d.productId === value);
-            if (isDuplicate) {
-                setDetailErrors((prev) => ({
-                    ...prev,
-                    [key]: { ...prev[key], productId: "この商品は既に追加されています。数量を変更してください。" },
-                }));
-                return;
-            }
-            const product = products.find((p) => p.id === value);
-            if (product) {
-                updates.unitPrice = String(product.cost);
-            }
-        }
-
-        setDetails((prev) =>
-            prev.map((d) => (d.key === key ? { ...d, ...updates } : d))
-        );
-        const row = details.find((d) => d.key === key);
-        if (row) {
-            const updated = { ...row, ...updates };
-            const errors = validateDetail(updated);
-            setDetailErrors((prev) => ({ ...prev, [key]: { ...prev[key], [field]: errors[field] } }));
-        }
-    };
-
-    const addDetailRow = () => {
-        setDetails((prev) => [...prev, { key: nextKey, productId: "", quantity: "", unitPrice: "" }]);
-        setNextKey((k) => k + 1);
-    };
-
-    const removeDetailRow = (key: number) => {
-        setDetails((prev) => prev.filter((d) => d.key !== key));
-        setDetailErrors((prev) => {
-            const copy = { ...prev };
-            delete copy[key];
-            return copy;
-        });
-    };
+    const { details, setDetails, detailErrors, setDetailErrors, duplicateProductIds, handleDetailChange, addDetailRow, removeDetailRow } = useDetailRows<DetailFormFields, DetailFieldErrors>({
+        emptyRow: { productId: "", quantity: "", unitPrice: "" },
+        validateRow: validateDetail,
+        onProductSelect: (productId) => {
+            const product = products.find((p) => p.id === productId);
+            return product ? { unitPrice: String(product.cost) } : {};
+        },
+    });
 
     const getSubTotal = (row: DetailRow): number => {
         const qty = Number(row.quantity);
@@ -125,17 +85,6 @@ export default function PurchaseOrderNewPage() {
     };
 
     const totalAmount = details.reduce((sum, d) => sum + getSubTotal(d), 0);
-
-    // 重複商品IDを検出
-    const duplicateProductIds = new Set<string>();
-    const seenProductIds = new Map<string, number>();
-    for (const d of details) {
-        if (!d.productId) continue;
-        if (seenProductIds.has(d.productId)) {
-            duplicateProductIds.add(d.productId);
-        }
-        seenProductIds.set(d.productId, d.key);
-    }
 
     const handleSubmit = async () => {
         const headerErrors = validatePurchaseOrderHeader(form);
