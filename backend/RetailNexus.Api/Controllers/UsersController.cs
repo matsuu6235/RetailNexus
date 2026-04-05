@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
 using RetailNexus.Api.Authorization;
 using RetailNexus.Application.Interfaces;
+using RetailNexus.Application.Interfaces.Services;
 using RetailNexus.Domain.Entities;
-using RetailNexus.Resources;
 
 namespace RetailNexus.Api.Controllers;
 
@@ -13,14 +12,12 @@ namespace RetailNexus.Api.Controllers;
 public sealed class UsersController : BaseController
 {
     private readonly IUserRepository _userRepo;
-    private readonly IPasswordHasher _passwordHasher;
-    private readonly IStringLocalizer<SharedMessages> _localizer;
+    private readonly IUserService _service;
 
-    public UsersController(IUserRepository userRepo, IPasswordHasher passwordHasher, IStringLocalizer<SharedMessages> localizer)
+    public UsersController(IUserRepository userRepo, IUserService service)
     {
         _userRepo = userRepo;
-        _passwordHasher = passwordHasher;
-        _localizer = localizer;
+        _service = service;
     }
 
     public sealed record CreateUserRequest(string LoginId, string UserName, string? Email, string Password, bool IsActive, List<Guid> RoleIds);
@@ -61,32 +58,8 @@ public sealed class UsersController : BaseController
         if (!TryGetCurrentUserId(out var actorId))
             return Unauthorized();
 
-        if (string.IsNullOrWhiteSpace(req.LoginId))
-            return BadRequest(new { LoginId = new[] { _localizer["Validation_Required", "ログインID"].Value } });
-        if (string.IsNullOrWhiteSpace(req.UserName))
-            return BadRequest(new { UserName = new[] { _localizer["Validation_Required", "ユーザー名"].Value } });
-        if (string.IsNullOrWhiteSpace(req.Password))
-            return BadRequest(new { Password = new[] { _localizer["Validation_Required", "パスワード"].Value } });
-        if (req.Password.Length < 8)
-            return BadRequest(new { Password = new[] { _localizer["Validation_MinLength", "パスワード", 8].Value } });
-
-        var existing = await _userRepo.FindByLoginIdAsync(req.LoginId.Trim(), ct);
-        if (existing is not null)
-            return BadRequest(new { LoginId = new[] { _localizer["Validation_Duplicate", "ログインID"].Value } });
-
-        var hash = _passwordHasher.Hash(req.Password);
-        var user = new User(req.LoginId.Trim(), req.UserName.Trim(), req.Email, hash, req.IsActive, actorId, actorId);
-        await _userRepo.AddAsync(user, ct);
-        await _userRepo.SaveChangesAsync(ct);
-
-        if (req.RoleIds.Count > 0)
-        {
-            await _userRepo.ReplaceUserRolesAsync(user.UserId, req.RoleIds, ct);
-            await _userRepo.SaveChangesAsync(ct);
-        }
-
-        var created = await _userRepo.FindByIdWithRolesAsync(user.UserId, ct);
-        return CreatedAtAction(nameof(GetById), new { id = user.UserId }, MapUser(created!));
+        var user = await _service.CreateAsync(req.LoginId, req.UserName, req.Email, req.Password, req.IsActive, req.RoleIds, actorId, ct);
+        return CreatedAtAction(nameof(GetById), new { id = user.UserId }, MapUser(user));
     }
 
     [HttpPut("{id:guid}")]
@@ -96,46 +69,17 @@ public sealed class UsersController : BaseController
         if (!TryGetCurrentUserId(out var actorId))
             return Unauthorized();
 
-        if (string.IsNullOrWhiteSpace(req.LoginId))
-            return BadRequest(new { LoginId = new[] { _localizer["Validation_Required", "ログインID"].Value } });
-        if (string.IsNullOrWhiteSpace(req.UserName))
-            return BadRequest(new { UserName = new[] { _localizer["Validation_Required", "ユーザー名"].Value } });
-
-        var user = await _userRepo.FindByIdWithRolesAsync(id, ct);
-        if (user is null)
-            return NotFound();
-
-        var duplicate = await _userRepo.FindByLoginIdAsync(req.LoginId.Trim(), ct);
-        if (duplicate is not null && duplicate.UserId != id)
-            return BadRequest(new { LoginId = new[] { _localizer["Validation_Duplicate", "ログインID"].Value } });
-
-        user.UpdateProfile(req.LoginId.Trim(), req.UserName.Trim(), req.Email, actorId);
-
-        // ロールの更新
-        await _userRepo.ReplaceUserRolesAsync(id, req.RoleIds, ct);
-        await _userRepo.SaveChangesAsync(ct);
-
-        var updated = await _userRepo.FindByIdWithRolesAsync(id, ct);
-        return Ok(MapUser(updated!));
+        var user = await _service.UpdateAsync(id, req.LoginId, req.UserName, req.Email, req.RoleIds, actorId, ct);
+        return Ok(MapUser(user));
     }
 
     [HttpPut("{id:guid}/password")]
     [RequirePermission("users.edit")]
     public async Task<IActionResult> ResetPassword(Guid id, [FromBody] ResetPasswordRequest req, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(req.NewPassword))
-            return BadRequest(new { NewPassword = new[] { _localizer["Validation_Required", "パスワード"].Value } });
-        if (req.NewPassword.Length < 8)
-            return BadRequest(new { NewPassword = new[] { _localizer["Validation_MinLength", "パスワード", 8].Value } });
+        TryGetCurrentUserId(out var actorId);
 
-        var user = await _userRepo.FindByIdAsync(id, ct);
-        if (user is null)
-            return NotFound();
-
-        user.PasswordHash = _passwordHasher.Hash(req.NewPassword);
-        user.UpdatedAt = DateTimeOffset.UtcNow;
-        await _userRepo.SaveChangesAsync(ct);
-
+        await _service.ResetPasswordAsync(id, req.NewPassword, actorId, ct);
         return NoContent();
     }
 
@@ -148,15 +92,7 @@ public sealed class UsersController : BaseController
         if (!TryGetCurrentUserId(out var actorId))
             return Unauthorized();
 
-        var user = await _userRepo.FindByIdAsync(id, ct);
-        if (user is null)
-            return NotFound();
-
-        user.IsActive = req.IsActive;
-        user.UpdatedAt = DateTimeOffset.UtcNow;
-        user.UpdatedBy = actorId;
-        await _userRepo.SaveChangesAsync(ct);
-
+        await _service.ChangeActivationAsync(id, req.IsActive, actorId, ct);
         return NoContent();
     }
 

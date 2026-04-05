@@ -5,6 +5,7 @@ using RetailNexus.Api.Authorization;
 using RetailNexus.Api.Contracts;
 using RetailNexus.Api.Controllers;
 using RetailNexus.Application.Interfaces;
+using RetailNexus.Application.Interfaces.Services;
 using RetailNexus.Domain.Entities;
 
 [Route("api/[controller]")]
@@ -12,17 +13,20 @@ using RetailNexus.Domain.Entities;
 public sealed class StoreTypesController : BaseController
 {
     private readonly IStoreTypeRepository _repo;
+    private readonly IStoreTypeService _service;
     private readonly IValidator<CreateStoreTypeRequest> _createValidator;
     private readonly IValidator<UpdateStoreTypeRequest> _updateValidator;
     private readonly IValidator<ReorderStoreTypesRequest> _reorderValidator;
 
     public StoreTypesController(
         IStoreTypeRepository repo,
+        IStoreTypeService service,
         IValidator<CreateStoreTypeRequest> createValidator,
         IValidator<UpdateStoreTypeRequest> updateValidator,
         IValidator<ReorderStoreTypesRequest> reorderValidator)
     {
         _repo = repo;
+        _service = service;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
         _reorderValidator = reorderValidator;
@@ -74,14 +78,7 @@ public sealed class StoreTypesController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var code = req.StoreTypeCd.Trim();
-        var name = req.StoreTypeName.Trim();
-        var nextDisplayOrder = await _repo.GetNextDisplayOrderAsync(ct);
-        var entity = new StoreType(code, name, nextDisplayOrder, req.IsActive, userId);
-
-        await _repo.AddAsync(entity, ct);
-        await _repo.SaveChangesAsync(ct);
-
+        var entity = await _service.CreateAsync(req.StoreTypeCd, req.StoreTypeName, req.IsActive, userId, ct);
         return CreatedAtAction(nameof(GetById), new { id = entity.StoreTypeId }, Map(entity));
     }
 
@@ -98,13 +95,7 @@ public sealed class StoreTypesController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var entity = await _repo.GetByIdAsync(id, ct);
-        if (entity is null)
-            return NotFound();
-
-        entity.Update(req.StoreTypeCd.Trim(), req.StoreTypeName.Trim(), userId);
-        await _repo.SaveChangesAsync(ct);
-
+        var entity = await _service.UpdateAsync(id, req.StoreTypeCd, req.StoreTypeName, userId, ct);
         return Ok(Map(entity));
     }
 
@@ -117,13 +108,7 @@ public sealed class StoreTypesController : BaseController
         if (!TryGetCurrentUserId(out var userId))
             return Unauthorized();
 
-        var entity = await _repo.GetByIdAsync(id, ct);
-        if (entity is null)
-            return NotFound();
-
-        entity.SetActivation(req.IsActive, userId);
-        await _repo.SaveChangesAsync(ct);
-
+        var entity = await _service.ChangeActivationAsync(id, req.IsActive, userId, ct);
         return Ok(Map(entity));
     }
 
@@ -138,24 +123,8 @@ public sealed class StoreTypesController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var distinctIds = req.StoreTypeIds.Distinct().ToArray();
-        var entities = await _repo.GetByIdsAsync(distinctIds, ct);
-
-        var orderMap = req.StoreTypeIds
-            .Select((id, index) => new { id, displayOrder = index + 1 })
-            .ToDictionary(x => x.id, x => x.displayOrder);
-
-        foreach (var entity in entities)
-        {
-            entity.SetDisplayOrder(orderMap[entity.StoreTypeId], userId);
-        }
-
-        await _repo.SaveChangesAsync(ct);
-
-        return Ok(entities
-            .OrderBy(x => x.DisplayOrder)
-            .ThenBy(x => x.StoreTypeCd)
-            .Select(Map));
+        var entities = await _service.ReorderAsync(req.StoreTypeIds, userId, ct);
+        return Ok(entities.Select(Map));
     }
 
     private static StoreTypeResponse Map(StoreType x)

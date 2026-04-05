@@ -1,13 +1,11 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
 using RetailNexus.Api.Authorization;
 using RetailNexus.Api.Contracts;
 using RetailNexus.Application.Interfaces;
-using RetailNexus.Application.Services;
+using RetailNexus.Application.Interfaces.Services;
 using RetailNexus.Domain.Entities;
-using RetailNexus.Resources;
 
 namespace RetailNexus.Api.Controllers;
 
@@ -16,23 +14,20 @@ namespace RetailNexus.Api.Controllers;
 public sealed class ProductsController : BaseController
 {
     private readonly IProductRepository _productRepo;
-    private readonly IProductCategoryRepository _categoryRepo;
+    private readonly IProductService _service;
     private readonly IValidator<CreateProductRequest> _createValidator;
     private readonly IValidator<UpdateProductRequest> _updateValidator;
-    private readonly IStringLocalizer<SharedMessages> _localizer;
 
     public ProductsController(
         IProductRepository productRepo,
-        IProductCategoryRepository categoryRepo,
+        IProductService service,
         IValidator<CreateProductRequest> createValidator,
-        IValidator<UpdateProductRequest> updateValidator,
-        IStringLocalizer<SharedMessages> localizer)
+        IValidator<UpdateProductRequest> updateValidator)
     {
         _productRepo = productRepo;
-        _categoryRepo = categoryRepo;
+        _service = service;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
-        _localizer = localizer;
     }
 
     public sealed record CreateProductRequest(string JanCode, string ProductName, decimal Price, decimal Cost, string ProductCategoryCode) : IProductRequest;
@@ -57,29 +52,9 @@ public sealed class ProductsController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var categoryCode = req.ProductCategoryCode.Trim();
-        var category = await _categoryRepo.GetByCodeAsync(categoryCode, ct);
-        if (category is null)
-            return BadRequest(new { ProductCategoryCode = new[] { _localizer["Validation_EntityNotFound", "商品カテゴリ"].Value } });
-
-        var abbreviation = category.CategoryAbbreviation;
-        var maxCode = await _productRepo.GetMaxProductCodeByPrefixAsync(abbreviation, ct);
-        var productCode = CodeGenerator.NextProductCode(maxCode, abbreviation);
-
         TryGetCurrentUserId(out var userId);
 
-        var product = new Product(
-            productCode,
-            req.JanCode.Trim(),
-            req.ProductName.Trim(),
-            req.Price,
-            req.Cost,
-            categoryCode,
-            userId);
-
-        await _productRepo.AddAsync(product, ct);
-        await _productRepo.SaveChangesAsync(ct);
-
+        var product = await _service.CreateAsync(req.JanCode, req.ProductName, req.Price, req.Cost, req.ProductCategoryCode, userId, ct);
         return CreatedAtAction(nameof(GetById), new { id = product.Id }, Map(product));
     }
 
@@ -87,10 +62,6 @@ public sealed class ProductsController : BaseController
     [RequirePermission("products.edit")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductRequest req, CancellationToken ct)
     {
-        var product = await _productRepo.GetByIdAsync(id, ct);
-        if (product is null)
-            return NotFound();
-
         var validationContext = new FluentValidation.ValidationContext<UpdateProductRequest>(req);
         validationContext.RootContextData["productId"] = id;
         var validation = await _updateValidator.ValidateAsync(validationContext, ct);
@@ -99,16 +70,7 @@ public sealed class ProductsController : BaseController
 
         TryGetCurrentUserId(out var userId);
 
-        product.Update(
-            req.JanCode.Trim(),
-            req.ProductName.Trim(),
-            req.Price,
-            req.Cost,
-            req.ProductCategoryCode.Trim(),
-            userId);
-
-        await _productRepo.SaveChangesAsync(ct);
-
+        var product = await _service.UpdateAsync(id, req.JanCode, req.ProductName, req.Price, req.Cost, req.ProductCategoryCode, userId, ct);
         return Ok(Map(product));
     }
 
@@ -118,15 +80,9 @@ public sealed class ProductsController : BaseController
     [RequirePermission("products.delete")]
     public async Task<IActionResult> ChangeActivation(Guid id, [FromBody] ChangeActivationRequest req, CancellationToken ct)
     {
-        var product = await _productRepo.GetByIdAsync(id, ct);
-        if (product is null)
-            return NotFound();
-
         TryGetCurrentUserId(out var userId);
 
-        product.SetActivation(req.IsActive, userId);
-        await _productRepo.SaveChangesAsync(ct);
-
+        var product = await _service.ChangeActivationAsync(id, req.IsActive, userId, ct);
         return Ok(Map(product));
     }
 

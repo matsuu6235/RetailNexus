@@ -5,6 +5,7 @@ using RetailNexus.Api.Authorization;
 using RetailNexus.Api.Contracts;
 using RetailNexus.Api.Controllers;
 using RetailNexus.Application.Interfaces;
+using RetailNexus.Application.Interfaces.Services;
 using RetailNexus.Domain.Entities;
 
 namespace RetailNexus.Controllers;
@@ -14,17 +15,20 @@ namespace RetailNexus.Controllers;
 public sealed class AreasController : BaseController
 {
     private readonly IAreaRepository _repo;
+    private readonly IAreaService _service;
     private readonly IValidator<CreateAreaRequest> _createValidator;
     private readonly IValidator<UpdateAreaRequest> _updateValidator;
     private readonly IValidator<ReorderAreasRequest> _reorderValidator;
 
     public AreasController(
         IAreaRepository repo,
+        IAreaService service,
         IValidator<CreateAreaRequest> createValidator,
         IValidator<UpdateAreaRequest> updateValidator,
         IValidator<ReorderAreasRequest> reorderValidator)
     {
         _repo = repo;
+        _service = service;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
         _reorderValidator = reorderValidator;
@@ -81,14 +85,7 @@ public sealed class AreasController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var code = req.AreaCd.Trim();
-        var name = req.AreaName.Trim();
-        var nextDisplayOrder = await _repo.GetNextDisplayOrderAsync(ct);
-        var entity = new Area(code, name, nextDisplayOrder, req.IsActive, userId);
-
-        await _repo.AddAsync(entity, ct);
-        await _repo.SaveChangesAsync(ct);
-
+        var entity = await _service.CreateAsync(req.AreaCd, req.AreaName, req.IsActive, userId, ct);
         return CreatedAtAction(nameof(GetById), new { id = entity.AreaId }, Map(entity));
     }
 
@@ -105,13 +102,7 @@ public sealed class AreasController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var entity = await _repo.GetByIdAsync(id, ct);
-        if (entity is null)
-            return NotFound();
-
-        entity.Update(req.AreaCd.Trim(), req.AreaName.Trim(), userId);
-        await _repo.SaveChangesAsync(ct);
-
+        var entity = await _service.UpdateAsync(id, req.AreaCd, req.AreaName, userId, ct);
         return Ok(Map(entity));
     }
 
@@ -124,13 +115,7 @@ public sealed class AreasController : BaseController
         if (!TryGetCurrentUserId(out var userId))
             return Unauthorized();
 
-        var entity = await _repo.GetByIdAsync(id, ct);
-        if (entity is null)
-            return NotFound();
-
-        entity.SetActivation(req.IsActive, userId);
-        await _repo.SaveChangesAsync(ct);
-
+        var entity = await _service.ChangeActivationAsync(id, req.IsActive, userId, ct);
         return Ok(Map(entity));
     }
 
@@ -145,24 +130,8 @@ public sealed class AreasController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var distinctIds = req.AreaIds.Distinct().ToArray();
-        var entities = await _repo.GetByIdsAsync(distinctIds, ct);
-
-        var orderMap = req.AreaIds
-            .Select((id, index) => new { id, displayOrder = index + 1 })
-            .ToDictionary(x => x.id, x => x.displayOrder);
-
-        foreach (var entity in entities)
-        {
-            entity.SetDisplayOrder(orderMap[entity.AreaId], userId);
-        }
-
-        await _repo.SaveChangesAsync(ct);
-
-        return Ok(entities
-            .OrderBy(x => x.DisplayOrder)
-            .ThenBy(x => x.AreaCd)
-            .Select(Map));
+        var entities = await _service.ReorderAsync(req.AreaIds, userId, ct);
+        return Ok(entities.Select(Map));
     }
 
     private static AreaResponse Map(Area x)

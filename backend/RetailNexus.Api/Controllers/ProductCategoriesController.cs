@@ -5,6 +5,7 @@ using RetailNexus.Api.Authorization;
 using RetailNexus.Api.Contracts;
 using RetailNexus.Api.Controllers;
 using RetailNexus.Application.Interfaces;
+using RetailNexus.Application.Interfaces.Services;
 using RetailNexus.Domain.Entities;
 
 namespace RetailNexus.Controllers;
@@ -14,17 +15,20 @@ namespace RetailNexus.Controllers;
 public sealed class ProductCategoriesController : BaseController
 {
     private readonly IProductCategoryRepository _repo;
+    private readonly IProductCategoryService _service;
     private readonly IValidator<CreateProductCategoryRequest> _createValidator;
     private readonly IValidator<UpdateProductCategoryRequest> _updateValidator;
     private readonly IValidator<ReorderProductCategoriesRequest> _reorderValidator;
 
     public ProductCategoriesController(
         IProductCategoryRepository repo,
+        IProductCategoryService service,
         IValidator<CreateProductCategoryRequest> createValidator,
         IValidator<UpdateProductCategoryRequest> updateValidator,
         IValidator<ReorderProductCategoriesRequest> reorderValidator)
     {
         _repo = repo;
+        _service = service;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
         _reorderValidator = reorderValidator;
@@ -82,15 +86,7 @@ public sealed class ProductCategoriesController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var code = req.ProductCategoryCd.Trim();
-        var abbreviation = req.CategoryAbbreviation.Trim();
-        var name = req.ProductCategoryName.Trim();
-        var nextDisplayOrder = await _repo.GetNextDisplayOrderAsync(ct);
-        var entity = new ProductCategory(code, abbreviation, name, nextDisplayOrder, req.IsActive, userId);
-
-        await _repo.AddAsync(entity, ct);
-        await _repo.SaveChangesAsync(ct);
-
+        var entity = await _service.CreateAsync(req.ProductCategoryCd, req.CategoryAbbreviation, req.ProductCategoryName, req.IsActive, userId, ct);
         return CreatedAtAction(nameof(GetById), new { id = entity.ProductCategoryId }, Map(entity));
     }
 
@@ -107,13 +103,7 @@ public sealed class ProductCategoriesController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var entity = await _repo.GetByIdAsync(id, ct);
-        if (entity is null)
-            return NotFound();
-
-        entity.Update(req.ProductCategoryCd.Trim(), req.CategoryAbbreviation.Trim(), req.ProductCategoryName.Trim(), userId);
-        await _repo.SaveChangesAsync(ct);
-
+        var entity = await _service.UpdateAsync(id, req.ProductCategoryCd, req.CategoryAbbreviation, req.ProductCategoryName, userId, ct);
         return Ok(Map(entity));
     }
 
@@ -126,13 +116,7 @@ public sealed class ProductCategoriesController : BaseController
         if (!TryGetCurrentUserId(out var userId))
             return Unauthorized();
 
-        var entity = await _repo.GetByIdAsync(id, ct);
-        if (entity is null)
-            return NotFound();
-
-        entity.SetActivation(req.IsActive, userId);
-        await _repo.SaveChangesAsync(ct);
-
+        var entity = await _service.ChangeActivationAsync(id, req.IsActive, userId, ct);
         return Ok(Map(entity));
     }
 
@@ -147,24 +131,8 @@ public sealed class ProductCategoriesController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var distinctIds = req.ProductCategoryIds.Distinct().ToArray();
-        var entities = await _repo.GetByIdsAsync(distinctIds, ct);
-
-        var orderMap = req.ProductCategoryIds
-            .Select((id, index) => new { id, displayOrder = index + 1 })
-            .ToDictionary(x => x.id, x => x.displayOrder);
-
-        foreach (var entity in entities)
-        {
-            entity.SetDisplayOrder(orderMap[entity.ProductCategoryId], userId);
-        }
-
-        await _repo.SaveChangesAsync(ct);
-
-        return Ok(entities
-            .OrderBy(x => x.DisplayOrder)
-            .ThenBy(x => x.ProductCategoryCd)
-            .Select(Map));
+        var entities = await _service.ReorderAsync(req.ProductCategoryIds, userId, ct);
+        return Ok(entities.Select(Map));
     }
 
     private static ProductCategoryResponse Map(ProductCategory x)

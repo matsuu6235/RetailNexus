@@ -5,7 +5,7 @@ using RetailNexus.Api.Authorization;
 using RetailNexus.Api.Contracts;
 using RetailNexus.Api.Controllers;
 using RetailNexus.Application.Interfaces;
-using RetailNexus.Application.Services;
+using RetailNexus.Application.Interfaces.Services;
 using RetailNexus.Domain.Entities;
 
 namespace RetailNexus.Controllers;
@@ -15,15 +15,18 @@ namespace RetailNexus.Controllers;
 public sealed class StoresController : BaseController
 {
     private readonly IStoreRepository _storeRepo;
+    private readonly IStoreService _service;
     private readonly IValidator<CreateStoreRequest> _createValidator;
     private readonly IValidator<UpdateStoreRequest> _updateValidator;
 
     public StoresController(
         IStoreRepository storeRepo,
+        IStoreService service,
         IValidator<CreateStoreRequest> createValidator,
         IValidator<UpdateStoreRequest> updateValidator)
     {
         _storeRepo = storeRepo;
+        _service = service;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
     }
@@ -85,16 +88,8 @@ public sealed class StoresController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var maxCode = await _storeRepo.GetMaxStoreCodeAsync(ct);
-        var storeCd = CodeGenerator.NextStoreCode(maxCode);
-
-        var entity = new Store(storeCd, req.StoreName.Trim(), req.AreaId, req.StoreTypeId, req.IsActive, userId);
-
-        await _storeRepo.AddAsync(entity, ct);
-        await _storeRepo.SaveChangesAsync(ct);
-
-        var created = await _storeRepo.GetByIdAsync(entity.StoreId, ct);
-        return CreatedAtAction(nameof(GetById), new { id = entity.StoreId }, Map(created!));
+        var entity = await _service.CreateAsync(req.StoreName, req.AreaId, req.StoreTypeId, req.IsActive, userId, ct);
+        return CreatedAtAction(nameof(GetById), new { id = entity.StoreId }, Map(entity));
     }
 
     [HttpPut("{id:guid}")]
@@ -110,15 +105,8 @@ public sealed class StoresController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var entity = await _storeRepo.GetByIdAsync(id, ct);
-        if (entity is null)
-            return NotFound();
-
-        entity.Update(req.StoreName.Trim(), req.AreaId, req.StoreTypeId, userId);
-        await _storeRepo.SaveChangesAsync(ct);
-
-        var updated = await _storeRepo.GetByIdAsync(entity.StoreId, ct);
-        return Ok(Map(updated!));
+        var entity = await _service.UpdateAsync(id, req.StoreName, req.AreaId, req.StoreTypeId, userId, ct);
+        return Ok(Map(entity));
     }
 
     public sealed record ChangeActivationRequest(bool IsActive);
@@ -130,13 +118,7 @@ public sealed class StoresController : BaseController
         if (!TryGetCurrentUserId(out var userId))
             return Unauthorized();
 
-        var entity = await _storeRepo.GetByIdAsync(id, ct);
-        if (entity is null)
-            return NotFound();
-
-        entity.SetActivation(req.IsActive, userId);
-        await _storeRepo.SaveChangesAsync(ct);
-
+        var entity = await _service.ChangeActivationAsync(id, req.IsActive, userId, ct);
         return Ok(Map(entity));
     }
 

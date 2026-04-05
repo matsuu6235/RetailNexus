@@ -2,8 +2,9 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Api.Authorization;
+using RetailNexus.Application.Features.StoreRequests;
 using RetailNexus.Application.Interfaces;
-using RetailNexus.Application.Services;
+using RetailNexus.Application.Interfaces.Services;
 using RetailNexus.Domain.Entities;
 using RetailNexus.Domain.Enums;
 
@@ -14,15 +15,18 @@ namespace RetailNexus.Api.Controllers;
 public sealed class StoreRequestsController : BaseController
 {
     private readonly IStoreRequestRepository _repo;
+    private readonly IStoreRequestService _service;
     private readonly IValidator<CreateStoreRequestRequest> _createValidator;
     private readonly IValidator<UpdateStoreRequestRequest> _updateValidator;
 
     public StoreRequestsController(
         IStoreRequestRepository repo,
+        IStoreRequestService service,
         IValidator<CreateStoreRequestRequest> createValidator,
         IValidator<UpdateStoreRequestRequest> updateValidator)
     {
         _repo = repo;
+        _service = service;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
     }
@@ -158,27 +162,9 @@ public sealed class StoreRequestsController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var maxNumber = await _repo.GetMaxRequestNumberAsync(ct);
-        var requestNumber = CodeGenerator.NextRequestNumber(maxNumber);
-
-        var storeRequest = new StoreRequest(
-            requestNumber,
-            req.FromStoreId,
-            req.ToStoreId,
-            req.RequestDate,
-            req.DesiredDeliveryDate,
-            req.Note,
-            actorUserId);
-
-        var details = req.Details.Select(d =>
-            new StoreRequestDetail(storeRequest.StoreRequestId, d.ProductId, d.Quantity, actorUserId));
-        storeRequest.SetDetails(details);
-
-        await _repo.AddAsync(storeRequest, ct);
-        await _repo.SaveChangesAsync(ct);
-
-        var created = await _repo.GetByIdWithDetailsAsync(storeRequest.StoreRequestId, ct);
-        return CreatedAtAction(nameof(GetById), new { id = storeRequest.StoreRequestId }, MapDetail(created!));
+        var details = req.Details.Select(d => new CreateStoreRequestDetailParam(d.ProductId, d.Quantity)).ToList();
+        var storeRequest = await _service.CreateAsync(req.FromStoreId, req.ToStoreId, req.RequestDate, req.DesiredDeliveryDate, req.Note, details, actorUserId, ct);
+        return CreatedAtAction(nameof(GetById), new { id = storeRequest.StoreRequestId }, MapDetail(storeRequest));
     }
 
     [HttpPut("{id:guid}")]
@@ -194,55 +180,9 @@ public sealed class StoreRequestsController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var storeRequest = await _repo.GetByIdWithDetailsAsync(id, ct);
-        if (storeRequest is null)
-            return NotFound();
-
-        storeRequest.Update(
-            req.FromStoreId,
-            req.ToStoreId,
-            req.RequestDate,
-            req.DesiredDeliveryDate,
-            req.ExpectedDeliveryDate,
-            req.Note,
-            actorUserId);
-
-        // 明細の個別更新
-        var existingDetails = storeRequest.Details.ToDictionary(d => d.StoreRequestDetailId);
-        var incomingIds = req.Details
-            .Where(d => d.StoreRequestDetailId.HasValue)
-            .Select(d => d.StoreRequestDetailId!.Value)
-            .ToHashSet();
-
-        // 削除: リクエストに含まれていない既存行
-        var toRemove = existingDetails.Values
-            .Where(d => !incomingIds.Contains(d.StoreRequestDetailId))
-            .ToList();
-        foreach (var r in toRemove)
-            storeRequest.Details.Remove(r);
-        _repo.RemoveDetails(toRemove);
-
-        // 更新: IDが一致する行
-        foreach (var d in req.Details.Where(d => d.StoreRequestDetailId.HasValue))
-        {
-            if (existingDetails.TryGetValue(d.StoreRequestDetailId!.Value, out var existing))
-            {
-                existing.Update(d.Quantity, actorUserId);
-            }
-        }
-
-        // 追加: IDがnullの行（DbSet.Add で明示的に Added 状態にする）
-        foreach (var d in req.Details.Where(d => !d.StoreRequestDetailId.HasValue))
-        {
-            var newDetail = new StoreRequestDetail(
-                storeRequest.StoreRequestId, d.ProductId, d.Quantity, actorUserId);
-            _repo.AddDetail(newDetail);
-        }
-
-        await _repo.SaveChangesAsync(ct);
-
-        var updated = await _repo.GetByIdWithDetailsAsync(id, ct);
-        return Ok(MapDetail(updated!));
+        var details = req.Details.Select(d => new UpdateStoreRequestDetailParam(d.StoreRequestDetailId, d.ProductId, d.Quantity)).ToList();
+        var storeRequest = await _service.UpdateAsync(id, req.FromStoreId, req.ToStoreId, req.RequestDate, req.DesiredDeliveryDate, req.ExpectedDeliveryDate, req.Note, details, actorUserId, ct);
+        return Ok(MapDetail(storeRequest));
     }
 
     [HttpPut("{id:guid}/submit")]
@@ -252,13 +192,7 @@ public sealed class StoreRequestsController : BaseController
         if (!TryGetCurrentUserId(out var actorUserId))
             return Unauthorized();
 
-        var storeRequest = await _repo.GetByIdWithDetailsAsync(id, ct);
-        if (storeRequest is null)
-            return NotFound();
-
-        storeRequest.SubmitForApproval(actorUserId);
-        await _repo.SaveChangesAsync(ct);
-
+        var storeRequest = await _service.SubmitForApprovalAsync(id, actorUserId, ct);
         return Ok(MapDetail(storeRequest));
     }
 
@@ -269,13 +203,7 @@ public sealed class StoreRequestsController : BaseController
         if (!TryGetCurrentUserId(out var approverUserId))
             return Unauthorized();
 
-        var storeRequest = await _repo.GetByIdWithDetailsAsync(id, ct);
-        if (storeRequest is null)
-            return NotFound();
-
-        storeRequest.Approve(approverUserId);
-        await _repo.SaveChangesAsync(ct);
-
+        var storeRequest = await _service.ApproveAsync(id, approverUserId, ct);
         return Ok(MapDetail(storeRequest));
     }
 
@@ -286,13 +214,7 @@ public sealed class StoreRequestsController : BaseController
         if (!TryGetCurrentUserId(out var actorUserId))
             return Unauthorized();
 
-        var storeRequest = await _repo.GetByIdWithDetailsAsync(id, ct);
-        if (storeRequest is null)
-            return NotFound();
-
-        storeRequest.Reject(actorUserId);
-        await _repo.SaveChangesAsync(ct);
-
+        var storeRequest = await _service.RejectAsync(id, actorUserId, ct);
         return Ok(MapDetail(storeRequest));
     }
 
@@ -303,13 +225,7 @@ public sealed class StoreRequestsController : BaseController
         if (!TryGetCurrentUserId(out var actorUserId))
             return Unauthorized();
 
-        var storeRequest = await _repo.GetByIdWithDetailsAsync(id, ct);
-        if (storeRequest is null)
-            return NotFound();
-
-        storeRequest.SetStatus(req.Status, actorUserId);
-        await _repo.SaveChangesAsync(ct);
-
+        var storeRequest = await _service.ChangeStatusAsync(id, req.Status, actorUserId, ct);
         return Ok(MapDetail(storeRequest));
     }
 
@@ -320,13 +236,7 @@ public sealed class StoreRequestsController : BaseController
         if (!TryGetCurrentUserId(out var actorUserId))
             return Unauthorized();
 
-        var storeRequest = await _repo.GetByIdAsync(id, ct);
-        if (storeRequest is null)
-            return NotFound();
-
-        storeRequest.SetActivation(req.IsActive, actorUserId);
-        await _repo.SaveChangesAsync(ct);
-
+        var storeRequest = await _service.ChangeActivationAsync(id, req.IsActive, actorUserId, ct);
         return Ok(MapList(storeRequest));
     }
 

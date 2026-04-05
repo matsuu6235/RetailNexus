@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
 using RetailNexus.Api.Authorization;
 using RetailNexus.Application.Interfaces;
+using RetailNexus.Application.Interfaces.Services;
 using RetailNexus.Domain.Entities;
-using RetailNexus.Resources;
 
 namespace RetailNexus.Api.Controllers;
 
@@ -13,12 +12,12 @@ namespace RetailNexus.Api.Controllers;
 public sealed class RolesController : BaseController
 {
     private readonly IRoleRepository _roleRepo;
-    private readonly IStringLocalizer<SharedMessages> _localizer;
+    private readonly IRoleService _service;
 
-    public RolesController(IRoleRepository roleRepo, IStringLocalizer<SharedMessages> localizer)
+    public RolesController(IRoleRepository roleRepo, IRoleService service)
     {
         _roleRepo = roleRepo;
-        _localizer = localizer;
+        _service = service;
     }
 
     public sealed record CreateRoleRequest(string RoleName, string? Description, bool IsActive, List<Guid> PermissionIds);
@@ -62,53 +61,20 @@ public sealed class RolesController : BaseController
     [RequirePermission("roles.create")]
     public async Task<IActionResult> Create([FromBody] CreateRoleRequest req, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(req.RoleName))
-            return BadRequest(new { RoleName = new[] { _localizer["Validation_Required", "ロール名"].Value } });
+        TryGetCurrentUserId(out var actorId);
 
-        var existing = await _roleRepo.FindByNameAsync(req.RoleName.Trim(), ct);
-        if (existing is not null)
-            return BadRequest(new { RoleName = new[] { _localizer["Validation_Duplicate", "ロール名"].Value } });
-
-        var role = new Role(req.RoleName.Trim(), req.Description?.Trim());
-        role.IsActive = req.IsActive;
-        await _roleRepo.AddAsync(role, ct);
-        await _roleRepo.SaveChangesAsync(ct);
-
-        if (req.PermissionIds.Count > 0)
-        {
-            await _roleRepo.ReplaceRolePermissionsAsync(role.RoleId, req.PermissionIds, ct);
-            await _roleRepo.SaveChangesAsync(ct);
-        }
-
-        var created = await _roleRepo.FindByIdWithPermissionsAsync(role.RoleId, ct);
-        return CreatedAtAction(nameof(GetById), new { id = role.RoleId }, MapRole(created!));
+        var role = await _service.CreateAsync(req.RoleName, req.Description, req.IsActive, req.PermissionIds, actorId, ct);
+        return CreatedAtAction(nameof(GetById), new { id = role.RoleId }, MapRole(role));
     }
 
     [HttpPut("{id:guid}")]
     [RequirePermission("roles.edit")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRoleRequest req, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(req.RoleName))
-            return BadRequest(new { RoleName = new[] { _localizer["Validation_Required", "ロール名"].Value } });
+        TryGetCurrentUserId(out var actorId);
 
-        var role = await _roleRepo.FindByIdWithPermissionsAsync(id, ct);
-        if (role is null)
-            return NotFound();
-
-        var duplicate = await _roleRepo.FindByNameAsync(req.RoleName.Trim(), ct);
-        if (duplicate is not null && duplicate.RoleId != id)
-            return BadRequest(new { RoleName = new[] { _localizer["Validation_Duplicate", "ロール名"].Value } });
-
-        role.RoleName = req.RoleName.Trim();
-        role.Description = req.Description?.Trim();
-        role.UpdatedAt = DateTimeOffset.UtcNow;
-
-        // 権限の更新
-        await _roleRepo.ReplaceRolePermissionsAsync(id, req.PermissionIds, ct);
-        await _roleRepo.SaveChangesAsync(ct);
-
-        var updated = await _roleRepo.FindByIdWithPermissionsAsync(id, ct);
-        return Ok(MapRole(updated!));
+        var role = await _service.UpdateAsync(id, req.RoleName, req.Description, req.PermissionIds, actorId, ct);
+        return Ok(MapRole(role));
     }
 
     public sealed record ChangeActivationRequest(bool IsActive);
@@ -117,14 +83,9 @@ public sealed class RolesController : BaseController
     [RequirePermission("roles.delete")]
     public async Task<IActionResult> ChangeActivation(Guid id, [FromBody] ChangeActivationRequest req, CancellationToken ct)
     {
-        var role = await _roleRepo.FindByIdAsync(id, ct);
-        if (role is null)
-            return NotFound();
+        TryGetCurrentUserId(out var actorId);
 
-        role.IsActive = req.IsActive;
-        role.UpdatedAt = DateTimeOffset.UtcNow;
-        await _roleRepo.SaveChangesAsync(ct);
-
+        await _service.ChangeActivationAsync(id, req.IsActive, actorId, ct);
         return NoContent();
     }
 

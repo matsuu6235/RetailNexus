@@ -2,8 +2,9 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Api.Authorization;
+using RetailNexus.Application.Features.PurchaseOrders;
 using RetailNexus.Application.Interfaces;
-using RetailNexus.Application.Services;
+using RetailNexus.Application.Interfaces.Services;
 using RetailNexus.Domain.Entities;
 using RetailNexus.Domain.Enums;
 
@@ -14,15 +15,18 @@ namespace RetailNexus.Api.Controllers;
 public sealed class PurchaseOrdersController : BaseController
 {
     private readonly IPurchaseOrderRepository _repo;
+    private readonly IPurchaseOrderService _service;
     private readonly IValidator<CreatePurchaseOrderRequest> _createValidator;
     private readonly IValidator<UpdatePurchaseOrderRequest> _updateValidator;
 
     public PurchaseOrdersController(
         IPurchaseOrderRepository repo,
+        IPurchaseOrderService service,
         IValidator<CreatePurchaseOrderRequest> createValidator,
         IValidator<UpdatePurchaseOrderRequest> updateValidator)
     {
         _repo = repo;
+        _service = service;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
     }
@@ -162,27 +166,9 @@ public sealed class PurchaseOrdersController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var maxNumber = await _repo.GetMaxOrderNumberAsync(ct);
-        var orderNumber = CodeGenerator.NextOrderNumber(maxNumber);
-
-        var order = new PurchaseOrder(
-            orderNumber,
-            req.SupplierId,
-            req.StoreId,
-            req.OrderDate,
-            req.DesiredDeliveryDate,
-            req.Note,
-            actorUserId);
-
-        var details = req.Details.Select(d =>
-            new PurchaseOrderDetail(order.PurchaseOrderId, d.ProductId, d.Quantity, d.UnitPrice, actorUserId));
-        order.SetDetails(details);
-
-        await _repo.AddAsync(order, ct);
-        await _repo.SaveChangesAsync(ct);
-
-        var created = await _repo.GetByIdWithDetailsAsync(order.PurchaseOrderId, ct);
-        return CreatedAtAction(nameof(GetById), new { id = order.PurchaseOrderId }, MapDetail(created!));
+        var details = req.Details.Select(d => new CreatePurchaseOrderDetailParam(d.ProductId, d.Quantity, d.UnitPrice)).ToList();
+        var order = await _service.CreateAsync(req.SupplierId, req.StoreId, req.OrderDate, req.DesiredDeliveryDate, req.Note, details, actorUserId, ct);
+        return CreatedAtAction(nameof(GetById), new { id = order.PurchaseOrderId }, MapDetail(order));
     }
 
     [HttpPut("{id:guid}")]
@@ -198,56 +184,9 @@ public sealed class PurchaseOrdersController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var order = await _repo.GetByIdWithDetailsAsync(id, ct);
-        if (order is null)
-            return NotFound();
-
-        order.Update(
-            req.SupplierId,
-            req.StoreId,
-            req.OrderDate,
-            req.DesiredDeliveryDate,
-            req.ExpectedDeliveryDate,
-            req.Note,
-            actorUserId);
-
-        // 明細の個別更新
-        var existingDetails = order.Details.ToDictionary(d => d.PurchaseOrderDetailId);
-        var incomingIds = req.Details
-            .Where(d => d.PurchaseOrderDetailId.HasValue)
-            .Select(d => d.PurchaseOrderDetailId!.Value)
-            .ToHashSet();
-
-        // 削除: リクエストに含まれていない既存行
-        var toRemove = existingDetails.Values
-            .Where(d => !incomingIds.Contains(d.PurchaseOrderDetailId))
-            .ToList();
-        foreach (var r in toRemove)
-            order.Details.Remove(r);
-        _repo.RemoveDetails(toRemove);
-
-        // 更新: IDが一致する行
-        foreach (var d in req.Details.Where(d => d.PurchaseOrderDetailId.HasValue))
-        {
-            if (existingDetails.TryGetValue(d.PurchaseOrderDetailId!.Value, out var existing))
-            {
-                existing.Update(d.Quantity, d.UnitPrice, actorUserId);
-            }
-        }
-
-        // 追加: IDがnullの行（DbSet.Add で明示的に Added 状態にする）
-        foreach (var d in req.Details.Where(d => !d.PurchaseOrderDetailId.HasValue))
-        {
-            var newDetail = new PurchaseOrderDetail(
-                order.PurchaseOrderId, d.ProductId, d.Quantity, d.UnitPrice, actorUserId);
-            _repo.AddDetail(newDetail);
-        }
-
-        order.RecalculateTotal();
-        await _repo.SaveChangesAsync(ct);
-
-        var updated = await _repo.GetByIdWithDetailsAsync(id, ct);
-        return Ok(MapDetail(updated!));
+        var details = req.Details.Select(d => new UpdatePurchaseOrderDetailParam(d.PurchaseOrderDetailId, d.ProductId, d.Quantity, d.UnitPrice)).ToList();
+        var order = await _service.UpdateAsync(id, req.SupplierId, req.StoreId, req.OrderDate, req.DesiredDeliveryDate, req.ExpectedDeliveryDate, req.Note, details, actorUserId, ct);
+        return Ok(MapDetail(order));
     }
 
     [HttpPut("{id:guid}/submit")]
@@ -257,13 +196,7 @@ public sealed class PurchaseOrdersController : BaseController
         if (!TryGetCurrentUserId(out var actorUserId))
             return Unauthorized();
 
-        var order = await _repo.GetByIdWithDetailsAsync(id, ct);
-        if (order is null)
-            return NotFound();
-
-        order.SubmitForApproval(actorUserId);
-        await _repo.SaveChangesAsync(ct);
-
+        var order = await _service.SubmitForApprovalAsync(id, actorUserId, ct);
         return Ok(MapDetail(order));
     }
 
@@ -274,13 +207,7 @@ public sealed class PurchaseOrdersController : BaseController
         if (!TryGetCurrentUserId(out var approverUserId))
             return Unauthorized();
 
-        var order = await _repo.GetByIdWithDetailsAsync(id, ct);
-        if (order is null)
-            return NotFound();
-
-        order.Approve(approverUserId);
-        await _repo.SaveChangesAsync(ct);
-
+        var order = await _service.ApproveAsync(id, approverUserId, ct);
         return Ok(MapDetail(order));
     }
 
@@ -291,13 +218,7 @@ public sealed class PurchaseOrdersController : BaseController
         if (!TryGetCurrentUserId(out var actorUserId))
             return Unauthorized();
 
-        var order = await _repo.GetByIdWithDetailsAsync(id, ct);
-        if (order is null)
-            return NotFound();
-
-        order.Reject(actorUserId);
-        await _repo.SaveChangesAsync(ct);
-
+        var order = await _service.RejectAsync(id, actorUserId, ct);
         return Ok(MapDetail(order));
     }
 
@@ -308,13 +229,7 @@ public sealed class PurchaseOrdersController : BaseController
         if (!TryGetCurrentUserId(out var actorUserId))
             return Unauthorized();
 
-        var order = await _repo.GetByIdWithDetailsAsync(id, ct);
-        if (order is null)
-            return NotFound();
-
-        order.SetStatus(req.Status, actorUserId);
-        await _repo.SaveChangesAsync(ct);
-
+        var order = await _service.ChangeStatusAsync(id, req.Status, actorUserId, ct);
         return Ok(MapDetail(order));
     }
 
@@ -325,13 +240,7 @@ public sealed class PurchaseOrdersController : BaseController
         if (!TryGetCurrentUserId(out var actorUserId))
             return Unauthorized();
 
-        var order = await _repo.GetByIdAsync(id, ct);
-        if (order is null)
-            return NotFound();
-
-        order.SetActivation(req.IsActive, actorUserId);
-        await _repo.SaveChangesAsync(ct);
-
+        var order = await _service.ChangeActivationAsync(id, req.IsActive, actorUserId, ct);
         return Ok(MapList(order));
     }
 

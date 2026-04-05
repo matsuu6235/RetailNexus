@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using RetailNexus.Api.Authorization;
 using RetailNexus.Api.Contracts;
 using RetailNexus.Application.Interfaces;
-using RetailNexus.Application.Services;
+using RetailNexus.Application.Interfaces.Services;
 using RetailNexus.Domain.Entities;
 
 namespace RetailNexus.Api.Controllers;
@@ -14,15 +14,18 @@ namespace RetailNexus.Api.Controllers;
 public sealed class SuppliersController : BaseController
 {
     private readonly ISupplierRepository _repo;
+    private readonly ISupplierService _service;
     private readonly IValidator<CreateSupplierRequest> _createValidator;
     private readonly IValidator<UpdateSupplierRequest> _updateValidator;
 
     public SuppliersController(
         ISupplierRepository repo,
+        ISupplierService service,
         IValidator<CreateSupplierRequest> createValidator,
         IValidator<UpdateSupplierRequest> updateValidator)
     {
         _repo = repo;
+        _service = service;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
     }
@@ -106,14 +109,7 @@ public sealed class SuppliersController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var maxCode = await _repo.GetMaxSupplierCodeAsync(ct);
-        var supplierCode = CodeGenerator.NextSupplierCode(maxCode);
-
-        var supplier = new Supplier(supplierCode, req.SupplierName.Trim(), req.PhoneNumber, req.Email, req.IsActive, actorUserId);
-
-        await _repo.AddAsync(supplier, ct);
-        await _repo.SaveChangesAsync(ct);
-
+        var supplier = await _service.CreateAsync(req.SupplierName, req.PhoneNumber, req.Email, req.IsActive, actorUserId, ct);
         return CreatedAtAction(nameof(GetById), new { id = supplier.SupplierId }, Map(supplier));
     }
 
@@ -130,13 +126,7 @@ public sealed class SuppliersController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var supplier = await _repo.GetByIdAsync(id, ct);
-        if (supplier is null)
-            return NotFound();
-
-        supplier.Update(req.SupplierName.Trim(), req.PhoneNumber, req.Email, actorUserId);
-        await _repo.SaveChangesAsync(ct);
-
+        var supplier = await _service.UpdateAsync(id, req.SupplierName, req.PhoneNumber, req.Email, actorUserId, ct);
         return Ok(Map(supplier));
     }
 
@@ -149,13 +139,7 @@ public sealed class SuppliersController : BaseController
         if (!TryGetCurrentUserId(out var actorUserId))
             return Unauthorized();
 
-        var supplier = await _repo.GetByIdAsync(id, ct);
-        if (supplier is null)
-            return NotFound();
-
-        supplier.SetActivation(req.IsActive, actorUserId);
-        await _repo.SaveChangesAsync(ct);
-
+        var supplier = await _service.ChangeActivationAsync(id, req.IsActive, actorUserId, ct);
         return Ok(Map(supplier));
     }
 
