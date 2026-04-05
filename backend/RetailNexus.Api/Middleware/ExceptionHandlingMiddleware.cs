@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Microsoft.Extensions.Localization;
+using RetailNexus.Application.Exceptions;
 using RetailNexus.Resources;
 
 namespace RetailNexus.Api.Middleware;
@@ -36,8 +37,30 @@ public class ExceptionHandlingMiddleware
     {
         var path = context.Request.Path;
 
+        // フィールドエラー辞書形式で返す例外（フロントエンド互換）
+        if (exception is DuplicateException duplicate)
+        {
+            _logger.LogWarning("重複エラー: {Message} Path: {Path}", exception.Message, path);
+            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            context.Response.ContentType = "application/json";
+            var fieldError = new Dictionary<string, string[]> { [duplicate.FieldName] = [duplicate.Message] };
+            await context.Response.WriteAsync(JsonSerializer.Serialize(fieldError));
+            return;
+        }
+
+        if (exception is BusinessRuleException businessRule)
+        {
+            _logger.LogWarning("業務ルールエラー: {Message} Path: {Path}", exception.Message, path);
+            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            context.Response.ContentType = "application/json";
+            var fieldError = new Dictionary<string, string[]> { [businessRule.FieldName] = [businessRule.Message] };
+            await context.Response.WriteAsync(JsonSerializer.Serialize(fieldError));
+            return;
+        }
+
         var (statusCode, message) = exception switch
         {
+            EntityNotFoundException => (HttpStatusCode.NotFound, exception.Message),
             UnauthorizedAccessException => (HttpStatusCode.Unauthorized, exception.Message),
             KeyNotFoundException => (HttpStatusCode.NotFound, exception.Message),
             BadHttpRequestException => (HttpStatusCode.BadRequest, _localizer["Error_BadRequest"].Value),
