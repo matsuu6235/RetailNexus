@@ -7,6 +7,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RetailNexus.Application.Features.Auth.Login;
 using RetailNexus.Application.Interfaces;
+using RetailNexus.Application.Interfaces.Services;
+using RetailNexus.Application.Services;
 using RetailNexus.Infrastructure.Persistence;
 using RetailNexus.Infrastructure.Repositories;
 using RetailNexus.Api.Authorization;
@@ -116,6 +118,18 @@ builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
 builder.Services.AddScoped<IStoreRequestRepository, StoreRequestRepository>();
 builder.Services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
+
+// Application Services
+builder.Services.AddScoped<IAreaService, AreaService>();
+builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
+builder.Services.AddScoped<IStoreTypeService, StoreTypeService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddScoped<IStoreService, StoreService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
+builder.Services.AddScoped<IStoreRequestService, StoreRequestService>();
 
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
