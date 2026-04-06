@@ -12,12 +12,21 @@ import {
     changePurchaseOrderStatus,
     changePurchaseOrderActivation,
 } from "@/lib/api/purchaseOrders";
-import type { PurchaseOrder, PurchaseOrderStatus } from "@/types/purchaseOrders";
-import { purchaseOrderStatusLabels } from "@/types/purchaseOrders";
+import type { PurchaseOrder } from "@/types/purchaseOrders";
 import { hasPermission } from "@/services/authService";
 import { formatDate, formatDateTime, formatYen } from "@/lib/utils/formatters";
-import { getStatusBadgeClass } from "@/lib/utils/statusBadge";
+import StatusStepBar from "@/components/status-step-bar/StatusStepBar";
 import styles from "./page.module.css";
+
+const purchaseOrderSteps = [
+    { status: 0, label: "下書き" },
+    { status: 1, label: "承認待ち" },
+    { status: 2, label: "承認済" },
+    { status: 3, label: "仕入先確認済" },
+    { status: 4, label: "出荷準備中" },
+    { status: 5, label: "出荷済" },
+    { status: 6, label: "入荷済" },
+];
 
 export default function PurchaseOrderDetailPage() {
     const params = useParams();
@@ -79,17 +88,11 @@ export default function PurchaseOrderDetailPage() {
 
             {error && <div className={styles.errorBox}>{error}</div>}
 
+            <StatusStepBar steps={purchaseOrderSteps} currentStatus={status} />
+
             <div className={styles.section}>
                 <h2 className={styles.sectionTitle}>発注情報</h2>
                 <div className={styles.infoGrid}>
-                    <div>
-                        <div className={styles.infoLabel}>ステータス</div>
-                        <div className={styles.infoValue}>
-                            <span className={`${styles.statusBadge} ${getStatusBadgeClass(status, styles)}`}>
-                                {purchaseOrderStatusLabels[status]}
-                            </span>
-                        </div>
-                    </div>
                     <div>
                         <div className={styles.infoLabel}>仕入先</div>
                         <div className={styles.infoValue}>{order.supplierName}</div>

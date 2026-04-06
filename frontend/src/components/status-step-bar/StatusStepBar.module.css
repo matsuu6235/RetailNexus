@@ -1,0 +1,130 @@
+.stepBar {
+    display: flex;
+    align-items: flex-start;
+    padding: 20px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+    margin-bottom: 24px;
+    overflow-x: auto;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    flex: 1;
+    min-width: 80px;
+}
+
+.connector {
+    position: absolute;
+    top: 16px;
+    right: 50%;
+    width: 100%;
+    height: 2px;
+    background: #e2e8f0;
+    z-index: 0;
+}
+
+.connectorCompleted {
+    background: #059669;
+}
+
+.circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.circleNumber {
+    line-height: 1;
+}
+
+.label {
+    margin-top: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    line-height: 1.3;
+}
+
+/* Pending */
+.stepPending .circle {
+    background: #f1f5f9;
+    color: #94a3b8;
+    border: 2px solid #e2e8f0;
+}
+
+.stepPending .label {
+    color: #94a3b8;
+}
+
+/* Completed */
+.stepCompleted .circle {
+    background: #059669;
+    color: #fff;
+    border: 2px solid #059669;
+}
+
+.stepCompleted .label {
+    color: #059669;
+}
+
+/* Cancelled */
+.stepCancelled .circle {
+    background: #dc2626;
+    color: #fff;
+    border: 2px solid #dc2626;
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.15);
+}
+
+.stepCancelled .label {
+    color: #dc2626;
+}
+
+.checkIcon {
+    width: 16px;
+    height: 16px;
+}
+
+.crossIcon {
+    width: 14px;
+    height: 14px;
+}
+
+@media (max-width: 960px) {
+    .stepBar {
+        padding: 16px 8px;
+    }
+
+    .step {
+        min-width: 60px;
+    }
+
+    .label {
+        font-size: 10px;
+    }
+
+    .circle {
+        width: 28px;
+        height: 28px;
+        font-size: 11px;
+    }
+
+    .connector {
+        top: 14px;
+    }
+}

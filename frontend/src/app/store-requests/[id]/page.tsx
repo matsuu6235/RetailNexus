@@ -12,12 +12,21 @@ import {
     changeStoreRequestStatus,
     changeStoreRequestActivation,
 } from "@/lib/api/storeRequests";
-import type { StoreRequest, StoreRequestStatus } from "@/types/storeRequests";
-import { storeRequestStatusLabels } from "@/types/storeRequests";
+import type { StoreRequest } from "@/types/storeRequests";
 import { hasPermission } from "@/services/authService";
 import { formatDate, formatDateTime } from "@/lib/utils/formatters";
-import { getStatusBadgeClass } from "@/lib/utils/statusBadge";
+import StatusStepBar from "@/components/status-step-bar/StatusStepBar";
 import styles from "../../purchase-orders/[id]/page.module.css";
+
+const storeRequestSteps = [
+    { status: 0, label: "下書き" },
+    { status: 1, label: "承認待ち" },
+    { status: 2, label: "承認済" },
+    { status: 3, label: "確認済" },
+    { status: 4, label: "出荷準備中" },
+    { status: 5, label: "出荷済" },
+    { status: 6, label: "入荷済" },
+];
 
 export default function StoreRequestDetailPage() {
     const params = useParams();
@@ -78,17 +87,11 @@ export default function StoreRequestDetailPage() {
 
             {error && <div className={styles.errorBox}>{error}</div>}
 
+            <StatusStepBar steps={storeRequestSteps} currentStatus={status} />
+
             <div className={styles.section}>
                 <h2 className={styles.sectionTitle}>依頼情報</h2>
                 <div className={styles.infoGrid}>
-                    <div>
-                        <div className={styles.infoLabel}>ステータス</div>
-                        <div className={styles.infoValue}>
-                            <span className={`${styles.statusBadge} ${getStatusBadgeClass(status, styles)}`}>
-                                {storeRequestStatusLabels[status]}
-                            </span>
-                        </div>
-                    </div>
                     <div>
                         <div className={styles.infoLabel}>依頼元</div>
                         <div className={styles.infoValue}>{request.fromStoreName}</div>
