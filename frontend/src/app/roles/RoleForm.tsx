@@ -1,18 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { fallback } from "@/lib/messages";
 import { createRole, getRoleById, updateRole, getPermissions, changeRoleActivation } from "@/lib/api/roles";
 import type { Permission } from "@/types/roles";
-import { useActivation } from "@/lib/hooks/useActivation";
+import { useMasterForm, type MasterFormProps } from "@/lib/hooks/useMasterForm";
 import styles from "@/components/modal/FormModal.module.css";
-
-type RoleFormProps = {
-  mode: "create" | "edit";
-  editId?: string;
-  onSave: () => void;
-  onCancel: () => void;
-};
 
 type FormData = {
   roleName: string;
@@ -70,68 +63,49 @@ function groupByCategory(permissions: Permission[]): GroupedPermissions[] {
     });
 }
 
-export default function RoleForm({ mode, editId, onSave, onCancel }: RoleFormProps) {
-  const [form, setForm] = useState<FormData>({
-    roleName: "",
-    description: "",
-    permissionIds: [],
-  });
+export default function RoleForm({ mode, editId, onSave, onCancel }: MasterFormProps) {
   const [allPermissions, setAllPermissions] = useState<Permission[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [fetchedIsActive, setFetchedIsActive] = useState(true);
-  const activation = useActivation({ permissionCode: "roles.delete", initialIsActive: fetchedIsActive, changeFn: changeRoleActivation, editId });
 
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
+  const { form, loading, submitting, error, fieldErrors, activation, handleChange, handleSubmit } =
+    useMasterForm<FormData, FieldErrors>({
+      mode,
+      editId,
+      initialForm: { roleName: "", description: "", permissionIds: [] },
+      entityName: "ロール",
+      validator: validate,
+      load: async (id) => {
         const perms = await getPermissions();
-        if (!cancelled) setAllPermissions(perms);
+        setAllPermissions(perms);
 
-        if (mode === "edit" && editId) {
-          const role = await getRoleById(editId);
-          if (!cancelled) {
-            setForm({
-              roleName: role.roleName,
-              description: role.description ?? "",
-              permissionIds: role.permissions.map((p) => p.permissionId),
-            });
-            setFetchedIsActive(role.isActive);
-          }
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : fallback.fetchFailed("データ"));
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [mode, editId]);
-
-  const handleChange = (field: keyof FormData, value: string | boolean | string[]) => {
-    const updatedForm = { ...form, [field]: value };
-    setForm(updatedForm);
-    const errors = validate(updatedForm);
-    setFieldErrors((prev) => ({ ...prev, [field]: errors[field as keyof FieldErrors] }));
-  };
+        if (!id) return undefined;
+        const role = await getRoleById(id);
+        return {
+          form: {
+            roleName: role.roleName,
+            description: role.description ?? "",
+            permissionIds: role.permissions.map((p) => p.permissionId),
+          },
+          isActive: role.isActive,
+        };
+      },
+      save: async (f) => {
+        const body = {
+          roleName: f.roleName.trim(),
+          description: f.description.trim() || null,
+          permissionIds: f.permissionIds,
+        };
+        if (mode === "create") await createRole(body);
+        else await updateRole(editId!, body);
+      },
+      onSave,
+      activation: { permissionCode: "roles.delete", changeFn: changeRoleActivation },
+    });
 
   const togglePermission = (permId: string) => {
     const next = form.permissionIds.includes(permId)
       ? form.permissionIds.filter((id) => id !== permId)
       : [...form.permissionIds, permId];
-    handleChange("permissionIds", next);
+    handleChange("permissionIds", next as FormData["permissionIds"]);
   };
 
   const toggleCategory = (category: string) => {
@@ -144,38 +118,7 @@ export default function RoleForm({ mode, editId, onSave, onCancel }: RoleFormPro
     } else {
       next = [...new Set([...form.permissionIds, ...categoryPermIds])];
     }
-    handleChange("permissionIds", next);
-  };
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    const errors = validate(form);
-    setFieldErrors(errors);
-    if (Object.keys(errors).length > 0) return;
-
-    try {
-      setSubmitting(true);
-
-      const body = {
-        roleName: form.roleName.trim(),
-        description: form.description.trim() || null,
-        permissionIds: form.permissionIds,
-      };
-
-      if (mode === "create") {
-        await createRole(body);
-      } else {
-        await updateRole(editId!, body);
-      }
-
-      onSave();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : fallback.saveFailed);
-    } finally {
-      setSubmitting(false);
-    }
+    handleChange("permissionIds", next as FormData["permissionIds"]);
   };
 
   if (loading) return <p>読み込み中...</p>;
@@ -183,16 +126,16 @@ export default function RoleForm({ mode, editId, onSave, onCancel }: RoleFormPro
   const grouped = groupByCategory(allPermissions);
 
   return (
-    <form onSubmit={onSubmit} className={styles.form}>
+    <form onSubmit={handleSubmit} className={styles.form}>
       <label className={styles.field}>
         <span>ロール名 *</span>
-        <input value={form.roleName} onChange={(e) => handleChange("roleName", e.target.value)} className={styles.input} />
+        <input value={form.roleName} onChange={(e) => handleChange("roleName", e.target.value as string)} className={styles.input} />
         {fieldErrors.roleName && <small className={styles.errorText}>{fieldErrors.roleName}</small>}
       </label>
 
       <label className={styles.field}>
         <span>説明</span>
-        <input value={form.description} onChange={(e) => handleChange("description", e.target.value)} className={styles.input} />
+        <input value={form.description} onChange={(e) => handleChange("description", e.target.value as string)} className={styles.input} />
       </label>
 
       <fieldset className={styles.permissionSection}>

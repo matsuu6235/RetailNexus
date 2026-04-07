@@ -1,19 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { validation, fallback } from "@/lib/messages";
 import { createUser, getUserById, updateUser, resetPassword, changeUserActivation } from "@/lib/api/users";
 import { getRoles } from "@/lib/api/roles";
 import type { Role } from "@/types/roles";
-import { useActivation } from "@/lib/hooks/useActivation";
+import { useMasterForm, type MasterFormProps } from "@/lib/hooks/useMasterForm";
 import styles from "@/components/modal/FormModal.module.css";
-
-type UserFormProps = {
-  mode: "create" | "edit";
-  editId?: string;
-  onSave: () => void;
-  onCancel: () => void;
-};
 
 type FormData = {
   loginId: string;
@@ -60,22 +53,8 @@ function validate(form: FormData, mode: "create" | "edit"): FieldErrors {
   return errors;
 }
 
-export default function UserForm({ mode, editId, onSave, onCancel }: UserFormProps) {
-  const [form, setForm] = useState<FormData>({
-    loginId: "",
-    userName: "",
-    email: "",
-    password: "",
-    roleIds: [],
-  });
+export default function UserForm({ mode, editId, onSave, onCancel }: MasterFormProps) {
   const [roles, setRoles] = useState<Role[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-
-  const [fetchedIsActive, setFetchedIsActive] = useState(true);
-  const activation = useActivation({ permissionCode: "users.delete", initialIsActive: fetchedIsActive, changeFn: changeUserActivation, editId });
 
   // パスワードリセット用
   const [newPassword, setNewPassword] = useState("");
@@ -83,92 +62,57 @@ export default function UserForm({ mode, editId, onSave, onCancel }: UserFormPro
   const [resettingPassword, setResettingPassword] = useState(false);
   const [passwordResetSuccess, setPasswordResetSuccess] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
+  const { form, loading, submitting, error, fieldErrors, activation, handleChange, handleSubmit } =
+    useMasterForm<FormData, FieldErrors>({
+      mode,
+      editId,
+      initialForm: { loginId: "", userName: "", email: "", password: "", roleIds: [] },
+      entityName: "ユーザー",
+      validator: validate,
+      load: async (id) => {
         const allRoles = await getRoles();
-        if (!cancelled) setRoles(allRoles.filter((r) => r.isActive));
+        setRoles(allRoles.filter((r) => r.isActive));
 
-        if (mode === "edit" && editId) {
-          const user = await getUserById(editId);
-          if (!cancelled) {
-            setForm({
-              loginId: user.loginId,
-              userName: user.userName,
-              email: user.email ?? "",
-              password: "",
-              roleIds: user.roles.map((r) => r.roleId),
-            });
-            setFetchedIsActive(user.isActive);
-          }
+        if (!id) return undefined;
+        const user = await getUserById(id);
+        return {
+          form: {
+            loginId: user.loginId,
+            userName: user.userName,
+            email: user.email ?? "",
+            password: "",
+            roleIds: user.roles.map((r) => r.roleId),
+          },
+          isActive: user.isActive,
+        };
+      },
+      save: async (f) => {
+        if (mode === "create") {
+          await createUser({
+            loginId: f.loginId.trim(),
+            userName: f.userName.trim(),
+            email: f.email.trim() || null,
+            password: f.password,
+            roleIds: f.roleIds,
+          });
+        } else {
+          await updateUser(editId!, {
+            loginId: f.loginId.trim(),
+            userName: f.userName.trim(),
+            email: f.email.trim() || null,
+            roleIds: f.roleIds,
+          });
         }
-      } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : fallback.fetchFailed("データ"));
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [mode, editId]);
-
-  const handleChange = (field: keyof FormData, value: string | boolean | string[]) => {
-    const updatedForm = { ...form, [field]: value };
-    setForm(updatedForm);
-    const errors = validate(updatedForm, mode);
-    setFieldErrors((prev) => ({ ...prev, [field]: errors[field as keyof FieldErrors] }));
-  };
+      },
+      onSave,
+      activation: { permissionCode: "users.delete", changeFn: changeUserActivation },
+    });
 
   const toggleRole = (roleId: string) => {
     const next = form.roleIds.includes(roleId)
       ? form.roleIds.filter((id) => id !== roleId)
       : [...form.roleIds, roleId];
-    handleChange("roleIds", next);
-  };
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    const errors = validate(form, mode);
-    setFieldErrors(errors);
-    if (Object.keys(errors).length > 0) return;
-
-    try {
-      setSubmitting(true);
-
-      if (mode === "create") {
-        await createUser({
-          loginId: form.loginId.trim(),
-          userName: form.userName.trim(),
-          email: form.email.trim() || null,
-          password: form.password,
-          roleIds: form.roleIds,
-        });
-      } else {
-        await updateUser(editId!, {
-          loginId: form.loginId.trim(),
-          userName: form.userName.trim(),
-          email: form.email.trim() || null,
-          roleIds: form.roleIds,
-        });
-      }
-
-      onSave();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : fallback.saveFailed);
-    } finally {
-      setSubmitting(false);
-    }
+    handleChange("roleIds", next as FormData["roleIds"]);
   };
 
   const onResetPassword = async () => {
@@ -199,29 +143,29 @@ export default function UserForm({ mode, editId, onSave, onCancel }: UserFormPro
   if (loading) return <p>読み込み中...</p>;
 
   return (
-    <form onSubmit={onSubmit} className={styles.form}>
+    <form onSubmit={handleSubmit} className={styles.form}>
       <label className={styles.field}>
         <span>ログインID *</span>
-        <input value={form.loginId} onChange={(e) => handleChange("loginId", e.target.value)} className={styles.input} />
+        <input value={form.loginId} onChange={(e) => handleChange("loginId", e.target.value as string)} className={styles.input} />
         {fieldErrors.loginId && <small className={styles.errorText}>{fieldErrors.loginId}</small>}
       </label>
 
       <label className={styles.field}>
         <span>ユーザー名 *</span>
-        <input value={form.userName} onChange={(e) => handleChange("userName", e.target.value)} className={styles.input} />
+        <input value={form.userName} onChange={(e) => handleChange("userName", e.target.value as string)} className={styles.input} />
         {fieldErrors.userName && <small className={styles.errorText}>{fieldErrors.userName}</small>}
       </label>
 
       <label className={styles.field}>
         <span>メールアドレス</span>
-        <input value={form.email} onChange={(e) => handleChange("email", e.target.value)} className={styles.input} />
+        <input value={form.email} onChange={(e) => handleChange("email", e.target.value as string)} className={styles.input} />
         {fieldErrors.email && <small className={styles.errorText}>{fieldErrors.email}</small>}
       </label>
 
       {mode === "create" && (
         <label className={styles.field}>
           <span>パスワード *</span>
-          <input type="password" value={form.password} onChange={(e) => handleChange("password", e.target.value)} className={styles.input} />
+          <input type="password" value={form.password} onChange={(e) => handleChange("password", e.target.value as string)} className={styles.input} />
           <small className={styles.hint}>8文字以上で入力してください。</small>
           {fieldErrors.password && <small className={styles.errorText}>{fieldErrors.password}</small>}
         </label>

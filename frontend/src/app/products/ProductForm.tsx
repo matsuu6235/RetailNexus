@@ -1,14 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { fallback } from "@/lib/messages";
+import { useState } from "react";
 import {
   createProduct,
   getProductById,
   updateProduct,
   changeProductActivation,
-  type CreateProductRequest,
-  type UpdateProductRequest,
 } from "@/lib/api/products";
 import { getAllProductCategories } from "@/lib/api/productCategories";
 import type { ProductCategory } from "@/types/productCategories";
@@ -18,136 +15,72 @@ import {
   type ProductFieldErrors,
   type UpdateProductFieldErrors,
 } from "@/lib/validators/productValidator";
-import { useActivation } from "@/lib/hooks/useActivation";
+import { useMasterForm, type MasterFormProps } from "@/lib/hooks/useMasterForm";
 import styles from "@/components/modal/FormModal.module.css";
 
-interface ProductFormProps {
-  mode: "create" | "edit";
-  editId?: string;
-  onSave: () => void;
-  onCancel: () => void;
-}
+type ProductFormData = {
+  janCode: string;
+  productName: string;
+  price: number;
+  cost: number;
+  productCategoryCode: string;
+};
 
-export default function ProductForm({ mode, editId, onSave, onCancel }: ProductFormProps) {
+type CombinedFieldErrors = ProductFieldErrors & UpdateProductFieldErrors;
+
+export default function ProductForm({ mode, editId, onSave, onCancel }: MasterFormProps) {
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [productCode, setProductCode] = useState("");
-  const [form, setForm] = useState<{
-    janCode: string;
-    productName: string;
-    price: number;
-    cost: number;
-    productCategoryCode: string;
-  }>({ janCode: "", productName: "", price: 0, cost: 0, productCategoryCode: "" });
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<ProductFieldErrors | UpdateProductFieldErrors>({});
-  const [loading, setLoading] = useState(true);
-  const [fetchedIsActive, setFetchedIsActive] = useState(true);
-  const activation = useActivation({ permissionCode: "products.delete", initialIsActive: fetchedIsActive, changeFn: changeProductActivation, editId });
 
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        if (mode === "create") {
-          const cats = await getAllProductCategories({ isActive: "active" });
-          if (!cancelled) {
-            setCategories(cats);
-            setLoading(false);
-          }
-        } else {
+  const { form, loading, submitting, error, fieldErrors, activation, handleChange, handleSubmit } =
+    useMasterForm<ProductFormData, CombinedFieldErrors>({
+      mode,
+      editId,
+      initialForm: { janCode: "", productName: "", price: 0, cost: 0, productCategoryCode: "" },
+      entityName: "商品",
+      validator: (f, m) => (m === "create" ? validateProduct(f) : validateUpdateProduct(f)) as CombinedFieldErrors,
+      load: async (id) => {
+        if (id) {
           const [product, cats] = await Promise.all([
-            getProductById(editId!),
+            getProductById(id),
             getAllProductCategories({ isActive: "active" }),
           ]);
-          if (!cancelled) {
-            setProductCode(product.productCode);
-            setForm({
+          setCategories(cats);
+          return {
+            form: {
               janCode: product.janCode ?? "",
               productName: product.productName,
               price: product.price,
               cost: product.cost,
               productCategoryCode: product.productCategoryCode,
-            });
-            setFetchedIsActive(product.isActive);
-            setCategories(cats);
-            setLoading(false);
-          }
+            },
+            isActive: product.isActive,
+          };
         }
-      } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : fallback.fetchFailed("データ"));
-          setLoading(false);
-        }
-      }
-    })();
+        const cats = await getAllProductCategories({ isActive: "active" });
+        setCategories(cats);
+        return undefined;
+      },
+      save: async (f) => {
+        const payload = {
+          janCode: f.janCode.trim(),
+          productName: f.productName.trim(),
+          price: f.price,
+          cost: f.cost,
+          productCategoryCode: f.productCategoryCode,
+        };
+        if (mode === "create") await createProduct(payload);
+        else await updateProduct(editId!, payload);
+      },
+      onSave,
+      activation: { permissionCode: "products.delete", changeFn: changeProductActivation },
+    });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [mode, editId]);
-
-  const handleChange = (field: string, value: string | boolean) => {
-    const numericValue = field === "price" || field === "cost" ? (value === "" ? 0 : Number(value)) : value;
-    const updatedForm = { ...form, [field]: numericValue };
-    setForm(updatedForm);
-    if (mode === "create") {
-      const errors = validateProduct(updatedForm);
-      setFieldErrors((prev) => ({ ...prev, [field]: errors[field as keyof ProductFieldErrors] }));
-    } else {
-      const errors = validateUpdateProduct(updatedForm);
-      setFieldErrors((prev) => ({ ...prev, [field]: errors[field as keyof UpdateProductFieldErrors] }));
-    }
+  const handleNumericChange = (field: "price" | "cost", value: string) => {
+    handleChange(field, (value === "" ? 0 : Number(value)) as ProductFormData[typeof field]);
   };
 
-  const handleSubmit = async () => {
-    setError(null);
-
-    if (mode === "create") {
-      const errors = validateProduct(form);
-      if (Object.keys(errors).length > 0) {
-        setFieldErrors(errors);
-        return;
-      }
-    } else {
-      const errors = validateUpdateProduct(form);
-      if (Object.keys(errors).length > 0) {
-        setFieldErrors(errors);
-        return;
-      }
-    }
-
-    try {
-      setSubmitting(true);
-      if (mode === "create") {
-        await createProduct({
-          janCode: form.janCode.trim(),
-          productName: form.productName.trim(),
-          price: form.price,
-          cost: form.cost,
-          productCategoryCode: form.productCategoryCode,
-        });
-      } else {
-        await updateProduct(editId!, {
-          janCode: form.janCode.trim(),
-          productName: form.productName.trim(),
-          price: form.price,
-          cost: form.cost,
-          productCategoryCode: form.productCategoryCode,
-        });
-      }
-      onSave();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : fallback.saveFailed);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  if (loading) {
-    return <p>読み込み中...</p>;
-  }
+  if (loading) return <p>読み込み中...</p>;
 
   return (
     <div className={styles.form}>
@@ -157,12 +90,7 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
           <span className={styles.hint}>登録時にカテゴリに基づいて自動採番されます。</span>
         ) : (
           <>
-            <input
-              type="text"
-              value={productCode}
-              readOnly
-              className={styles.readOnlyInput}
-            />
+            <input type="text" value={productCode} readOnly className={styles.readOnlyInput} />
             <span className={styles.hint}>商品コードは変更できません。</span>
           </>
         )}
@@ -173,7 +101,7 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
         <input
           type="text"
           value={form.janCode}
-          onChange={(e) => handleChange("janCode", e.target.value)}
+          onChange={(e) => handleChange("janCode", e.target.value as string)}
           className={styles.input}
         />
         <span className={styles.hint}>13桁の数字で入力してください。</span>
@@ -185,7 +113,7 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
         <input
           type="text"
           value={form.productName}
-          onChange={(e) => handleChange("productName", e.target.value)}
+          onChange={(e) => handleChange("productName", e.target.value as string)}
           className={styles.input}
         />
         <span className={styles.hint}>200文字以内で入力してください。</span>
@@ -198,7 +126,7 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
           type="number"
           min={0}
           value={form.price}
-          onChange={(e) => handleChange("price", e.target.value)}
+          onChange={(e) => handleNumericChange("price", e.target.value)}
           onFocus={(e) => e.target.select()}
           className={styles.input}
         />
@@ -211,7 +139,7 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
           type="number"
           min={0}
           value={form.cost}
-          onChange={(e) => handleChange("cost", e.target.value)}
+          onChange={(e) => handleNumericChange("cost", e.target.value)}
           onFocus={(e) => e.target.select()}
           className={styles.input}
         />
@@ -222,9 +150,8 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
         <span className={styles.label}>{mode === "create" ? "カテゴリ" : "カテゴリ *"}</span>
         <select
           value={form.productCategoryCode}
-          onChange={(e) => handleChange("productCategoryCode", e.target.value)}
+          onChange={(e) => handleChange("productCategoryCode", e.target.value as string)}
           className={styles.input}
-          disabled={loading}
         >
           <option value="">選択してください</option>
           {categories.map((c) => (
@@ -244,7 +171,7 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: ProductF
         <button type="button" onClick={onCancel} className={styles.cancelButton} disabled={submitting}>
           キャンセル
         </button>
-        <button type="button" onClick={handleSubmit} className={styles.submitButton} disabled={submitting}>
+        <button type="button" onClick={() => handleSubmit()} className={styles.submitButton} disabled={submitting}>
           {submitting ? "保存中..." : "保存"}
         </button>
       </div>
