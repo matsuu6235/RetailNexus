@@ -1,110 +1,42 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import {
   createStoreType,
   getStoreTypeById,
   updateStoreType,
   changeStoreTypeActivation,
   type CreateStoreTypeRequest,
-  type UpdateStoreTypeRequest,
 } from "@/lib/api/storeTypes";
 import { validateStoreType, type StoreTypeFieldErrors } from "@/lib/validators/storeTypeValidator";
-import { useActivation } from "@/lib/hooks/useActivation";
-import { fallback } from "@/lib/messages";
+import { useMasterForm, type MasterFormProps } from "@/lib/hooks/useMasterForm";
 import styles from "@/components/modal/FormModal.module.css";
 
-type StoreTypeFormProps = {
-  mode: "create" | "edit";
-  editId?: string;
-  onSave: () => void;
-  onCancel: () => void;
-};
+export default function StoreTypeForm({ mode, editId, onSave, onCancel }: MasterFormProps) {
+  const { form, loading, submitting, error, fieldErrors, activation, handleChange, handleSubmit } =
+    useMasterForm<CreateStoreTypeRequest, StoreTypeFieldErrors>({
+      mode,
+      editId,
+      initialForm: { storeTypeCd: "", storeTypeName: "" },
+      entityName: "店舗種別",
+      validator: (f) => validateStoreType(f),
+      load: async (id) => {
+        if (!id) return undefined;
+        const data = await getStoreTypeById(id);
+        return {
+          form: { storeTypeCd: data.storeTypeCd, storeTypeName: data.storeTypeName },
+          isActive: data.isActive,
+        };
+      },
+      save: async (f) => {
+        const payload = { storeTypeCd: f.storeTypeCd.trim(), storeTypeName: f.storeTypeName.trim() };
+        if (mode === "create") await createStoreType(payload);
+        else await updateStoreType(editId!, payload);
+      },
+      onSave,
+      activation: { permissionCode: "store-types.delete", changeFn: changeStoreTypeActivation },
+    });
 
-export default function StoreTypeForm({ mode, editId, onSave, onCancel }: StoreTypeFormProps) {
-  const [form, setForm] = useState<CreateStoreTypeRequest>({
-    storeTypeCd: "",
-    storeTypeName: "",
-  });
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<StoreTypeFieldErrors>({});
-  const [loading, setLoading] = useState(false);
-  const [fetchedIsActive, setFetchedIsActive] = useState(true);
-  const activation = useActivation({ permissionCode: "store-types.delete", initialIsActive: fetchedIsActive, changeFn: changeStoreTypeActivation, editId });
-
-  useEffect(() => {
-    if (mode !== "edit" || !editId) return;
-
-    let cancelled = false;
-
-    (async () => {
-      try {
-        setLoading(true);
-        const data = await getStoreTypeById(editId);
-        if (!cancelled) {
-          setForm({
-            storeTypeCd: data.storeTypeCd,
-            storeTypeName: data.storeTypeName,
-          });
-          setFetchedIsActive(data.isActive);
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : fallback.fetchFailed("データ"));
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [mode, editId]);
-
-  const handleChange = (field: keyof CreateStoreTypeRequest, value: string | boolean) => {
-    const updatedForm = { ...form, [field]: value };
-    setForm(updatedForm);
-    const errors = validateStoreType(updatedForm);
-    setFieldErrors((prev) => ({ ...prev, [field]: errors[field as keyof StoreTypeFieldErrors] }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    const errors = validateStoreType(form);
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-
-      const payload = {
-        storeTypeCd: form.storeTypeCd.trim(),
-        storeTypeName: form.storeTypeName.trim(),
-      };
-
-      if (mode === "edit") {
-        await updateStoreType(editId!, payload as UpdateStoreTypeRequest);
-      } else {
-        await createStoreType(payload);
-      }
-
-      onSave();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : fallback.saveFailed);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  if (loading) {
-    return <p>読み込み中...</p>;
-  }
+  if (loading) return <p>読み込み中...</p>;
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
@@ -115,7 +47,7 @@ export default function StoreTypeForm({ mode, editId, onSave, onCancel }: StoreT
         <input
           type="text"
           value={form.storeTypeCd}
-          onChange={(e) => handleChange("storeTypeCd", e.target.value)}
+          onChange={(e) => handleChange("storeTypeCd", e.target.value as string)}
           disabled={mode === "edit"}
           className={mode === "edit" ? styles.readOnlyInput : styles.input}
           readOnly={mode === "edit"}
@@ -131,7 +63,7 @@ export default function StoreTypeForm({ mode, editId, onSave, onCancel }: StoreT
         <input
           type="text"
           value={form.storeTypeName}
-          onChange={(e) => handleChange("storeTypeName", e.target.value)}
+          onChange={(e) => handleChange("storeTypeName", e.target.value as string)}
           className={styles.input}
         />
         {fieldErrors.storeTypeName && <span className={styles.errorText}>{fieldErrors.storeTypeName}</span>}

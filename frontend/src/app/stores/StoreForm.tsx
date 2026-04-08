@@ -1,138 +1,66 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   createStore,
   getStoreById,
   updateStore,
   changeStoreActivation,
   type CreateStoreRequest,
-  type UpdateStoreRequest,
 } from "@/lib/api/stores";
 import { getAllAreas } from "@/lib/api/areas";
 import { getStoreTypes } from "@/lib/api/storeTypes";
 import type { Area } from "@/types/areas";
 import type { StoreType } from "@/types/storeTypes";
 import { validateStore, type StoreFieldErrors } from "@/lib/validators/storeValidator";
-import { useActivation } from "@/lib/hooks/useActivation";
-import { fallback } from "@/lib/messages";
+import { useMasterForm, type MasterFormProps } from "@/lib/hooks/useMasterForm";
 import styles from "@/components/modal/FormModal.module.css";
 
-interface StoreFormProps {
-  mode: "create" | "edit";
-  editId?: string;
-  onSave: () => void;
-  onCancel: () => void;
-}
-
-export default function StoreForm({ mode, editId, onSave, onCancel }: StoreFormProps) {
+export default function StoreForm({ mode, editId, onSave, onCancel }: MasterFormProps) {
   const [areas, setAreas] = useState<Area[]>([]);
   const [storeTypes, setStoreTypes] = useState<StoreType[]>([]);
   const [storeCd, setStoreCd] = useState("");
-  const [form, setForm] = useState<CreateStoreRequest>({
-    storeName: "",
-    areaId: "",
-    storeTypeId: "",
-  });
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<StoreFieldErrors>({});
-  const [loading, setLoading] = useState(true);
-  const [fetchedIsActive, setFetchedIsActive] = useState(true);
-  const activation = useActivation({ permissionCode: "stores.delete", initialIsActive: fetchedIsActive, changeFn: changeStoreActivation, editId });
 
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        if (mode === "create") {
-          const [areaItems, typeItems] = await Promise.all([
-            getAllAreas(),
-            getStoreTypes({ isActive: "active" }),
-          ]);
-
-          if (!cancelled) {
-            setAreas(areaItems);
-            setStoreTypes(typeItems);
-            setLoading(false);
-          }
-        } else {
+  const { form, loading, submitting, error, fieldErrors, activation, handleChange, handleSubmit } =
+    useMasterForm<CreateStoreRequest, StoreFieldErrors>({
+      mode,
+      editId,
+      initialForm: { storeName: "", areaId: "", storeTypeId: "" },
+      entityName: "店舗",
+      validator: (f) => validateStore(f),
+      load: async (id) => {
+        if (id) {
           const [store, areaItems, typeItems] = await Promise.all([
-            getStoreById(editId!),
+            getStoreById(id),
             getAllAreas(),
             getStoreTypes(),
           ]);
-
-          if (!cancelled) {
-            setAreas(areaItems);
-            setStoreTypes(typeItems);
-            setStoreCd(store.storeCd);
-            setForm({
-              storeName: store.storeName,
-              areaId: store.areaId,
-              storeTypeId: store.storeTypeId,
-            });
-            setFetchedIsActive(store.isActive);
-            setLoading(false);
-          }
+          setAreas(areaItems);
+          setStoreTypes(typeItems);
+          setStoreCd(store.storeCd);
+          return {
+            form: { storeName: store.storeName, areaId: store.areaId, storeTypeId: store.storeTypeId },
+            isActive: store.isActive,
+          };
         }
-      } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : fallback.fetchFailed("データ"));
-          setLoading(false);
-        }
-      }
-    })();
+        const [areaItems, typeItems] = await Promise.all([
+          getAllAreas(),
+          getStoreTypes({ isActive: "active" }),
+        ]);
+        setAreas(areaItems);
+        setStoreTypes(typeItems);
+        return undefined;
+      },
+      save: async (f) => {
+        const payload = { storeName: f.storeName.trim(), areaId: f.areaId, storeTypeId: f.storeTypeId };
+        if (mode === "create") await createStore(payload);
+        else await updateStore(editId!, payload);
+      },
+      onSave,
+      activation: { permissionCode: "stores.delete", changeFn: changeStoreActivation },
+    });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [mode, editId]);
-
-  const handleChange = (field: keyof CreateStoreRequest, value: string | boolean) => {
-    const updatedForm = { ...form, [field]: value };
-    setForm(updatedForm);
-    const errors = validateStore(updatedForm);
-    setFieldErrors((prev) => ({ ...prev, [field]: errors[field as keyof StoreFieldErrors] }));
-  };
-
-  const handleSubmit = async () => {
-    const errors = validateStore(form);
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      setError(null);
-
-      if (mode === "create") {
-        await createStore({
-          storeName: form.storeName.trim(),
-          areaId: form.areaId,
-          storeTypeId: form.storeTypeId,
-        });
-      } else {
-        await updateStore(editId!, {
-          storeName: form.storeName.trim(),
-          areaId: form.areaId,
-          storeTypeId: form.storeTypeId,
-        });
-      }
-
-      onSave();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : fallback.saveFailed);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  if (loading) {
-    return <p>読み込み中...</p>;
-  }
+  if (loading) return <p>読み込み中...</p>;
 
   return (
     <div className={styles.form}>
@@ -153,7 +81,7 @@ export default function StoreForm({ mode, editId, onSave, onCancel }: StoreFormP
         <input
           type="text"
           value={form.storeName}
-          onChange={(e) => handleChange("storeName", e.target.value)}
+          onChange={(e) => handleChange("storeName", e.target.value as string)}
           className={styles.input}
         />
         <p className={styles.hint}>50文字以内で入力してください。</p>
@@ -164,9 +92,8 @@ export default function StoreForm({ mode, editId, onSave, onCancel }: StoreFormP
         <label className={styles.label}>エリア *</label>
         <select
           value={form.areaId}
-          onChange={(e) => handleChange("areaId", e.target.value)}
+          onChange={(e) => handleChange("areaId", e.target.value as string)}
           className={styles.select}
-          disabled={loading}
         >
           <option value="">選択してください</option>
           {areas.map((area) => (
@@ -182,9 +109,8 @@ export default function StoreForm({ mode, editId, onSave, onCancel }: StoreFormP
         <label className={styles.label}>店舗種別 *</label>
         <select
           value={form.storeTypeId}
-          onChange={(e) => handleChange("storeTypeId", e.target.value)}
+          onChange={(e) => handleChange("storeTypeId", e.target.value as string)}
           className={styles.select}
-          disabled={loading}
         >
           <option value="">選択してください</option>
           {storeTypes.map((storeType) => (
@@ -202,7 +128,7 @@ export default function StoreForm({ mode, editId, onSave, onCancel }: StoreFormP
         <button type="button" onClick={onCancel} className={styles.cancelButton} disabled={submitting}>
           キャンセル
         </button>
-        <button type="button" onClick={handleSubmit} className={styles.submitButton} disabled={submitting || loading}>
+        <button type="button" onClick={() => handleSubmit()} className={styles.submitButton} disabled={submitting}>
           {submitting ? "保存中..." : "保存"}
         </button>
       </div>

@@ -1,118 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { createArea, getAreaById, updateArea, changeAreaActivation, type CreateAreaRequest, type UpdateAreaRequest } from "@/lib/api/areas";
+import { getAreaById, createArea, updateArea, changeAreaActivation, type CreateAreaRequest } from "@/lib/api/areas";
 import { validateArea, type AreaFieldErrors } from "@/lib/validators/areaValidator";
-import { useActivation } from "@/lib/hooks/useActivation";
-import { fallback } from "@/lib/messages";
+import { useMasterForm, type MasterFormProps } from "@/lib/hooks/useMasterForm";
 import styles from "@/components/modal/FormModal.module.css";
 
-type AreaFormProps = {
-  mode: "create" | "edit";
-  editId?: string;
-  onSave: () => void;
-  onCancel: () => void;
-};
-
-export default function AreaForm({ mode, editId, onSave, onCancel }: AreaFormProps) {
-  const [form, setForm] = useState<CreateAreaRequest>({
-    areaCd: "",
-    areaName: "",
-  });
-  const [loading, setLoading] = useState(mode === "edit");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<AreaFieldErrors>({});
-  const [fetchedIsActive, setFetchedIsActive] = useState(true);
-  const activation = useActivation({ permissionCode: "areas.delete", initialIsActive: fetchedIsActive, changeFn: changeAreaActivation, editId });
-
-  useEffect(() => {
-    if (mode !== "edit" || !editId) return;
-
-    let cancelled = false;
-
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const item = await getAreaById(editId);
-
-        if (!cancelled) {
-          setForm({
-            areaCd: item.areaCd,
-            areaName: item.areaName,
-          });
-          setFetchedIsActive(item.isActive);
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : fallback.fetchFailed("エリア情報"));
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [mode, editId]);
-
-  const handleChange = (field: keyof CreateAreaRequest, value: string | boolean) => {
-    const updatedForm = { ...form, [field]: value };
-    setForm(updatedForm);
-    const errors = validateArea(updatedForm);
-    setFieldErrors((prev) => ({ ...prev, [field]: errors[field as keyof AreaFieldErrors] }));
-  };
-
-  const validate = () => {
-    const errors = validateArea(form);
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    if (!validate()) return;
-
-    try {
-      setSubmitting(true);
-
-      if (mode === "create") {
-        await createArea({
-          areaCd: form.areaCd.trim(),
-          areaName: form.areaName.trim(),
-        });
-      } else {
-        await updateArea(editId!, {
-          areaCd: form.areaCd.trim(),
-          areaName: form.areaName.trim(),
-        });
-      }
-
-      onSave();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : mode === "create" ? fallback.createFailed("エリア") : fallback.updateFailed("エリア"));
-    } finally {
-      setSubmitting(false);
-    }
-  };
+export default function AreaForm({ mode, editId, onSave, onCancel }: MasterFormProps) {
+  const { form, loading, submitting, error, fieldErrors, activation, handleChange, handleSubmit } =
+    useMasterForm<CreateAreaRequest, AreaFieldErrors>({
+      mode,
+      editId,
+      initialForm: { areaCd: "", areaName: "" },
+      entityName: "エリア",
+      validator: (f) => validateArea(f),
+      load: async (id) => {
+        if (!id) return undefined;
+        const item = await getAreaById(id);
+        return { form: { areaCd: item.areaCd, areaName: item.areaName }, isActive: item.isActive };
+      },
+      save: async (f) => {
+        const payload = { areaCd: f.areaCd.trim(), areaName: f.areaName.trim() };
+        if (mode === "create") await createArea(payload);
+        else await updateArea(editId!, payload);
+      },
+      onSave,
+      activation: { permissionCode: "areas.delete", changeFn: changeAreaActivation },
+    });
 
   if (loading) return <p>読み込み中...</p>;
 
   return (
-    <form onSubmit={onSubmit} className={styles.form}>
+    <form onSubmit={handleSubmit} className={styles.form}>
       <label className={styles.field}>
         <span>エリアコード *</span>
-        <input value={form.areaCd} onChange={(e) => handleChange("areaCd", e.target.value)} className={styles.input} />
+        <input value={form.areaCd} onChange={(e) => handleChange("areaCd", e.target.value as string)} className={styles.input} />
         <small className={styles.hint}>2文字以内で入力してください。</small>
         {fieldErrors.areaCd && <small className={styles.errorText}>{fieldErrors.areaCd}</small>}
       </label>
 
       <label className={styles.field}>
         <span>エリア名 *</span>
-        <input value={form.areaName} onChange={(e) => handleChange("areaName", e.target.value)} className={styles.input} />
+        <input value={form.areaName} onChange={(e) => handleChange("areaName", e.target.value as string)} className={styles.input} />
         <small className={styles.hint}>20文字以内で入力してください。</small>
         {fieldErrors.areaName && <small className={styles.errorText}>{fieldErrors.areaName}</small>}
       </label>

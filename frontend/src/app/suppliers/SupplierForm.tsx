@@ -1,127 +1,49 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   createSupplier,
   getSupplierById,
   updateSupplier,
   changeSupplierActivation,
   type CreateSupplierRequest,
-  type UpdateSupplierRequest,
 } from "@/lib/api/suppliers";
 import { validateSupplier, type SupplierFieldErrors } from "@/lib/validators/supplierValidator";
-import { useActivation } from "@/lib/hooks/useActivation";
-import { fallback } from "@/lib/messages";
+import { useMasterForm, type MasterFormProps } from "@/lib/hooks/useMasterForm";
 import styles from "@/components/modal/FormModal.module.css";
 
-type SupplierFormProps = {
-  mode: "create" | "edit";
-  editId?: string;
-  onSave: () => void;
-  onCancel: () => void;
-};
-
-export default function SupplierForm({ mode, editId, onSave, onCancel }: SupplierFormProps) {
-  const [form, setForm] = useState<CreateSupplierRequest>({
-    supplierName: "",
-    phoneNumber: "",
-    email: "",
-  });
+export default function SupplierForm({ mode, editId, onSave, onCancel }: MasterFormProps) {
   const [supplierCode, setSupplierCode] = useState("");
-  const [loading, setLoading] = useState(mode === "edit");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<SupplierFieldErrors>({});
-  const [fetchedIsActive, setFetchedIsActive] = useState(true);
-  const activation = useActivation({ permissionCode: "suppliers.delete", initialIsActive: fetchedIsActive, changeFn: changeSupplierActivation, editId });
 
-  useEffect(() => {
-    if (mode !== "edit" || !editId) return;
-
-    let cancelled = false;
-
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const supplier = await getSupplierById(editId);
-
-        if (!cancelled) {
-          setSupplierCode(supplier.supplierCode);
-          setForm({
-            supplierName: supplier.supplierName,
-            phoneNumber: supplier.phoneNumber ?? "",
-            email: supplier.email ?? "",
-          });
-          setFetchedIsActive(supplier.isActive);
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : fallback.fetchFailed("仕入先情報"));
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [mode, editId]);
-
-  const handleChange = (field: keyof CreateSupplierRequest, value: string | boolean) => {
-    const updatedForm = { ...form, [field]: value };
-    setForm(updatedForm);
-    const errors = validateSupplier(updatedForm);
-    setFieldErrors((prev) => ({ ...prev, [field]: errors[field as keyof SupplierFieldErrors] }));
-  };
-
-  const validate = () => {
-    const errors = validateSupplier(form);
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    if (!validate()) return;
-
-    try {
-      setSubmitting(true);
-
-      if (mode === "create") {
-        await createSupplier({
-          supplierName: form.supplierName.trim(),
-          phoneNumber: form.phoneNumber?.trim() ?? "",
-          email: form.email?.trim() ?? "",
-        });
-      } else {
-        await updateSupplier(editId!, {
-          supplierName: form.supplierName.trim(),
-          phoneNumber: form.phoneNumber?.trim() || "",
-          email: form.email?.trim() || "",
-        });
-      }
-
-      onSave();
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : mode === "create"
-            ? fallback.createFailed("仕入先")
-            : fallback.updateFailed("仕入先")
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const { form, loading, submitting, error, fieldErrors, activation, handleChange, handleSubmit } =
+    useMasterForm<CreateSupplierRequest, SupplierFieldErrors>({
+      mode,
+      editId,
+      initialForm: { supplierName: "", phoneNumber: "", email: "" },
+      entityName: "仕入先",
+      validator: (f) => validateSupplier(f),
+      load: async (id) => {
+        if (!id) return undefined;
+        const supplier = await getSupplierById(id);
+        setSupplierCode(supplier.supplierCode);
+        return {
+          form: { supplierName: supplier.supplierName, phoneNumber: supplier.phoneNumber ?? "", email: supplier.email ?? "" },
+          isActive: supplier.isActive,
+        };
+      },
+      save: async (f) => {
+        const payload = { supplierName: f.supplierName.trim(), phoneNumber: f.phoneNumber?.trim() ?? "", email: f.email?.trim() ?? "" };
+        if (mode === "create") await createSupplier(payload);
+        else await updateSupplier(editId!, payload);
+      },
+      onSave,
+      activation: { permissionCode: "suppliers.delete", changeFn: changeSupplierActivation },
+    });
 
   if (loading) return <p>読み込み中...</p>;
 
   return (
-    <form onSubmit={onSubmit} className={styles.form}>
+    <form onSubmit={handleSubmit} className={styles.form}>
       <label className={styles.field}>
         <span>仕入先コード</span>
         {mode === "create" ? (
@@ -138,7 +60,7 @@ export default function SupplierForm({ mode, editId, onSave, onCancel }: Supplie
         <span>仕入先名 *</span>
         <input
           value={form.supplierName}
-          onChange={(e) => handleChange("supplierName", e.target.value)}
+          onChange={(e) => handleChange("supplierName", e.target.value as string)}
           className={styles.input}
         />
         <small className={styles.hint}>50文字以内で入力してください。</small>
@@ -149,7 +71,7 @@ export default function SupplierForm({ mode, editId, onSave, onCancel }: Supplie
         <span>電話番号</span>
         <input
           value={form.phoneNumber}
-          onChange={(e) => handleChange("phoneNumber", e.target.value)}
+          onChange={(e) => handleChange("phoneNumber", e.target.value as string)}
           className={styles.input}
         />
         {fieldErrors.phoneNumber && <small className={styles.errorText}>{fieldErrors.phoneNumber}</small>}
@@ -160,7 +82,7 @@ export default function SupplierForm({ mode, editId, onSave, onCancel }: Supplie
         <input
           type="email"
           value={form.email}
-          onChange={(e) => handleChange("email", e.target.value)}
+          onChange={(e) => handleChange("email", e.target.value as string)}
           className={styles.input}
         />
         {fieldErrors.email && <small className={styles.errorText}>{fieldErrors.email}</small>}
