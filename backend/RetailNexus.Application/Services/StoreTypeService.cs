@@ -14,27 +14,27 @@ public class StoreTypeService : IStoreTypeService
         _repo = repo;
     }
 
-    public async Task<StoreType> CreateAsync(string code, string name, bool isActive, Guid actorId, CancellationToken ct)
+    public async Task<StoreType> CreateAsync(string storeTypeCode, string storeTypeName, bool isActive, Guid actorId, CancellationToken ct)
     {
         var nextDisplayOrder = await _repo.GetNextDisplayOrderAsync(ct);
 
-        var trimmedCode = code.Trim();
-        var trimmedName = name.Trim();
-        var entity = new StoreType(trimmedCode, trimmedName, nextDisplayOrder, isActive, actorId);
+        var trimmedStoreTypeCode = storeTypeCode.Trim();
+        var trimmedStoreTypeName = storeTypeName.Trim();
+        var entity = new StoreType(trimmedStoreTypeCode, trimmedStoreTypeName, nextDisplayOrder, isActive, actorId);
         await _repo.AddAsync(entity, ct);
         await _repo.SaveChangesAsync(ct);
 
         return entity;
     }
 
-    public async Task<StoreType> UpdateAsync(Guid id, string code, string name, Guid actorId, CancellationToken ct)
+    public async Task<StoreType> UpdateAsync(Guid id, string storeTypeCode, string storeTypeName, Guid actorId, CancellationToken ct)
     {
         var entity = await _repo.GetByIdAsync(id, ct)
             ?? throw new EntityNotFoundException("StoreType", id);
 
-        var trimmedCode = code.Trim();
-        var trimmedName = name.Trim();
-        entity.Update(trimmedCode, trimmedName, actorId);
+        var trimmedStoreTypeCode = storeTypeCode.Trim();
+        var trimmedStoreTypeName = storeTypeName.Trim();
+        entity.Update(trimmedStoreTypeCode, trimmedStoreTypeName, actorId);
         await _repo.SaveChangesAsync(ct);
 
         return entity;

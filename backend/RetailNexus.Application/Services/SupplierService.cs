@@ -14,26 +14,26 @@ public class SupplierService : ISupplierService
         _repo = repo;
     }
 
-    public async Task<Supplier> CreateAsync(string name, string? phone, string? email, bool isActive, Guid actorId, CancellationToken ct)
+    public async Task<Supplier> CreateAsync(string supplierName, string? phoneNumber, string? supplierEmail, bool isActive, Guid actorId, CancellationToken ct)
     {
         var maxCode = await _repo.GetMaxSupplierCodeAsync(ct);
         var supplierCode = CodeGenerator.NextSupplierCode(maxCode);
 
-        var trimmedName = name.Trim();
-        var supplier = new Supplier(supplierCode, trimmedName, phone, email, isActive, actorId);
+        var trimmedSupplierName = supplierName.Trim();
+        var supplier = new Supplier(supplierCode, trimmedSupplierName, phoneNumber, supplierEmail, isActive, actorId);
         await _repo.AddAsync(supplier, ct);
         await _repo.SaveChangesAsync(ct);
 
         return supplier;
     }
 
-    public async Task<Supplier> UpdateAsync(Guid id, string name, string? phone, string? email, Guid actorId, CancellationToken ct)
+    public async Task<Supplier> UpdateAsync(Guid id, string supplierName, string? phoneNumber, string? supplierEmail, Guid actorId, CancellationToken ct)
     {
         var supplier = await _repo.GetByIdAsync(id, ct)
             ?? throw new EntityNotFoundException("Supplier", id);
 
-        var trimmedName = name.Trim();
-        supplier.Update(trimmedName, phone, email, actorId);
+        var trimmedSupplierName = supplierName.Trim();
+        supplier.Update(trimmedSupplierName, phoneNumber, supplierEmail, actorId);
         await _repo.SaveChangesAsync(ct);
 
         return supplier;

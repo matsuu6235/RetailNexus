@@ -17,22 +17,22 @@ public class ProductCategory
     {
     }
 
-    public ProductCategory(string cd, string categoryAbbreviation, string name, int displayOrder, bool isActive, Guid actorUserId)
+    public ProductCategory(string productCategoryCode, string categoryAbbreviation, string productCategoryName, int displayOrder, bool isActive, Guid actorUserId)
     {
-        ProductCategoryCd = cd;
+        ProductCategoryCd = productCategoryCode;
         CategoryAbbreviation = categoryAbbreviation.ToUpperInvariant();
-        ProductCategoryName = name;
+        ProductCategoryName = productCategoryName;
         DisplayOrder = displayOrder;
         IsActive = isActive;
         CreatedBy = actorUserId;
         UpdatedBy = actorUserId;
     }
 
-    public void Update(string cd, string categoryAbbreviation, string name, Guid actorUserId)
+    public void Update(string productCategoryCode, string categoryAbbreviation, string productCategoryName, Guid actorUserId)
     {
-        ProductCategoryCd = cd;
+        ProductCategoryCd = productCategoryCode;
         CategoryAbbreviation = categoryAbbreviation.ToUpperInvariant();
-        ProductCategoryName = name;
+        ProductCategoryName = productCategoryName;
         UpdatedBy = actorUserId;
         UpdatedAt = DateTimeOffset.UtcNow;
     }

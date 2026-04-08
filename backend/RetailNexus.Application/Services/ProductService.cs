@@ -18,18 +18,18 @@ public class ProductService : IProductService
 
     public async Task<Product> CreateAsync(string janCode, string productName, decimal price, decimal cost, string productCategoryCode, Guid actorId, CancellationToken ct)
     {
-        var trimmedCategoryCode = productCategoryCode.Trim();
+        var trimmedProductCategoryCode = productCategoryCode.Trim();
         var trimmedJanCode = janCode.Trim();
         var trimmedProductName = productName.Trim();
 
-        var category = await _categoryRepo.GetByCodeAsync(trimmedCategoryCode, ct)
-            ?? throw new EntityNotFoundException("ProductCategory", trimmedCategoryCode);
+        var category = await _categoryRepo.GetByCodeAsync(trimmedProductCategoryCode, ct)
+            ?? throw new EntityNotFoundException("ProductCategory", trimmedProductCategoryCode);
 
-        var abbreviation = category.CategoryAbbreviation;
-        var maxCode = await _productRepo.GetMaxProductCodeByPrefixAsync(abbreviation, ct);
-        var productCode = CodeGenerator.NextProductCode(maxCode, abbreviation);
+        var categoryAbbreviation = category.CategoryAbbreviation;
+        var maxCode = await _productRepo.GetMaxProductCodeByPrefixAsync(categoryAbbreviation, ct);
+        var productCode = CodeGenerator.NextProductCode(maxCode, categoryAbbreviation);
 
-        var product = new Product(productCode, trimmedJanCode, trimmedProductName, price, cost, trimmedCategoryCode, actorId);
+        var product = new Product(productCode, trimmedJanCode, trimmedProductName, price, cost, trimmedProductCategoryCode, actorId);
         await _productRepo.AddAsync(product, ct);
         await _productRepo.SaveChangesAsync(ct);
 
@@ -43,8 +43,8 @@ public class ProductService : IProductService
 
         var trimmedJanCode = janCode.Trim();
         var trimmedProductName = productName.Trim();
-        var trimmedCategoryCode = productCategoryCode.Trim();
-        product.Update(trimmedJanCode, trimmedProductName, price, cost, trimmedCategoryCode, actorId);
+        var trimmedProductCategoryCode = productCategoryCode.Trim();
+        product.Update(trimmedJanCode, trimmedProductName, price, cost, trimmedProductCategoryCode, actorId);
         await _productRepo.SaveChangesAsync(ct);
 
         return product;

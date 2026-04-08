@@ -20,13 +20,13 @@ public class RoleService : IRoleService
             throw new BusinessRuleException("RoleName", "ロール名は必須です。");
 
         var trimmedRoleName = roleName.Trim();
-        var trimmedDescription = description?.Trim();
+        var trimmedRoleDescription = description?.Trim();
 
         var existing = await _roleRepo.FindByNameAsync(trimmedRoleName, ct);
         if (existing is not null)
             throw new DuplicateException("RoleName", "このロール名は既に使用されています。");
 
-        var role = new Role(trimmedRoleName, trimmedDescription);
+        var role = new Role(trimmedRoleName, trimmedRoleDescription);
         role.IsActive = isActive;
         await _roleRepo.AddAsync(role, ct);
         await _roleRepo.SaveChangesAsync(ct);
@@ -50,14 +50,14 @@ public class RoleService : IRoleService
             ?? throw new EntityNotFoundException("Role", id);
 
         var trimmedRoleName = roleName.Trim();
-        var trimmedDescription = description?.Trim();
+        var trimmedRoleDescription = description?.Trim();
 
         var duplicate = await _roleRepo.FindByNameAsync(trimmedRoleName, ct);
         if (duplicate is not null && duplicate.RoleId != id)
             throw new DuplicateException("RoleName", "このロール名は既に使用されています。");
 
         role.RoleName = trimmedRoleName;
-        role.Description = trimmedDescription;
+        role.Description = trimmedRoleDescription;
         role.UpdatedAt = DateTimeOffset.UtcNow;
 
         await _roleRepo.ReplaceRolePermissionsAsync(id, permissionIds, ct);

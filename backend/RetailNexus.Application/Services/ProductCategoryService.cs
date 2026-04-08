@@ -14,29 +14,29 @@ public class ProductCategoryService : IProductCategoryService
         _repo = repo;
     }
 
-    public async Task<ProductCategory> CreateAsync(string code, string abbreviation, string name, bool isActive, Guid actorId, CancellationToken ct)
+    public async Task<ProductCategory> CreateAsync(string productCategoryCode, string categoryAbbreviation, string productCategoryName, bool isActive, Guid actorId, CancellationToken ct)
     {
         var nextDisplayOrder = await _repo.GetNextDisplayOrderAsync(ct);
 
-        var trimmedCode = code.Trim();
-        var trimmedAbbreviation = abbreviation.Trim();
-        var trimmedName = name.Trim();
-        var entity = new ProductCategory(trimmedCode, trimmedAbbreviation, trimmedName, nextDisplayOrder, isActive, actorId);
+        var trimmedProductCategoryCode = productCategoryCode.Trim();
+        var trimmedCategoryAbbreviation = categoryAbbreviation.Trim();
+        var trimmedProductCategoryName = productCategoryName.Trim();
+        var entity = new ProductCategory(trimmedProductCategoryCode, trimmedCategoryAbbreviation, trimmedProductCategoryName, nextDisplayOrder, isActive, actorId);
         await _repo.AddAsync(entity, ct);
         await _repo.SaveChangesAsync(ct);
 
         return entity;
     }
 
-    public async Task<ProductCategory> UpdateAsync(Guid id, string code, string abbreviation, string name, Guid actorId, CancellationToken ct)
+    public async Task<ProductCategory> UpdateAsync(Guid id, string productCategoryCode, string categoryAbbreviation, string productCategoryName, Guid actorId, CancellationToken ct)
     {
         var entity = await _repo.GetByIdAsync(id, ct)
             ?? throw new EntityNotFoundException("ProductCategory", id);
 
-        var trimmedCode = code.Trim();
-        var trimmedAbbreviation = abbreviation.Trim();
-        var trimmedName = name.Trim();
-        entity.Update(trimmedCode, trimmedAbbreviation, trimmedName, actorId);
+        var trimmedProductCategoryCode = productCategoryCode.Trim();
+        var trimmedCategoryAbbreviation = categoryAbbreviation.Trim();
+        var trimmedProductCategoryName = productCategoryName.Trim();
+        entity.Update(trimmedProductCategoryCode, trimmedCategoryAbbreviation, trimmedProductCategoryName, actorId);
         await _repo.SaveChangesAsync(ct);
 
         return entity;

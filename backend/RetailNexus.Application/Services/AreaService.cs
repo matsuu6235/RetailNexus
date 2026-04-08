@@ -14,27 +14,27 @@ public class AreaService : IAreaService
         _repo = repo;
     }
 
-    public async Task<Area> CreateAsync(string areaCd, string areaName, bool isActive, Guid actorId, CancellationToken ct)
+    public async Task<Area> CreateAsync(string areaCode, string areaName, bool isActive, Guid actorId, CancellationToken ct)
     {
-        var code = areaCd.Trim();
-        var name = areaName.Trim();
+        var trimmedAreaCode = areaCode.Trim();
+        var trimmedAreaName = areaName.Trim();
         var nextDisplayOrder = await _repo.GetNextDisplayOrderAsync(ct);
 
-        var entity = new Area(code, name, nextDisplayOrder, isActive, actorId);
+        var entity = new Area(trimmedAreaCode, trimmedAreaName, nextDisplayOrder, isActive, actorId);
         await _repo.AddAsync(entity, ct);
         await _repo.SaveChangesAsync(ct);
 
         return entity;
     }
 
-    public async Task<Area> UpdateAsync(Guid id, string areaCd, string areaName, Guid actorId, CancellationToken ct)
+    public async Task<Area> UpdateAsync(Guid id, string areaCode, string areaName, Guid actorId, CancellationToken ct)
     {
         var entity = await _repo.GetByIdAsync(id, ct)
             ?? throw new EntityNotFoundException("Area", id);
 
-        var trimmedCode = areaCd.Trim();
-        var trimmedName = areaName.Trim();
-        entity.Update(trimmedCode, trimmedName, actorId);
+        var trimmedAreaCode = areaCode.Trim();
+        var trimmedAreaName = areaName.Trim();
+        entity.Update(trimmedAreaCode, trimmedAreaName, actorId);
         await _repo.SaveChangesAsync(ct);
 
         return entity;
