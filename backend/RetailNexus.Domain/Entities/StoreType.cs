@@ -16,8 +16,8 @@ public class StoreType
 
     public StoreType(string storeTypeCd, string storeTypeName, int displayOrder, bool isActive, Guid actorUserId)
     {
-        StoreTypeCd = storeTypeCd.Trim();
-        StoreTypeName = storeTypeName.Trim();
+        StoreTypeCd = storeTypeCd;
+        StoreTypeName = storeTypeName;
         DisplayOrder = displayOrder;
         IsActive = isActive;
         CreatedBy = actorUserId;
@@ -26,8 +26,8 @@ public class StoreType
 
     public void Update(string storeTypeCd, string storeTypeName, Guid actorUserId)
     {
-        StoreTypeCd = storeTypeCd.Trim();
-        StoreTypeName = storeTypeName.Trim();
+        StoreTypeCd = storeTypeCd;
+        StoreTypeName = storeTypeName;
         UpdatedBy = actorUserId;
         UpdatedAt = DateTimeOffset.UtcNow;
     }

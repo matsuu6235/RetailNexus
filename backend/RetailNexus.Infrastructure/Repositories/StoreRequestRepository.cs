@@ -100,10 +100,7 @@ public sealed class StoreRequestRepository : IStoreRequestRepository
         var q = _db.StoreRequests.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(requestNumber))
-        {
-            var value = requestNumber.Trim();
-            q = q.Where(x => x.RequestNumber.Contains(value));
-        }
+            q = q.Where(x => x.RequestNumber.Contains(requestNumber));
 
         if (fromStoreId.HasValue)
             q = q.Where(x => x.FromStoreId == fromStoreId.Value);

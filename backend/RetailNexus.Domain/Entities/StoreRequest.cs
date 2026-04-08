@@ -41,7 +41,7 @@ public class StoreRequest
         string? note,
         Guid actorUserId)
     {
-        RequestNumber = requestNumber.Trim();
+        RequestNumber = requestNumber;
         FromStoreId = fromStoreId;
         ToStoreId = toStoreId;
         RequestDate = requestDate;
@@ -129,6 +129,6 @@ public class StoreRequest
 
     private static string? NormalizeOptional(string? value)
     {
-        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        return string.IsNullOrWhiteSpace(value) ? null : value;
     }
 }

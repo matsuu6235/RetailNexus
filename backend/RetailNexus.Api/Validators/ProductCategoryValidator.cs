@@ -41,14 +41,14 @@ public sealed class CreateProductCategoryRequestValidator : ProductCategoryReque
         ProductCategoryCdBaseRules(localizer)
             .MustAsync(async (code, ct) =>
             {
-                var existing = await repo.GetByCodeAsync(code.Trim(), ct);
+                var existing = await repo.GetByCodeAsync(code, ct);
                 return existing is null;
             }).WithMessage(localizer["Validation_Duplicate", "商品カテゴリコード"]);
 
         CategoryAbbreviationBaseRules(localizer)
             .MustAsync(async (abbreviation, ct) =>
             {
-                var existing = await repo.GetByAbbreviationAsync(abbreviation.Trim().ToUpperInvariant(), ct);
+                var existing = await repo.GetByAbbreviationAsync(abbreviation.ToUpperInvariant(), ct);
                 return existing is null;
             }).WithMessage(localizer["Validation_Duplicate", "カテゴリ略称"]);
     }
@@ -62,7 +62,7 @@ public sealed class UpdateProductCategoryRequestValidator : ProductCategoryReque
             .MustAsync(async (request, code, context, ct) =>
             {
                 var entityId = (Guid)context.RootContextData["EntityId"];
-                var existing = await repo.GetByCodeAsync(code.Trim(), ct);
+                var existing = await repo.GetByCodeAsync(code, ct);
                 return existing is null || existing.ProductCategoryId == entityId;
             }).WithMessage(localizer["Validation_Duplicate", "商品カテゴリコード"]);
 
@@ -70,7 +70,7 @@ public sealed class UpdateProductCategoryRequestValidator : ProductCategoryReque
             .MustAsync(async (request, abbreviation, context, ct) =>
             {
                 var entityId = (Guid)context.RootContextData["EntityId"];
-                var existing = await repo.GetByAbbreviationExcludingAsync(abbreviation.Trim().ToUpperInvariant(), entityId, ct);
+                var existing = await repo.GetByAbbreviationExcludingAsync(abbreviation.ToUpperInvariant(), entityId, ct);
                 return existing is null;
             }).WithMessage(localizer["Validation_Duplicate", "カテゴリ略称"]);
     }

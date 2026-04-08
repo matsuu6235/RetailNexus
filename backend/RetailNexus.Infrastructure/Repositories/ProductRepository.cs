@@ -78,28 +78,16 @@ public sealed class ProductRepository : IProductRepository
         var q = _db.Products.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(productCode))
-        {
-            var trimmed = productCode.Trim();
-            q = q.Where(x => x.ProductCode.Contains(trimmed));
-        }
+            q = q.Where(x => x.ProductCode.Contains(productCode));
 
         if (!string.IsNullOrWhiteSpace(janCode))
-        {
-            var trimmed = janCode.Trim();
-            q = q.Where(x => x.JanCode.Contains(trimmed));
-        }
-        
+            q = q.Where(x => x.JanCode.Contains(janCode));
+
         if (!string.IsNullOrWhiteSpace(productName))
-        {
-            var trimmed = productName.Trim();
-            q = q.Where(x => x.ProductName.Contains(trimmed));
-        }
+            q = q.Where(x => x.ProductName.Contains(productName));
 
         if (!string.IsNullOrWhiteSpace(productCategoryCode))
-        {
-            var trimmed = productCategoryCode.Trim();
-            q = q.Where(x => x.ProductCategoryCode == trimmed);
-        }
+            q = q.Where(x => x.ProductCategoryCode == productCategoryCode);
 
         if (isActive.HasValue)
         {

@@ -31,7 +31,7 @@ public sealed class CreateStoreTypeRequestValidator : StoreTypeRequestValidator<
         StoreTypeCdBaseRules(localizer)
             .MustAsync(async (code, ct) =>
             {
-                var existing = await repo.GetByCodeAsync(code.Trim(), ct);
+                var existing = await repo.GetByCodeAsync(code, ct);
                 return existing is null;
             }).WithMessage(localizer["Validation_Duplicate", "店舗種別コード"]);
     }
@@ -45,7 +45,7 @@ public sealed class UpdateStoreTypeRequestValidator : StoreTypeRequestValidator<
             .MustAsync(async (request, code, context, ct) =>
             {
                 var entityId = (Guid)context.RootContextData["EntityId"];
-                var existing = await repo.GetByCodeAsync(code.Trim(), ct);
+                var existing = await repo.GetByCodeAsync(code, ct);
                 return existing is null || existing.StoreTypeId == entityId;
             }).WithMessage(localizer["Validation_Duplicate", "店舗種別コード"]);
     }

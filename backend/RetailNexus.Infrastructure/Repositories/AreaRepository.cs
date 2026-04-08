@@ -60,10 +60,10 @@ public sealed class AreaRepository : IAreaRepository
         var q = _db.Areas.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(code))
-            q = q.Where(x => x.AreaCd.Contains(code.Trim()));
+            q = q.Where(x => x.AreaCd.Contains(code));
 
         if (!string.IsNullOrWhiteSpace(name))
-            q = q.Where(x => x.AreaName.Contains(name.Trim()));
+            q = q.Where(x => x.AreaName.Contains(name));
 
         if (isActive.HasValue)
             q = q.Where(x => x.IsActive == isActive.Value);

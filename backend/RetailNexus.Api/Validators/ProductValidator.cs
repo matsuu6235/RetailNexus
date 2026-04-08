@@ -28,7 +28,7 @@ public class ProductRequestValidator<T> : AbstractValidator<T> where T : IProduc
             .MaximumLength(50).WithMessage(localizer["Validation_MaxLength", "商品カテゴリコード", 50])
             .MustAsync(async (code, ct) =>
             {
-                var category = await categoryRepo.GetByCodeAsync(code.Trim(), ct);
+                var category = await categoryRepo.GetByCodeAsync(code, ct);
                 return category?.IsActive is true;
             }).WithMessage(localizer["Validation_EntityNotFoundOrInactive", "商品カテゴリ"]);
 

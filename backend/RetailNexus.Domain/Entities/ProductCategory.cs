@@ -19,9 +19,9 @@ public class ProductCategory
 
     public ProductCategory(string cd, string categoryAbbreviation, string name, int displayOrder, bool isActive, Guid actorUserId)
     {
-        ProductCategoryCd = cd.Trim();
-        CategoryAbbreviation = categoryAbbreviation.Trim().ToUpperInvariant();
-        ProductCategoryName = name.Trim();
+        ProductCategoryCd = cd;
+        CategoryAbbreviation = categoryAbbreviation.ToUpperInvariant();
+        ProductCategoryName = name;
         DisplayOrder = displayOrder;
         IsActive = isActive;
         CreatedBy = actorUserId;
@@ -30,9 +30,9 @@ public class ProductCategory
 
     public void Update(string cd, string categoryAbbreviation, string name, Guid actorUserId)
     {
-        ProductCategoryCd = cd.Trim();
-        CategoryAbbreviation = categoryAbbreviation.Trim().ToUpperInvariant();
-        ProductCategoryName = name.Trim();
+        ProductCategoryCd = cd;
+        CategoryAbbreviation = categoryAbbreviation.ToUpperInvariant();
+        ProductCategoryName = name;
         UpdatedBy = actorUserId;
         UpdatedAt = DateTimeOffset.UtcNow;
     }

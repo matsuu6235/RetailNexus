@@ -57,10 +57,10 @@ public sealed class StoreRepository : IStoreRepository
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(code))
-            q = q.Where(x => x.StoreCd.Contains(code.Trim()));
+            q = q.Where(x => x.StoreCd.Contains(code));
 
         if (!string.IsNullOrWhiteSpace(name))
-            q = q.Where(x => x.StoreName.Contains(name.Trim()));
+            q = q.Where(x => x.StoreName.Contains(name));
 
         if (areaId.HasValue)
             q = q.Where(x => x.AreaId == areaId.Value);

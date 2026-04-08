@@ -29,8 +29,8 @@ public class User
         Guid? createdBy,
         Guid? updatedBy)
     {
-        LoginId = loginId.Trim();
-        UserName = userName.Trim();
+        LoginId = loginId;
+        UserName = userName;
         Email = NormalizeNullable(email);
         PasswordHash = passwordHash;
         IsActive = isActive;
@@ -40,8 +40,8 @@ public class User
 
     public void UpdateProfile(string loginId, string userName, string? email, Guid actorId)
     {
-        LoginId = loginId.Trim();
-        UserName = userName.Trim();
+        LoginId = loginId;
+        UserName = userName;
         Email = NormalizeNullable(email);
         UpdatedAt = DateTimeOffset.UtcNow;
         UpdatedBy = actorId;
@@ -56,11 +56,6 @@ public class User
 
     private static string? NormalizeNullable(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        return value.Trim();
+        return string.IsNullOrWhiteSpace(value) ? null : value;
     }
 }

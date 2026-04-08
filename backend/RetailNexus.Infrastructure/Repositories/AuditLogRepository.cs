@@ -47,11 +47,11 @@ public sealed class AuditLogRepository : IAuditLogRepository
         if (to.HasValue)
             query = query.Where(x => x.Timestamp <= to.Value);
         if (!string.IsNullOrWhiteSpace(userName))
-            query = query.Where(x => x.UserName.Contains(userName.Trim()));
+            query = query.Where(x => x.UserName.Contains(userName));
         if (!string.IsNullOrWhiteSpace(action))
-            query = query.Where(x => x.Action == action.Trim());
+            query = query.Where(x => x.Action == action);
         if (!string.IsNullOrWhiteSpace(entityName))
-            query = query.Where(x => x.EntityName == entityName.Trim());
+            query = query.Where(x => x.EntityName == entityName);
 
         return query;
     }

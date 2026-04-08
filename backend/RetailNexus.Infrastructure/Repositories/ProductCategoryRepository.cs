@@ -72,10 +72,10 @@ public sealed class ProductCategoryRepository : IProductCategoryRepository
         var q = _db.ProductCategories.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(code))
-            q = q.Where(x => x.ProductCategoryCd.Contains(code.Trim()));
+            q = q.Where(x => x.ProductCategoryCd.Contains(code));
 
         if (!string.IsNullOrWhiteSpace(name))
-            q = q.Where(x => x.ProductCategoryName.Contains(name.Trim()));
+            q = q.Where(x => x.ProductCategoryName.Contains(name));
 
         if (isActive.HasValue)
             q = q.Where(x => x.IsActive == isActive.Value);

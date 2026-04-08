@@ -25,10 +25,10 @@ public sealed class StoreTypeRepository : IStoreTypeRepository
         var q = _db.StoreTypes.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(code))
-            q = q.Where(x => x.StoreTypeCd.Contains(code.Trim()));
+            q = q.Where(x => x.StoreTypeCd.Contains(code));
 
         if (!string.IsNullOrWhiteSpace(name))
-            q = q.Where(x => x.StoreTypeName.Contains(name.Trim()));
+            q = q.Where(x => x.StoreTypeName.Contains(name));
 
         if (isActive.HasValue)
             q = q.Where(x => x.IsActive == isActive.Value);

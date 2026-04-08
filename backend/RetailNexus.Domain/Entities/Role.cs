@@ -25,8 +25,8 @@ public class Role
 
     public Role(string roleName, string? description, Guid? createdBy = null)
     {
-        RoleName = roleName.Trim();
-        Description = description?.Trim();
+        RoleName = roleName;
+        Description = description;
         CreatedBy = createdBy;
         UpdatedBy = createdBy;
     }

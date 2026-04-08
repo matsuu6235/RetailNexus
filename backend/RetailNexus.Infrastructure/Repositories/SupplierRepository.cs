@@ -75,28 +75,16 @@ public sealed class SupplierRepository : ISupplierRepository
         var q = _db.Suppliers.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(supplierCode))
-        {
-            var value = supplierCode.Trim();
-            q = q.Where(x => x.SupplierCode.Contains(value));
-        }
+            q = q.Where(x => x.SupplierCode.Contains(supplierCode));
 
         if (!string.IsNullOrWhiteSpace(supplierName))
-        {
-            var value = supplierName.Trim();
-            q = q.Where(x => x.SupplierName.Contains(value));
-        }
+            q = q.Where(x => x.SupplierName.Contains(supplierName));
 
         if (!string.IsNullOrWhiteSpace(phoneNumber))
-        {
-            var value = phoneNumber.Trim();
-            q = q.Where(x => x.PhoneNumber != null && x.PhoneNumber.Contains(value));
-        }
+            q = q.Where(x => x.PhoneNumber != null && x.PhoneNumber.Contains(phoneNumber));
 
         if (!string.IsNullOrWhiteSpace(email))
-        {
-            var value = email.Trim();
-            q = q.Where(x => x.Email != null && x.Email.Contains(value));
-        }
+            q = q.Where(x => x.Email != null && x.Email.Contains(email));
 
         if (isActive.HasValue)
         {

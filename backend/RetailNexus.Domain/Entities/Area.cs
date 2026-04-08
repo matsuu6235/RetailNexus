@@ -16,8 +16,8 @@ public class Area
 
     public Area(string areaCd, string areaName, int displayOrder, bool isActive, Guid actorUserId)
     {
-        AreaCd = areaCd.Trim();
-        AreaName = areaName.Trim();
+        AreaCd = areaCd;
+        AreaName = areaName;
         DisplayOrder = displayOrder;
         IsActive = isActive;
         CreatedBy = actorUserId;
@@ -26,8 +26,8 @@ public class Area
 
     public void Update(string areaCd, string areaName, Guid actorUserId)
     {
-        AreaCd = areaCd.Trim();
-        AreaName = areaName.Trim();
+        AreaCd = areaCd;
+        AreaName = areaName;
         UpdatedBy = actorUserId;
         UpdatedAt = DateTimeOffset.UtcNow;
     }

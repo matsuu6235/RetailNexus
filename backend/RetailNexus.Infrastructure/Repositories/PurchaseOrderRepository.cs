@@ -100,10 +100,7 @@ public sealed class PurchaseOrderRepository : IPurchaseOrderRepository
         var q = _db.PurchaseOrders.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(orderNumber))
-        {
-            var value = orderNumber.Trim();
-            q = q.Where(x => x.OrderNumber.Contains(value));
-        }
+            q = q.Where(x => x.OrderNumber.Contains(orderNumber));
 
         if (supplierId.HasValue)
             q = q.Where(x => x.SupplierId == supplierId.Value);

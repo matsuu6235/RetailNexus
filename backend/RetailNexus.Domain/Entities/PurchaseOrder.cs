@@ -42,7 +42,7 @@ public class PurchaseOrder
         string? note,
         Guid actorUserId)
     {
-        OrderNumber = orderNumber.Trim();
+        OrderNumber = orderNumber;
         SupplierId = supplierId;
         StoreId = storeId;
         OrderDate = orderDate;
@@ -134,6 +134,6 @@ public class PurchaseOrder
 
     private static string? NormalizeOptional(string? value)
     {
-        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        return string.IsNullOrWhiteSpace(value) ? null : value;
     }
 }

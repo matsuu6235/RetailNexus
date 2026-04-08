@@ -20,8 +20,8 @@ public class Store
 
     public Store(string storeCd, string storeName, Guid areaId, Guid storeTypeId, bool isActive, Guid actorUserId)
     {
-        StoreCd = storeCd.Trim();
-        StoreName = storeName.Trim();
+        StoreCd = storeCd;
+        StoreName = storeName;
         AreaId = areaId;
         StoreTypeId = storeTypeId;
         IsActive = isActive;
@@ -31,7 +31,7 @@ public class Store
 
     public void Update(string storeName, Guid areaId, Guid storeTypeId, Guid actorUserId)
     {
-        StoreName = storeName.Trim();
+        StoreName = storeName;
         AreaId = areaId;
         StoreTypeId = storeTypeId;
         UpdatedBy = actorUserId;

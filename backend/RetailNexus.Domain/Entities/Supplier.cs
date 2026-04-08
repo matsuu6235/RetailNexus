@@ -25,7 +25,7 @@ public class Supplier
         bool isActive,
         Guid actorUserId)
     {
-        SupplierCode = supplierCode.Trim();
+        SupplierCode = supplierCode;
         SetBasic(supplierName, phoneNumber, email);
         IsActive = isActive;
         CreatedBy = actorUserId;
@@ -52,18 +52,13 @@ public class Supplier
 
     private void SetBasic(string supplierName, string? phoneNumber, string? email)
     {
-        SupplierName = supplierName.Trim();
+        SupplierName = supplierName;
         PhoneNumber = NormalizeOptional(phoneNumber);
         Email = NormalizeOptional(email);
     }
 
     private static string? NormalizeOptional(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        return value.Trim();
+        return string.IsNullOrWhiteSpace(value) ? null : value;
     }
 }

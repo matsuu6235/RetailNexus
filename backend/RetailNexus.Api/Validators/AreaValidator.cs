@@ -32,7 +32,7 @@ public sealed class CreateAreaRequestValidator : AreaRequestValidator<AreasContr
         AreaCdBaseRules(localizer)
             .MustAsync(async (code, ct) =>
             {
-                var existing = await repo.GetByCodeAsync(code.Trim(), ct);
+                var existing = await repo.GetByCodeAsync(code, ct);
                 return existing is null;
             }).WithMessage(localizer["Validation_Duplicate", "エリアコード"]);
     }
@@ -46,7 +46,7 @@ public sealed class UpdateAreaRequestValidator : AreaRequestValidator<AreasContr
             .MustAsync(async (request, code, context, ct) =>
             {
                 var entityId = (Guid)context.RootContextData["EntityId"];
-                var existing = await repo.GetByCodeAsync(code.Trim(), ct);
+                var existing = await repo.GetByCodeAsync(code, ct);
                 return existing is null || existing.AreaId == entityId;
             }).WithMessage(localizer["Validation_Duplicate", "エリアコード"]);
     }
