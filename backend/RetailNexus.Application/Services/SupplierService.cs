@@ -19,7 +19,8 @@ public class SupplierService : ISupplierService
         var maxCode = await _repo.GetMaxSupplierCodeAsync(ct);
         var supplierCode = CodeGenerator.NextSupplierCode(maxCode);
 
-        var supplier = new Supplier(supplierCode, name.Trim(), phone, email, isActive, actorId);
+        var trimmedName = name.Trim();
+        var supplier = new Supplier(supplierCode, trimmedName, phone, email, isActive, actorId);
         await _repo.AddAsync(supplier, ct);
         await _repo.SaveChangesAsync(ct);
 
@@ -31,7 +32,8 @@ public class SupplierService : ISupplierService
         var supplier = await _repo.GetByIdAsync(id, ct)
             ?? throw new EntityNotFoundException("Supplier", id);
 
-        supplier.Update(name.Trim(), phone, email, actorId);
+        var trimmedName = name.Trim();
+        supplier.Update(trimmedName, phone, email, actorId);
         await _repo.SaveChangesAsync(ct);
 
         return supplier;

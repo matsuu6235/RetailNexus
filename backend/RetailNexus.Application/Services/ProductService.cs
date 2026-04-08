@@ -18,15 +18,18 @@ public class ProductService : IProductService
 
     public async Task<Product> CreateAsync(string janCode, string productName, decimal price, decimal cost, string productCategoryCode, Guid actorId, CancellationToken ct)
     {
-        var categoryCode = productCategoryCode.Trim();
-        var category = await _categoryRepo.GetByCodeAsync(categoryCode, ct)
-            ?? throw new EntityNotFoundException("ProductCategory", categoryCode);
+        var trimmedCategoryCode = productCategoryCode.Trim();
+        var trimmedJanCode = janCode.Trim();
+        var trimmedProductName = productName.Trim();
+
+        var category = await _categoryRepo.GetByCodeAsync(trimmedCategoryCode, ct)
+            ?? throw new EntityNotFoundException("ProductCategory", trimmedCategoryCode);
 
         var abbreviation = category.CategoryAbbreviation;
         var maxCode = await _productRepo.GetMaxProductCodeByPrefixAsync(abbreviation, ct);
         var productCode = CodeGenerator.NextProductCode(maxCode, abbreviation);
 
-        var product = new Product(productCode, janCode.Trim(), productName.Trim(), price, cost, categoryCode, actorId);
+        var product = new Product(productCode, trimmedJanCode, trimmedProductName, price, cost, trimmedCategoryCode, actorId);
         await _productRepo.AddAsync(product, ct);
         await _productRepo.SaveChangesAsync(ct);
 
@@ -38,7 +41,10 @@ public class ProductService : IProductService
         var product = await _productRepo.GetByIdAsync(id, ct)
             ?? throw new EntityNotFoundException("Product", id);
 
-        product.Update(janCode.Trim(), productName.Trim(), price, cost, productCategoryCode.Trim(), actorId);
+        var trimmedJanCode = janCode.Trim();
+        var trimmedProductName = productName.Trim();
+        var trimmedCategoryCode = productCategoryCode.Trim();
+        product.Update(trimmedJanCode, trimmedProductName, price, cost, trimmedCategoryCode, actorId);
         await _productRepo.SaveChangesAsync(ct);
 
         return product;

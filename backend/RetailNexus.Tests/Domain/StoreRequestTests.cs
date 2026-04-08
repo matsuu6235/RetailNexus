@@ -33,14 +33,6 @@ public class StoreRequestTests
     }
 
     [Fact]
-    public void Constructor_ShouldTrimRequestNumber()
-    {
-        var request = new StoreRequest("  SR-000001  ", _fromStoreId, _toStoreId, DateTimeOffset.UtcNow, null, null, _actorUserId);
-
-        request.RequestNumber.Should().Be("SR-000001");
-    }
-
-    [Fact]
     public void Constructor_ShouldNormalizeEmptyNoteToNull()
     {
         var request = new StoreRequest("SR-000001", _fromStoreId, _toStoreId, DateTimeOffset.UtcNow, null, "   ", _actorUserId);

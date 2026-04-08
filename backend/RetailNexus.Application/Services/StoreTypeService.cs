@@ -18,7 +18,9 @@ public class StoreTypeService : IStoreTypeService
     {
         var nextDisplayOrder = await _repo.GetNextDisplayOrderAsync(ct);
 
-        var entity = new StoreType(code.Trim(), name.Trim(), nextDisplayOrder, isActive, actorId);
+        var trimmedCode = code.Trim();
+        var trimmedName = name.Trim();
+        var entity = new StoreType(trimmedCode, trimmedName, nextDisplayOrder, isActive, actorId);
         await _repo.AddAsync(entity, ct);
         await _repo.SaveChangesAsync(ct);
 
@@ -30,7 +32,9 @@ public class StoreTypeService : IStoreTypeService
         var entity = await _repo.GetByIdAsync(id, ct)
             ?? throw new EntityNotFoundException("StoreType", id);
 
-        entity.Update(code.Trim(), name.Trim(), actorId);
+        var trimmedCode = code.Trim();
+        var trimmedName = name.Trim();
+        entity.Update(trimmedCode, trimmedName, actorId);
         await _repo.SaveChangesAsync(ct);
 
         return entity;

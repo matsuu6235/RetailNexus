@@ -27,12 +27,15 @@ public class UserService : IUserService
         if (password.Length < 8)
             throw new BusinessRuleException("Password", "パスワードは8文字以上で入力してください。");
 
-        var existing = await _userRepo.FindByLoginIdAsync(loginId.Trim(), ct);
+        var trimmedLoginId = loginId.Trim();
+        var trimmedUserName = userName.Trim();
+
+        var existing = await _userRepo.FindByLoginIdAsync(trimmedLoginId, ct);
         if (existing is not null)
             throw new DuplicateException("LoginId", "このログインIDは既に使用されています。");
 
         var hash = _passwordHasher.Hash(password);
-        var user = new User(loginId.Trim(), userName.Trim(), email, hash, isActive, actorId, actorId);
+        var user = new User(trimmedLoginId, trimmedUserName, email, hash, isActive, actorId, actorId);
         await _userRepo.AddAsync(user, ct);
         await _userRepo.SaveChangesAsync(ct);
 
@@ -56,11 +59,14 @@ public class UserService : IUserService
         var user = await _userRepo.FindByIdWithRolesAsync(id, ct)
             ?? throw new EntityNotFoundException("User", id);
 
-        var duplicate = await _userRepo.FindByLoginIdAsync(loginId.Trim(), ct);
+        var trimmedLoginId = loginId.Trim();
+        var trimmedUserName = userName.Trim();
+
+        var duplicate = await _userRepo.FindByLoginIdAsync(trimmedLoginId, ct);
         if (duplicate is not null && duplicate.UserId != id)
             throw new DuplicateException("LoginId", "このログインIDは既に使用されています。");
 
-        user.UpdateProfile(loginId.Trim(), userName.Trim(), email, actorId);
+        user.UpdateProfile(trimmedLoginId, trimmedUserName, email, actorId);
 
         await _userRepo.ReplaceUserRolesAsync(id, roleIds, ct);
         await _userRepo.SaveChangesAsync(ct);

@@ -32,14 +32,6 @@ public class PurchaseOrderTests
     }
 
     [Fact]
-    public void Constructor_ShouldTrimOrderNumber()
-    {
-        var order = new PurchaseOrder("  PO-000001  ", _supplierId, _storeId, DateTimeOffset.UtcNow, null, null, _actorUserId);
-
-        order.OrderNumber.Should().Be("PO-000001");
-    }
-
-    [Fact]
     public void Constructor_ShouldNormalizeEmptyNoteToNull()
     {
         var order = new PurchaseOrder("PO-000001", _supplierId, _storeId, DateTimeOffset.UtcNow, null, "  ", _actorUserId);

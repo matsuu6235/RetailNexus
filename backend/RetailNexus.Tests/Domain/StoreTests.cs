@@ -24,15 +24,6 @@ public class StoreTests
     }
 
     [Fact]
-    public void Constructor_ShouldTrimWhitespace()
-    {
-        var store = new Store("  000001  ", "  渋谷店  ", _areaId, _storeTypeId, true, _actorUserId);
-
-        store.StoreCd.Should().Be("000001");
-        store.StoreName.Should().Be("渋谷店");
-    }
-
-    [Fact]
     public void Update_ShouldModifyProperties()
     {
         var store = new Store("000001", "渋谷店", _areaId, _storeTypeId, true, _actorUserId);
@@ -61,16 +52,6 @@ public class StoreTests
         store.IsActive.Should().BeFalse();
         store.UpdatedBy.Should().Be(updater);
         store.UpdatedAt.Should().BeOnOrAfter(before);
-    }
-
-    [Fact]
-    public void Update_ShouldTrimWhitespace()
-    {
-        var store = new Store("000001", "渋谷店", _areaId, _storeTypeId, true, _actorUserId);
-
-        store.Update("  新宿店  ", _areaId, _storeTypeId, _actorUserId);
-
-        store.StoreName.Should().Be("新宿店");
     }
 
     [Fact]

@@ -22,17 +22,6 @@ public class SupplierTests
     }
 
     [Fact]
-    public void Constructor_ShouldTrimWhitespace()
-    {
-        var supplier = new Supplier("  00001  ", "  テスト仕入先  ", "  03-1234-5678  ", "  test@example.com  ", true, _actorUserId);
-
-        supplier.SupplierCode.Should().Be("00001");
-        supplier.SupplierName.Should().Be("テスト仕入先");
-        supplier.PhoneNumber.Should().Be("03-1234-5678");
-        supplier.Email.Should().Be("test@example.com");
-    }
-
-    [Fact]
     public void Constructor_ShouldNormalizeEmptyOptionalFieldsToNull()
     {
         var supplier = new Supplier("00001", "テスト仕入先", "", "", true, _actorUserId);

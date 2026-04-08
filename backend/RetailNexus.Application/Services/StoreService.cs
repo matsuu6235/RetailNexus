@@ -19,7 +19,8 @@ public class StoreService : IStoreService
         var maxCode = await _repo.GetMaxStoreCodeAsync(ct);
         var storeCd = CodeGenerator.NextStoreCode(maxCode);
 
-        var entity = new Store(storeCd, storeName.Trim(), areaId, storeTypeId, isActive, actorId);
+        var trimmedName = storeName.Trim();
+        var entity = new Store(storeCd, trimmedName, areaId, storeTypeId, isActive, actorId);
         await _repo.AddAsync(entity, ct);
         await _repo.SaveChangesAsync(ct);
 
@@ -33,7 +34,8 @@ public class StoreService : IStoreService
         var entity = await _repo.GetByIdAsync(id, ct)
             ?? throw new EntityNotFoundException("Store", id);
 
-        entity.Update(storeName.Trim(), areaId, storeTypeId, actorId);
+        var trimmedName = storeName.Trim();
+        entity.Update(trimmedName, areaId, storeTypeId, actorId);
         await _repo.SaveChangesAsync(ct);
 
         // ナビゲーションプロパティを含めて再取得

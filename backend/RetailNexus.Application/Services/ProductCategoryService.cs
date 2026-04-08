@@ -18,7 +18,10 @@ public class ProductCategoryService : IProductCategoryService
     {
         var nextDisplayOrder = await _repo.GetNextDisplayOrderAsync(ct);
 
-        var entity = new ProductCategory(code.Trim(), abbreviation.Trim(), name.Trim(), nextDisplayOrder, isActive, actorId);
+        var trimmedCode = code.Trim();
+        var trimmedAbbreviation = abbreviation.Trim();
+        var trimmedName = name.Trim();
+        var entity = new ProductCategory(trimmedCode, trimmedAbbreviation, trimmedName, nextDisplayOrder, isActive, actorId);
         await _repo.AddAsync(entity, ct);
         await _repo.SaveChangesAsync(ct);
 
@@ -30,7 +33,10 @@ public class ProductCategoryService : IProductCategoryService
         var entity = await _repo.GetByIdAsync(id, ct)
             ?? throw new EntityNotFoundException("ProductCategory", id);
 
-        entity.Update(code.Trim(), abbreviation.Trim(), name.Trim(), actorId);
+        var trimmedCode = code.Trim();
+        var trimmedAbbreviation = abbreviation.Trim();
+        var trimmedName = name.Trim();
+        entity.Update(trimmedCode, trimmedAbbreviation, trimmedName, actorId);
         await _repo.SaveChangesAsync(ct);
 
         return entity;

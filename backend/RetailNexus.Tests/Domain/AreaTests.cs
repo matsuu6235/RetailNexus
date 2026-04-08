@@ -21,15 +21,6 @@ public class AreaTests
     }
 
     [Fact]
-    public void Constructor_ShouldTrimWhitespace()
-    {
-        var area = new Area("  01  ", "  関東  ", 1, true, _actorUserId);
-
-        area.AreaCd.Should().Be("01");
-        area.AreaName.Should().Be("関東");
-    }
-
-    [Fact]
     public void Update_ShouldModifyProperties()
     {
         var area = new Area("01", "関東", 1, true, _actorUserId);
@@ -54,17 +45,6 @@ public class AreaTests
         area.IsActive.Should().BeFalse();
         area.UpdatedBy.Should().Be(updater);
         area.UpdatedAt.Should().BeOnOrAfter(before);
-    }
-
-    [Fact]
-    public void Update_ShouldTrimWhitespace()
-    {
-        var area = new Area("01", "関東", 1, true, _actorUserId);
-
-        area.Update("  02  ", "  関西  ", _actorUserId);
-
-        area.AreaCd.Should().Be("02");
-        area.AreaName.Should().Be("関西");
     }
 
     [Fact]

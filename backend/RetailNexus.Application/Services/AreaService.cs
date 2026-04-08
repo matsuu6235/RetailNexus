@@ -32,7 +32,9 @@ public class AreaService : IAreaService
         var entity = await _repo.GetByIdAsync(id, ct)
             ?? throw new EntityNotFoundException("Area", id);
 
-        entity.Update(areaCd.Trim(), areaName.Trim(), actorId);
+        var trimmedCode = areaCd.Trim();
+        var trimmedName = areaName.Trim();
+        entity.Update(trimmedCode, trimmedName, actorId);
         await _repo.SaveChangesAsync(ct);
 
         return entity;
