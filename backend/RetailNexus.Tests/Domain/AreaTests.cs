@@ -12,7 +12,7 @@ public class AreaTests
     {
         var area = new Area("01", "関東", 1, true, _actorUserId);
 
-        area.AreaCd.Should().Be("01");
+        area.AreaCode.Should().Be("01");
         area.AreaName.Should().Be("関東");
         area.DisplayOrder.Should().Be(1);
         area.IsActive.Should().BeTrue();
@@ -28,7 +28,7 @@ public class AreaTests
 
         area.Update("02", "関西", updater);
 
-        area.AreaCd.Should().Be("02");
+        area.AreaCode.Should().Be("02");
         area.AreaName.Should().Be("関西");
         area.UpdatedBy.Should().Be(updater);
     }

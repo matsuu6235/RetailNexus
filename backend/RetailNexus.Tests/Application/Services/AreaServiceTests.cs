@@ -26,7 +26,7 @@ public class AreaServiceTests
 
         var result = await _service.CreateAsync("01", "関東", true, actorId, CancellationToken.None);
 
-        result.AreaCd.Should().Be("01");
+        result.AreaCode.Should().Be("01");
         result.AreaName.Should().Be("関東");
         result.DisplayOrder.Should().Be(1);
         result.IsActive.Should().BeTrue();
@@ -46,7 +46,7 @@ public class AreaServiceTests
 
         var result = await _service.UpdateAsync(entity.AreaId, "02", "関西", actorId, CancellationToken.None);
 
-        result.AreaCd.Should().Be("02");
+        result.AreaCode.Should().Be("02");
         result.AreaName.Should().Be("関西");
         _repoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }

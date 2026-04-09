@@ -33,7 +33,7 @@ public class StoreServiceTests
 
         var result = await _service.CreateAsync("テスト店舗", areaId, storeTypeId, true, actorId, CancellationToken.None);
 
-        result.StoreCd.Should().Be("000001");
+        result.StoreCode.Should().Be("000001");
         result.StoreName.Should().Be("テスト店舗");
         result.AreaId.Should().Be(areaId);
         result.StoreTypeId.Should().Be(storeTypeId);

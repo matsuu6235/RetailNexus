@@ -40,29 +40,29 @@ public class CreateProductCategoryValidatorTests
     [Theory]
     [InlineData("")]
     [InlineData(null)]
-    public async Task ProductCategoryCd_WhenEmpty_ShouldFail(string? code)
+    public async Task ProductCategoryCode_WhenEmpty_ShouldFail(string? code)
     {
         var request = new ProductCategoriesController.CreateProductCategoryRequest(code!, "FD", "食品");
 
         var result = await _validator.TestValidateAsync(request);
 
-        result.ShouldHaveValidationErrorFor(x => x.ProductCategoryCd)
+        result.ShouldHaveValidationErrorFor(x => x.ProductCategoryCode)
             .WithErrorMessage("商品カテゴリコードは必須です。");
     }
 
     [Fact]
-    public async Task ProductCategoryCd_WhenTooLong_ShouldFail()
+    public async Task ProductCategoryCode_WhenTooLong_ShouldFail()
     {
         var request = new ProductCategoriesController.CreateProductCategoryRequest(new string('0', 4), "FD", "食品");
 
         var result = await _validator.TestValidateAsync(request);
 
-        result.ShouldHaveValidationErrorFor(x => x.ProductCategoryCd)
+        result.ShouldHaveValidationErrorFor(x => x.ProductCategoryCode)
             .WithErrorMessage("商品カテゴリコードは3文字以内で入力してください。");
     }
 
     [Fact]
-    public async Task ProductCategoryCd_WhenDuplicate_ShouldFail()
+    public async Task ProductCategoryCode_WhenDuplicate_ShouldFail()
     {
         var existing = new ProductCategory("001", "FD", "既存カテゴリ", 1, true, Guid.NewGuid());
         _repoMock
@@ -73,7 +73,7 @@ public class CreateProductCategoryValidatorTests
 
         var result = await _validator.TestValidateAsync(request);
 
-        result.ShouldHaveValidationErrorFor(x => x.ProductCategoryCd)
+        result.ShouldHaveValidationErrorFor(x => x.ProductCategoryCode)
             .WithErrorMessage("この商品カテゴリコードは既に使用されています。");
     }
 
@@ -147,7 +147,7 @@ public class UpdateProductCategoryValidatorTests
     }
 
     [Fact]
-    public async Task ProductCategoryCd_WhenSameEntity_ShouldPass()
+    public async Task ProductCategoryCode_WhenSameEntity_ShouldPass()
     {
         var existing = new ProductCategory("001", "FD", "食品", 1, true, Guid.NewGuid());
         typeof(ProductCategory).GetProperty("ProductCategoryId")!.SetValue(existing, _entityId);
@@ -160,11 +160,11 @@ public class UpdateProductCategoryValidatorTests
 
         var result = await _validator.TestValidateAsync(CreateContext(request));
 
-        result.ShouldNotHaveValidationErrorFor(x => x.ProductCategoryCd);
+        result.ShouldNotHaveValidationErrorFor(x => x.ProductCategoryCode);
     }
 
     [Fact]
-    public async Task ProductCategoryCd_WhenDifferentEntity_ShouldFail()
+    public async Task ProductCategoryCode_WhenDifferentEntity_ShouldFail()
     {
         var other = new ProductCategory("001", "FD", "他のカテゴリ", 1, true, Guid.NewGuid());
 
@@ -176,7 +176,7 @@ public class UpdateProductCategoryValidatorTests
 
         var result = await _validator.TestValidateAsync(CreateContext(request));
 
-        result.ShouldHaveValidationErrorFor(x => x.ProductCategoryCd)
+        result.ShouldHaveValidationErrorFor(x => x.ProductCategoryCode)
             .WithErrorMessage("この商品カテゴリコードは既に使用されています。");
     }
 }

@@ -26,7 +26,7 @@ public class ProductCategoryServiceTests
 
         var result = await _service.CreateAsync("01", "FD", "食品", true, actorId, CancellationToken.None);
 
-        result.ProductCategoryCd.Should().Be("01");
+        result.ProductCategoryCode.Should().Be("01");
         result.CategoryAbbreviation.Should().Be("FD");
         result.ProductCategoryName.Should().Be("食品");
         result.DisplayOrder.Should().Be(1);
@@ -47,7 +47,7 @@ public class ProductCategoryServiceTests
 
         var result = await _service.UpdateAsync(entity.ProductCategoryId, "02", "BV", "飲料", actorId, CancellationToken.None);
 
-        result.ProductCategoryCd.Should().Be("02");
+        result.ProductCategoryCode.Should().Be("02");
         result.CategoryAbbreviation.Should().Be("BV");
         result.ProductCategoryName.Should().Be("飲料");
         _repoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);

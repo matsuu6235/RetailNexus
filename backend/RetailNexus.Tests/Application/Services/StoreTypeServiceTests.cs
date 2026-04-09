@@ -26,7 +26,7 @@ public class StoreTypeServiceTests
 
         var result = await _service.CreateAsync("01", "直営店", true, actorId, CancellationToken.None);
 
-        result.StoreTypeCd.Should().Be("01");
+        result.StoreTypeCode.Should().Be("01");
         result.StoreTypeName.Should().Be("直営店");
         result.DisplayOrder.Should().Be(1);
         result.IsActive.Should().BeTrue();
@@ -46,7 +46,7 @@ public class StoreTypeServiceTests
 
         var result = await _service.UpdateAsync(entity.StoreTypeId, "02", "フランチャイズ", actorId, CancellationToken.None);
 
-        result.StoreTypeCd.Should().Be("02");
+        result.StoreTypeCode.Should().Be("02");
         result.StoreTypeName.Should().Be("フランチャイズ");
         _repoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }

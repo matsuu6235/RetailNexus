@@ -40,29 +40,29 @@ public class CreateAreaValidatorTests
     [Theory]
     [InlineData("")]
     [InlineData(null)]
-    public async Task AreaCd_WhenEmpty_ShouldFail(string? code)
+    public async Task AreaCode_WhenEmpty_ShouldFail(string? code)
     {
         var request = new AreasController.CreateAreaRequest(code!, "関東");
 
         var result = await _validator.TestValidateAsync(request);
 
-        result.ShouldHaveValidationErrorFor(x => x.AreaCd)
+        result.ShouldHaveValidationErrorFor(x => x.AreaCode)
             .WithErrorMessage("エリアコードは必須です。");
     }
 
     [Fact]
-    public async Task AreaCd_WhenTooLong_ShouldFail()
+    public async Task AreaCode_WhenTooLong_ShouldFail()
     {
         var request = new AreasController.CreateAreaRequest("123", "関東");
 
         var result = await _validator.TestValidateAsync(request);
 
-        result.ShouldHaveValidationErrorFor(x => x.AreaCd)
+        result.ShouldHaveValidationErrorFor(x => x.AreaCode)
             .WithErrorMessage("エリアコードは2文字以内で入力してください。");
     }
 
     [Fact]
-    public async Task AreaCd_WhenDuplicate_ShouldFail()
+    public async Task AreaCode_WhenDuplicate_ShouldFail()
     {
         var existingArea = new Area("01", "既存エリア", 1, true, Guid.NewGuid());
         _repoMock
@@ -73,20 +73,20 @@ public class CreateAreaValidatorTests
 
         var result = await _validator.TestValidateAsync(request);
 
-        result.ShouldHaveValidationErrorFor(x => x.AreaCd)
+        result.ShouldHaveValidationErrorFor(x => x.AreaCode)
             .WithErrorMessage("このエリアコードは既に使用されています。");
     }
 
     [Fact]
-    public async Task AreaCd_WhenDuplicate_ShouldStopAtFirstError()
+    public async Task AreaCode_WhenDuplicate_ShouldStopAtFirstError()
     {
         // CascadeMode.Stop により、必須チェックで止まり重複チェックは実行されない
         var request = new AreasController.CreateAreaRequest("", "関東");
 
         var result = await _validator.TestValidateAsync(request);
 
-        result.ShouldHaveValidationErrorFor(x => x.AreaCd);
-        result.Errors.Where(e => e.PropertyName == "AreaCd").Should().HaveCount(1);
+        result.ShouldHaveValidationErrorFor(x => x.AreaCode);
+        result.Errors.Where(e => e.PropertyName == "AreaCode").Should().HaveCount(1);
     }
 
     [Theory]
@@ -158,7 +158,7 @@ public class UpdateAreaValidatorTests
     }
 
     [Fact]
-    public async Task AreaCd_WhenSameEntityHasSameCode_ShouldPass()
+    public async Task AreaCode_WhenSameEntityHasSameCode_ShouldPass()
     {
         // 自分自身のコードと同じ場合はOK
         var existingArea = new Area("01", "関東", 1, true, Guid.NewGuid());
@@ -173,11 +173,11 @@ public class UpdateAreaValidatorTests
 
         var result = await _validator.TestValidateAsync(CreateContext(request));
 
-        result.ShouldNotHaveValidationErrorFor(x => x.AreaCd);
+        result.ShouldNotHaveValidationErrorFor(x => x.AreaCode);
     }
 
     [Fact]
-    public async Task AreaCd_WhenDifferentEntityHasSameCode_ShouldFail()
+    public async Task AreaCode_WhenDifferentEntityHasSameCode_ShouldFail()
     {
         var otherArea = new Area("01", "他エリア", 1, true, Guid.NewGuid());
 
@@ -189,7 +189,7 @@ public class UpdateAreaValidatorTests
 
         var result = await _validator.TestValidateAsync(CreateContext(request));
 
-        result.ShouldHaveValidationErrorFor(x => x.AreaCd)
+        result.ShouldHaveValidationErrorFor(x => x.AreaCode)
             .WithErrorMessage("このエリアコードは既に使用されています。");
     }
 }

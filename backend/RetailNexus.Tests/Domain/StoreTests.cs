@@ -14,7 +14,7 @@ public class StoreTests
     {
         var store = new Store("000001", "渋谷店", _areaId, _storeTypeId, true, _actorUserId);
 
-        store.StoreCd.Should().Be("000001");
+        store.StoreCode.Should().Be("000001");
         store.StoreName.Should().Be("渋谷店");
         store.AreaId.Should().Be(_areaId);
         store.StoreTypeId.Should().Be(_storeTypeId);
@@ -33,7 +33,7 @@ public class StoreTests
 
         store.Update("新宿店", newAreaId, newStoreTypeId, updater);
 
-        store.StoreCd.Should().Be("000001");
+        store.StoreCode.Should().Be("000001");
         store.StoreName.Should().Be("新宿店");
         store.AreaId.Should().Be(newAreaId);
         store.StoreTypeId.Should().Be(newStoreTypeId);
@@ -66,14 +66,14 @@ public class StoreTests
     }
 
     [Fact]
-    public void Update_ShouldNotChangeCreatedByOrStoreCd()
+    public void Update_ShouldNotChangeCreatedByOrStoreCode()
     {
         var store = new Store("000001", "渋谷店", _areaId, _storeTypeId, true, _actorUserId);
         var updater = Guid.NewGuid();
 
         store.Update("渋谷店", _areaId, _storeTypeId, updater);
 
-        store.StoreCd.Should().Be("000001");
+        store.StoreCode.Should().Be("000001");
         store.CreatedBy.Should().Be(_actorUserId);
         store.UpdatedBy.Should().Be(updater);
     }

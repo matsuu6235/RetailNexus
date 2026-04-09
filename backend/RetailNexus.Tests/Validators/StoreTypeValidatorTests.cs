@@ -39,29 +39,29 @@ public class CreateStoreTypeValidatorTests
     [Theory]
     [InlineData("")]
     [InlineData(null)]
-    public async Task StoreTypeCd_WhenEmpty_ShouldFail(string? code)
+    public async Task StoreTypeCode_WhenEmpty_ShouldFail(string? code)
     {
         var request = new StoreTypesController.CreateStoreTypeRequest(code!, "直営店");
 
         var result = await _validator.TestValidateAsync(request);
 
-        result.ShouldHaveValidationErrorFor(x => x.StoreTypeCd)
+        result.ShouldHaveValidationErrorFor(x => x.StoreTypeCode)
             .WithErrorMessage("店舗種別コードは必須です。");
     }
 
     [Fact]
-    public async Task StoreTypeCd_WhenTooLong_ShouldFail()
+    public async Task StoreTypeCode_WhenTooLong_ShouldFail()
     {
         var request = new StoreTypesController.CreateStoreTypeRequest("123", "直営店");
 
         var result = await _validator.TestValidateAsync(request);
 
-        result.ShouldHaveValidationErrorFor(x => x.StoreTypeCd)
+        result.ShouldHaveValidationErrorFor(x => x.StoreTypeCode)
             .WithErrorMessage("店舗種別コードは2文字以内で入力してください。");
     }
 
     [Fact]
-    public async Task StoreTypeCd_WhenDuplicate_ShouldFail()
+    public async Task StoreTypeCode_WhenDuplicate_ShouldFail()
     {
         var existing = new StoreType("01", "既存種別", 1, true, Guid.NewGuid());
         _repoMock
@@ -72,7 +72,7 @@ public class CreateStoreTypeValidatorTests
 
         var result = await _validator.TestValidateAsync(request);
 
-        result.ShouldHaveValidationErrorFor(x => x.StoreTypeCd)
+        result.ShouldHaveValidationErrorFor(x => x.StoreTypeCode)
             .WithErrorMessage("この店舗種別コードは既に使用されています。");
     }
 
