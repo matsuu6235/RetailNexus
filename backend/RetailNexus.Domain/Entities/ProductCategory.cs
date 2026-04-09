@@ -3,7 +3,7 @@
 public class ProductCategory
 {
     public Guid ProductCategoryId { get; private set; } = Guid.NewGuid();
-    public string ProductCategoryCd { get; private set; } = string.Empty;
+    public string ProductCategoryCode { get; private set; } = string.Empty;
     public string CategoryAbbreviation { get; private set; } = string.Empty;
     public string ProductCategoryName { get; private set; } = string.Empty;
     public int DisplayOrder { get; private set; }
@@ -19,7 +19,7 @@ public class ProductCategory
 
     public ProductCategory(string productCategoryCode, string categoryAbbreviation, string productCategoryName, int displayOrder, bool isActive, Guid actorUserId)
     {
-        ProductCategoryCd = productCategoryCode;
+        ProductCategoryCode = productCategoryCode;
         CategoryAbbreviation = categoryAbbreviation.ToUpperInvariant();
         ProductCategoryName = productCategoryName;
         DisplayOrder = displayOrder;
@@ -30,7 +30,7 @@ public class ProductCategory
 
     public void Update(string productCategoryCode, string categoryAbbreviation, string productCategoryName, Guid actorUserId)
     {
-        ProductCategoryCd = productCategoryCode;
+        ProductCategoryCode = productCategoryCode;
         CategoryAbbreviation = categoryAbbreviation.ToUpperInvariant();
         ProductCategoryName = productCategoryName;
         UpdatedBy = actorUserId;

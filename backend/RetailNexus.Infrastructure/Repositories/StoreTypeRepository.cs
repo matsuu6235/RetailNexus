@@ -18,14 +18,14 @@ public sealed class StoreTypeRepository : IStoreTypeRepository
         => _db.StoreTypes.FirstOrDefaultAsync(x => x.StoreTypeId == id, ct);
 
     public Task<StoreType?> GetByCodeAsync(string code, CancellationToken ct)
-        => _db.StoreTypes.FirstOrDefaultAsync(x => x.StoreTypeCd == code, ct);
+        => _db.StoreTypes.FirstOrDefaultAsync(x => x.StoreTypeCode == code, ct);
 
     public async Task<IReadOnlyList<StoreType>> ListAsync(string? code, string? name, bool? isActive, CancellationToken ct)
     {
         var q = _db.StoreTypes.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(code))
-            q = q.Where(x => x.StoreTypeCd.Contains(code));
+            q = q.Where(x => x.StoreTypeCode.Contains(code));
 
         if (!string.IsNullOrWhiteSpace(name))
             q = q.Where(x => x.StoreTypeName.Contains(name));
@@ -35,7 +35,7 @@ public sealed class StoreTypeRepository : IStoreTypeRepository
 
         return await q
             .OrderBy(x => x.DisplayOrder)
-            .ThenBy(x => x.StoreTypeCd)
+            .ThenBy(x => x.StoreTypeCode)
             .ToListAsync(ct);
     }
 

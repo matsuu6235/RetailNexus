@@ -3,7 +3,7 @@
 public class StoreType
 {
     public Guid StoreTypeId { get; private set; } = Guid.NewGuid();
-    public string StoreTypeCd { get; private set; } = string.Empty;
+    public string StoreTypeCode { get; private set; } = string.Empty;
     public string StoreTypeName { get; private set; } = string.Empty;
     public int DisplayOrder { get; private set; }
     public bool IsActive { get; private set; } = true;
@@ -14,9 +14,9 @@ public class StoreType
 
     private StoreType() { }
 
-    public StoreType(string storeTypeCd, string storeTypeName, int displayOrder, bool isActive, Guid actorUserId)
+    public StoreType(string storeTypeCode, string storeTypeName, int displayOrder, bool isActive, Guid actorUserId)
     {
-        StoreTypeCd = storeTypeCd;
+        StoreTypeCode = storeTypeCode;
         StoreTypeName = storeTypeName;
         DisplayOrder = displayOrder;
         IsActive = isActive;
@@ -24,9 +24,9 @@ public class StoreType
         UpdatedBy = actorUserId;
     }
 
-    public void Update(string storeTypeCd, string storeTypeName, Guid actorUserId)
+    public void Update(string storeTypeCode, string storeTypeName, Guid actorUserId)
     {
-        StoreTypeCd = storeTypeCd;
+        StoreTypeCode = storeTypeCode;
         StoreTypeName = storeTypeName;
         UpdatedBy = actorUserId;
         UpdatedAt = DateTimeOffset.UtcNow;

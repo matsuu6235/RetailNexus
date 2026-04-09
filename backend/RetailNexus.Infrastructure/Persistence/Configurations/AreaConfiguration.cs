@@ -16,8 +16,8 @@ public sealed class AreaConfiguration : IEntityTypeConfiguration<Area>
             .HasColumnName("area_id")
             .HasDefaultValueSql("gen_random_uuid()");
 
-        b.Property(x => x.AreaCd)
-            .HasColumnName("area_cd")
+        b.Property(x => x.AreaCode)
+            .HasColumnName("area_code")
             .HasMaxLength(2)
             .IsRequired();
 

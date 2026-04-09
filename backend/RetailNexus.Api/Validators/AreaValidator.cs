@@ -16,9 +16,9 @@ public class AreaRequestValidator<T> : AbstractValidator<T> where T : IAreaReque
             .MaximumLength(20).WithMessage(localizer["Validation_MaxLength", "エリア名", 20]);
     }
 
-    protected IRuleBuilderOptions<T, string> AreaCdBaseRules(IStringLocalizer<SharedMessages> localizer)
+    protected IRuleBuilderOptions<T, string> AreaCodeBaseRules(IStringLocalizer<SharedMessages> localizer)
     {
-        return RuleFor(x => x.AreaCd)
+        return RuleFor(x => x.AreaCode)
             .Cascade(CascadeMode.Stop)
             .NotEmpty().WithMessage(localizer["Validation_Required", "エリアコード"])
             .MaximumLength(2).WithMessage(localizer["Validation_MaxLength", "エリアコード", 2]);
@@ -29,7 +29,7 @@ public sealed class CreateAreaRequestValidator : AreaRequestValidator<AreasContr
 {
     public CreateAreaRequestValidator(IAreaRepository repo, IStringLocalizer<SharedMessages> localizer) : base(localizer)
     {
-        AreaCdBaseRules(localizer)
+        AreaCodeBaseRules(localizer)
             .MustAsync(async (code, ct) =>
             {
                 var existing = await repo.GetByCodeAsync(code, ct);
@@ -42,7 +42,7 @@ public sealed class UpdateAreaRequestValidator : AreaRequestValidator<AreasContr
 {
     public UpdateAreaRequestValidator(IAreaRepository repo, IStringLocalizer<SharedMessages> localizer) : base(localizer)
     {
-        AreaCdBaseRules(localizer)
+        AreaCodeBaseRules(localizer)
             .MustAsync(async (request, code, context, ct) =>
             {
                 var entityId = (Guid)context.RootContextData["EntityId"];

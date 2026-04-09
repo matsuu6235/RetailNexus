@@ -15,9 +15,9 @@ public class StoreTypeRequestValidator<T> : AbstractValidator<T> where T : IStor
             .MaximumLength(20).WithMessage(localizer["Validation_MaxLength", "店舗種別名", 20]);
     }
 
-    protected IRuleBuilderOptions<T, string> StoreTypeCdBaseRules(IStringLocalizer<SharedMessages> localizer)
+    protected IRuleBuilderOptions<T, string> StoreTypeCodeBaseRules(IStringLocalizer<SharedMessages> localizer)
     {
-        return RuleFor(x => x.StoreTypeCd)
+        return RuleFor(x => x.StoreTypeCode)
             .Cascade(CascadeMode.Stop)
             .NotEmpty().WithMessage(localizer["Validation_Required", "店舗種別コード"])
             .MaximumLength(2).WithMessage(localizer["Validation_MaxLength", "店舗種別コード", 2]);
@@ -28,7 +28,7 @@ public sealed class CreateStoreTypeRequestValidator : StoreTypeRequestValidator<
 {
     public CreateStoreTypeRequestValidator(IStoreTypeRepository repo, IStringLocalizer<SharedMessages> localizer) : base(localizer)
     {
-        StoreTypeCdBaseRules(localizer)
+        StoreTypeCodeBaseRules(localizer)
             .MustAsync(async (code, ct) =>
             {
                 var existing = await repo.GetByCodeAsync(code, ct);
@@ -41,7 +41,7 @@ public sealed class UpdateStoreTypeRequestValidator : StoreTypeRequestValidator<
 {
     public UpdateStoreTypeRequestValidator(IStoreTypeRepository repo, IStringLocalizer<SharedMessages> localizer) : base(localizer)
     {
-        StoreTypeCdBaseRules(localizer)
+        StoreTypeCodeBaseRules(localizer)
             .MustAsync(async (request, code, context, ct) =>
             {
                 var entityId = (Guid)context.RootContextData["EntityId"];

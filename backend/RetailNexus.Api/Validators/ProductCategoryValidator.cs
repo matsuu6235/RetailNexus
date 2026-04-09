@@ -16,9 +16,9 @@ public class ProductCategoryRequestValidator<T> : AbstractValidator<T> where T :
             .MaximumLength(30).WithMessage(localizer["Validation_MaxLength", "商品カテゴリ名", 30]);
     }
 
-    protected IRuleBuilderOptions<T, string> ProductCategoryCdBaseRules(IStringLocalizer<SharedMessages> localizer)
+    protected IRuleBuilderOptions<T, string> ProductCategoryCodeBaseRules(IStringLocalizer<SharedMessages> localizer)
     {
-        return RuleFor(x => x.ProductCategoryCd)
+        return RuleFor(x => x.ProductCategoryCode)
             .Cascade(CascadeMode.Stop)
             .NotEmpty().WithMessage(localizer["Validation_Required", "商品カテゴリコード"])
             .MaximumLength(3).WithMessage(localizer["Validation_MaxLength", "商品カテゴリコード", 3])
@@ -38,7 +38,7 @@ public sealed class CreateProductCategoryRequestValidator : ProductCategoryReque
 {
     public CreateProductCategoryRequestValidator(IProductCategoryRepository repo, IStringLocalizer<SharedMessages> localizer) : base(localizer)
     {
-        ProductCategoryCdBaseRules(localizer)
+        ProductCategoryCodeBaseRules(localizer)
             .MustAsync(async (code, ct) =>
             {
                 var existing = await repo.GetByCodeAsync(code, ct);
@@ -58,7 +58,7 @@ public sealed class UpdateProductCategoryRequestValidator : ProductCategoryReque
 {
     public UpdateProductCategoryRequestValidator(IProductCategoryRepository repo, IStringLocalizer<SharedMessages> localizer) : base(localizer)
     {
-        ProductCategoryCdBaseRules(localizer)
+        ProductCategoryCodeBaseRules(localizer)
             .MustAsync(async (request, code, context, ct) =>
             {
                 var entityId = (Guid)context.RootContextData["EntityId"];

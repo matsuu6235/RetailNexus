@@ -21,7 +21,7 @@ public sealed class StoreRepository : IStoreRepository
             .FirstOrDefaultAsync(x => x.StoreId == id, ct);
 
     public Task<Store?> GetByCodeAsync(string code, CancellationToken ct)
-        => _db.Stores.FirstOrDefaultAsync(x => x.StoreCd == code, ct);
+        => _db.Stores.FirstOrDefaultAsync(x => x.StoreCode == code, ct);
 
     public Task<int> CountAsync(string? code, string? name, Guid? areaId, Guid? storeTypeId, bool? isActive, CancellationToken ct)
         => BuildQuery(code, name, areaId, storeTypeId, isActive).CountAsync(ct);
@@ -29,7 +29,7 @@ public sealed class StoreRepository : IStoreRepository
     public async Task<IReadOnlyList<Store>> ListAsync(string? code, string? name, Guid? areaId, Guid? storeTypeId, bool? isActive, int skip, int take, CancellationToken ct)
     {
         return await BuildQuery(code, name, areaId, storeTypeId, isActive)
-            .OrderBy(x => x.StoreCd)
+            .OrderBy(x => x.StoreCode)
             .Skip(skip)
             .Take(take)
             .ToListAsync(ct);
@@ -38,8 +38,8 @@ public sealed class StoreRepository : IStoreRepository
     public async Task<string?> GetMaxStoreCodeAsync(CancellationToken ct)
     {
         return await _db.Stores
-            .OrderByDescending(x => x.StoreCd)
-            .Select(x => x.StoreCd)
+            .OrderByDescending(x => x.StoreCode)
+            .Select(x => x.StoreCode)
             .FirstOrDefaultAsync(ct);
     }
 
@@ -57,7 +57,7 @@ public sealed class StoreRepository : IStoreRepository
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(code))
-            q = q.Where(x => x.StoreCd.Contains(code));
+            q = q.Where(x => x.StoreCode.Contains(code));
 
         if (!string.IsNullOrWhiteSpace(name))
             q = q.Where(x => x.StoreName.Contains(name));

@@ -16,8 +16,8 @@ public sealed class ProductCategoryConfiguration : IEntityTypeConfiguration<Prod
             .HasColumnName("product_category_id")
             .HasDefaultValueSql("gen_random_uuid()");
 
-        b.Property(x => x.ProductCategoryCd)
-            .HasColumnName("product_category_cd")
+        b.Property(x => x.ProductCategoryCode)
+            .HasColumnName("product_category_code")
             .HasMaxLength(3)
             .IsRequired();
 

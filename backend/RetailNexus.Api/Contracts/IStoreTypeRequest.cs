@@ -2,6 +2,6 @@ namespace RetailNexus.Api.Contracts;
 
 public interface IStoreTypeRequest
 {
-    string StoreTypeCd { get; }
+    string StoreTypeCode { get; }
     string StoreTypeName { get; }
 }

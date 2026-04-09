@@ -3,7 +3,7 @@
 public class Store
 {
     public Guid StoreId { get; private set; } = Guid.NewGuid();
-    public string StoreCd { get; private set; } = string.Empty;
+    public string StoreCode { get; private set; } = string.Empty;
     public string StoreName { get; private set; } = string.Empty;
     public Guid AreaId { get; private set; }
     public Guid StoreTypeId { get; private set; }
@@ -18,9 +18,9 @@ public class Store
 
     private Store() { }
 
-    public Store(string storeCd, string storeName, Guid areaId, Guid storeTypeId, bool isActive, Guid actorUserId)
+    public Store(string storeCode, string storeName, Guid areaId, Guid storeTypeId, bool isActive, Guid actorUserId)
     {
-        StoreCd = storeCd;
+        StoreCode = storeCode;
         StoreName = storeName;
         AreaId = areaId;
         StoreTypeId = storeTypeId;

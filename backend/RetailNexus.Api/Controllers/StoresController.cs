@@ -35,13 +35,13 @@ public sealed class StoresController : BaseController
     public sealed record UpdateStoreRequest(string StoreName, Guid AreaId, Guid StoreTypeId) : IStoreRequest;
     public sealed record StoreResponse(
         Guid StoreId,
-        string StoreCd,
+        string StoreCode,
         string StoreName,
         Guid AreaId,
-        string AreaCd,
+        string AreaCode,
         string AreaName,
         Guid StoreTypeId,
-        string StoreTypeCd,
+        string StoreTypeCode,
         string StoreTypeName,
         bool IsActive,
         DateTimeOffset UpdatedAt,
@@ -52,7 +52,7 @@ public sealed class StoresController : BaseController
     [HttpGet]
     [RequirePermission("stores.view")]
     public async Task<IActionResult> List(
-        [FromQuery] string? storeCd,
+        [FromQuery] string? storeCode,
         [FromQuery] string? storeName,
         [FromQuery] Guid? areaId,
         [FromQuery] Guid? storeTypeId,
@@ -63,8 +63,8 @@ public sealed class StoresController : BaseController
     {
         (var skip, page, pageSize) = NormalizePagination(page, pageSize);
 
-        var total = await _storeRepo.CountAsync(storeCd, storeName, areaId, storeTypeId, isActive, ct);
-        var items = await _storeRepo.ListAsync(storeCd, storeName, areaId, storeTypeId, isActive, skip, pageSize, ct);
+        var total = await _storeRepo.CountAsync(storeCode, storeName, areaId, storeTypeId, isActive, ct);
+        var items = await _storeRepo.ListAsync(storeCode, storeName, areaId, storeTypeId, isActive, skip, pageSize, ct);
 
         return Ok(new { total, page, pageSize, items = items.Select(Map) });
     }
@@ -125,13 +125,13 @@ public sealed class StoresController : BaseController
     private static StoreResponse Map(Store x)
         => new(
             x.StoreId,
-            x.StoreCd,
+            x.StoreCode,
             x.StoreName,
             x.AreaId,
-            x.Area?.AreaCd ?? string.Empty,
+            x.Area?.AreaCode ?? string.Empty,
             x.Area?.AreaName ?? string.Empty,
             x.StoreTypeId,
-            x.StoreType?.StoreTypeCd ?? string.Empty,
+            x.StoreType?.StoreTypeCode ?? string.Empty,
             x.StoreType?.StoreTypeName ?? string.Empty,
             x.IsActive,
             x.UpdatedAt,

@@ -34,12 +34,12 @@ public sealed class ProductCategoriesController : BaseController
         _reorderValidator = reorderValidator;
     }
 
-    public sealed record CreateProductCategoryRequest(string ProductCategoryCd, string CategoryAbbreviation, string ProductCategoryName, bool IsActive = true) : IProductCategoryRequest;
-    public sealed record UpdateProductCategoryRequest(string ProductCategoryCd, string CategoryAbbreviation, string ProductCategoryName) : IProductCategoryRequest;
+    public sealed record CreateProductCategoryRequest(string ProductCategoryCode, string CategoryAbbreviation, string ProductCategoryName, bool IsActive = true) : IProductCategoryRequest;
+    public sealed record UpdateProductCategoryRequest(string ProductCategoryCode, string CategoryAbbreviation, string ProductCategoryName) : IProductCategoryRequest;
     public sealed record ReorderProductCategoriesRequest(IReadOnlyList<Guid> ProductCategoryIds);
     public sealed record ProductCategoryResponse(
         Guid ProductCategoryId,
-        string ProductCategoryCd,
+        string ProductCategoryCode,
         string CategoryAbbreviation,
         string ProductCategoryName,
         int DisplayOrder,
@@ -52,7 +52,7 @@ public sealed class ProductCategoriesController : BaseController
     [HttpGet]
     [RequirePermission("product-categories.view")]
     public async Task<IActionResult> List(
-        [FromQuery] string? productCategoryCd,
+        [FromQuery] string? productCategoryCode,
         [FromQuery] string? productCategoryName,
         [FromQuery] bool? isActive,
         [FromQuery] int page = 1,
@@ -61,8 +61,8 @@ public sealed class ProductCategoriesController : BaseController
     {
         (var skip, page, pageSize) = NormalizePagination(page, pageSize);
 
-        var total = await _repo.CountAsync(productCategoryCd, productCategoryName, isActive, ct);
-        var items = await _repo.ListAsync(productCategoryCd, productCategoryName, isActive, skip, pageSize, ct);
+        var total = await _repo.CountAsync(productCategoryCode, productCategoryName, isActive, ct);
+        var items = await _repo.ListAsync(productCategoryCode, productCategoryName, isActive, skip, pageSize, ct);
 
         return Ok(new { total, page, pageSize, items = items.Select(Map) });
     }
@@ -86,7 +86,7 @@ public sealed class ProductCategoriesController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var entity = await _service.CreateAsync(req.ProductCategoryCd, req.CategoryAbbreviation, req.ProductCategoryName, req.IsActive, userId, ct);
+        var entity = await _service.CreateAsync(req.ProductCategoryCode, req.CategoryAbbreviation, req.ProductCategoryName, req.IsActive, userId, ct);
         return CreatedAtAction(nameof(GetById), new { id = entity.ProductCategoryId }, Map(entity));
     }
 
@@ -103,7 +103,7 @@ public sealed class ProductCategoriesController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var entity = await _service.UpdateAsync(id, req.ProductCategoryCd, req.CategoryAbbreviation, req.ProductCategoryName, userId, ct);
+        var entity = await _service.UpdateAsync(id, req.ProductCategoryCode, req.CategoryAbbreviation, req.ProductCategoryName, userId, ct);
         return Ok(Map(entity));
     }
 
@@ -138,7 +138,7 @@ public sealed class ProductCategoriesController : BaseController
     private static ProductCategoryResponse Map(ProductCategory x)
         => new(
             x.ProductCategoryId,
-            x.ProductCategoryCd,
+            x.ProductCategoryCode,
             x.CategoryAbbreviation,
             x.ProductCategoryName,
             x.DisplayOrder,

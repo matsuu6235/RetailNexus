@@ -69,7 +69,7 @@ public class AreaService : IAreaService
 
         return entities
             .OrderBy(x => x.DisplayOrder)
-            .ThenBy(x => x.AreaCd)
+            .ThenBy(x => x.AreaCode)
             .ToList();
     }
 }

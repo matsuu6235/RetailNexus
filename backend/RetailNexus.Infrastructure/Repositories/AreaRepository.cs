@@ -18,7 +18,7 @@ public sealed class AreaRepository : IAreaRepository
         => _db.Areas.FirstOrDefaultAsync(x => x.AreaId == id, ct);
 
     public Task<Area?> GetByCodeAsync(string code, CancellationToken ct)
-        => _db.Areas.FirstOrDefaultAsync(x => x.AreaCd == code, ct);
+        => _db.Areas.FirstOrDefaultAsync(x => x.AreaCode == code, ct);
 
     public Task<int> CountAsync(string? code, string? name, bool? isActive, CancellationToken ct)
         => BuildQuery(code, name, isActive).CountAsync(ct);
@@ -27,7 +27,7 @@ public sealed class AreaRepository : IAreaRepository
     {
         return await BuildQuery(code, name, isActive)
             .OrderBy(x => x.DisplayOrder)
-            .ThenBy(x => x.AreaCd)
+            .ThenBy(x => x.AreaCode)
             .Skip(skip)
             .Take(take)
             .ToListAsync(ct);
@@ -60,7 +60,7 @@ public sealed class AreaRepository : IAreaRepository
         var q = _db.Areas.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(code))
-            q = q.Where(x => x.AreaCd.Contains(code));
+            q = q.Where(x => x.AreaCode.Contains(code));
 
         if (!string.IsNullOrWhiteSpace(name))
             q = q.Where(x => x.AreaName.Contains(name));

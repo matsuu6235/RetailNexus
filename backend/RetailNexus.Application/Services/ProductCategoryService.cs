@@ -71,7 +71,7 @@ public class ProductCategoryService : IProductCategoryService
 
         return entities
             .OrderBy(x => x.DisplayOrder)
-            .ThenBy(x => x.ProductCategoryCd)
+            .ThenBy(x => x.ProductCategoryCode)
             .ToList();
     }
 }

@@ -34,12 +34,12 @@ public sealed class AreasController : BaseController
         _reorderValidator = reorderValidator;
     }
 
-    public sealed record CreateAreaRequest(string AreaCd, string AreaName, bool IsActive = true) : IAreaRequest;
-    public sealed record UpdateAreaRequest(string AreaCd, string AreaName) : IAreaRequest;
+    public sealed record CreateAreaRequest(string AreaCode, string AreaName, bool IsActive = true) : IAreaRequest;
+    public sealed record UpdateAreaRequest(string AreaCode, string AreaName) : IAreaRequest;
     public sealed record ReorderAreasRequest(IReadOnlyList<Guid> AreaIds);
     public sealed record AreaResponse(
         Guid AreaId,
-        string AreaCd,
+        string AreaCode,
         string AreaName,
         int DisplayOrder,
         bool IsActive,
@@ -51,7 +51,7 @@ public sealed class AreasController : BaseController
     [HttpGet]
     [RequirePermission("areas.view")]
     public async Task<IActionResult> List(
-        [FromQuery] string? areaCd,
+        [FromQuery] string? areaCode,
         [FromQuery] string? areaName,
         [FromQuery] bool? isActive,
         [FromQuery] int page = 1,
@@ -60,8 +60,8 @@ public sealed class AreasController : BaseController
     {
         (var skip, page, pageSize) = NormalizePagination(page, pageSize);
 
-        var total = await _repo.CountAsync(areaCd, areaName, isActive, ct);
-        var items = await _repo.ListAsync(areaCd, areaName, isActive, skip, pageSize, ct);
+        var total = await _repo.CountAsync(areaCode, areaName, isActive, ct);
+        var items = await _repo.ListAsync(areaCode, areaName, isActive, skip, pageSize, ct);
 
         return Ok(new { total, page, pageSize, items = items.Select(Map) });
     }
@@ -85,7 +85,7 @@ public sealed class AreasController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var entity = await _service.CreateAsync(req.AreaCd, req.AreaName, req.IsActive, userId, ct);
+        var entity = await _service.CreateAsync(req.AreaCode, req.AreaName, req.IsActive, userId, ct);
         return CreatedAtAction(nameof(GetById), new { id = entity.AreaId }, Map(entity));
     }
 
@@ -102,7 +102,7 @@ public sealed class AreasController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var entity = await _service.UpdateAsync(id, req.AreaCd, req.AreaName, userId, ct);
+        var entity = await _service.UpdateAsync(id, req.AreaCode, req.AreaName, userId, ct);
         return Ok(Map(entity));
     }
 
@@ -137,7 +137,7 @@ public sealed class AreasController : BaseController
     private static AreaResponse Map(Area x)
         => new(
             x.AreaId,
-            x.AreaCd,
+            x.AreaCode,
             x.AreaName,
             x.DisplayOrder,
             x.IsActive,

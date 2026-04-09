@@ -16,8 +16,8 @@ public sealed class StoreConfiguration : IEntityTypeConfiguration<Store>
             .HasColumnName("store_id")
             .HasDefaultValueSql("gen_random_uuid()");
 
-        b.Property(x => x.StoreCd)
-            .HasColumnName("store_cd")
+        b.Property(x => x.StoreCode)
+            .HasColumnName("store_code")
             .HasMaxLength(6)
             .IsRequired();
 

@@ -2,6 +2,6 @@ namespace RetailNexus.Api.Contracts;
 
 public interface IAreaRequest
 {
-    string AreaCd { get; }
+    string AreaCode { get; }
     string AreaName { get; }
 }

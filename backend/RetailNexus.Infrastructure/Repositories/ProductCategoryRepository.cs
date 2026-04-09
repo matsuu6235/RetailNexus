@@ -18,7 +18,7 @@ public sealed class ProductCategoryRepository : IProductCategoryRepository
         => _db.ProductCategories.FirstOrDefaultAsync(x => x.ProductCategoryId == id, ct);
 
     public Task<ProductCategory?> GetByCodeAsync(string code, CancellationToken ct)
-        => _db.ProductCategories.FirstOrDefaultAsync(x => x.ProductCategoryCd == code, ct);
+        => _db.ProductCategories.FirstOrDefaultAsync(x => x.ProductCategoryCode == code, ct);
 
     public Task<ProductCategory?> GetByAbbreviationAsync(string abbreviation, CancellationToken ct)
         => _db.ProductCategories.FirstOrDefaultAsync(x => x.CategoryAbbreviation == abbreviation, ct);
@@ -39,7 +39,7 @@ public sealed class ProductCategoryRepository : IProductCategoryRepository
     {
         return await BuildQuery(code, name, isActive)
             .OrderBy(x => x.DisplayOrder)
-            .ThenBy(x => x.ProductCategoryCd)
+            .ThenBy(x => x.ProductCategoryCode)
             .Skip(skip)
             .Take(take)
             .ToListAsync(ct);
@@ -72,7 +72,7 @@ public sealed class ProductCategoryRepository : IProductCategoryRepository
         var q = _db.ProductCategories.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(code))
-            q = q.Where(x => x.ProductCategoryCd.Contains(code));
+            q = q.Where(x => x.ProductCategoryCode.Contains(code));
 
         if (!string.IsNullOrWhiteSpace(name))
             q = q.Where(x => x.ProductCategoryName.Contains(name));

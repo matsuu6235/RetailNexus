@@ -69,7 +69,7 @@ public class StoreTypeService : IStoreTypeService
 
         return entities
             .OrderBy(x => x.DisplayOrder)
-            .ThenBy(x => x.StoreTypeCd)
+            .ThenBy(x => x.StoreTypeCode)
             .ToList();
     }
 }

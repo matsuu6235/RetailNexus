@@ -32,13 +32,13 @@ public sealed class StoreTypesController : BaseController
         _reorderValidator = reorderValidator;
     }
 
-    public sealed record CreateStoreTypeRequest(string StoreTypeCd, string StoreTypeName, bool IsActive = true) : IStoreTypeRequest;
-    public sealed record UpdateStoreTypeRequest(string StoreTypeCd, string StoreTypeName) : IStoreTypeRequest;
+    public sealed record CreateStoreTypeRequest(string StoreTypeCode, string StoreTypeName, bool IsActive = true) : IStoreTypeRequest;
+    public sealed record UpdateStoreTypeRequest(string StoreTypeCode, string StoreTypeName) : IStoreTypeRequest;
     public sealed record ReorderStoreTypesRequest(IReadOnlyList<Guid> StoreTypeIds);
 
     public sealed record StoreTypeResponse(
         Guid StoreTypeId,
-        string StoreTypeCd,
+        string StoreTypeCode,
         string StoreTypeName,
         int DisplayOrder,
         bool IsActive,
@@ -50,12 +50,12 @@ public sealed class StoreTypesController : BaseController
     [HttpGet]
     [RequirePermission("store-types.view")]
     public async Task<IActionResult> List(
-        [FromQuery] string? storeTypeCd,
+        [FromQuery] string? storeTypeCode,
         [FromQuery] string? storeTypeName,
         [FromQuery] bool? isActive,
         CancellationToken ct)
     {
-        var items = await _repo.ListAsync(storeTypeCd, storeTypeName, isActive, ct);
+        var items = await _repo.ListAsync(storeTypeCode, storeTypeName, isActive, ct);
         return Ok(items.Select(Map));
     }
 
@@ -78,7 +78,7 @@ public sealed class StoreTypesController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var entity = await _service.CreateAsync(req.StoreTypeCd, req.StoreTypeName, req.IsActive, userId, ct);
+        var entity = await _service.CreateAsync(req.StoreTypeCode, req.StoreTypeName, req.IsActive, userId, ct);
         return CreatedAtAction(nameof(GetById), new { id = entity.StoreTypeId }, Map(entity));
     }
 
@@ -95,7 +95,7 @@ public sealed class StoreTypesController : BaseController
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var entity = await _service.UpdateAsync(id, req.StoreTypeCd, req.StoreTypeName, userId, ct);
+        var entity = await _service.UpdateAsync(id, req.StoreTypeCode, req.StoreTypeName, userId, ct);
         return Ok(Map(entity));
     }
 
@@ -130,7 +130,7 @@ public sealed class StoreTypesController : BaseController
     private static StoreTypeResponse Map(StoreType x)
         => new(
             x.StoreTypeId,
-            x.StoreTypeCd,
+            x.StoreTypeCode,
             x.StoreTypeName,
             x.DisplayOrder,
             x.IsActive,
