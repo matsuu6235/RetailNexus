@@ -57,7 +57,7 @@ export default function AreasPage() {
   }, []);
 
   const filteredItems = items.filter((item) => {
-    const matchCode = !codeFilter.trim() || item.areaCd.includes(codeFilter.trim());
+    const matchCode = !codeFilter.trim() || item.areaCode.includes(codeFilter.trim());
     const matchName = !nameFilter.trim() || item.areaName.includes(nameFilter.trim());
     const matchStatus =
       isActiveFilter === "all" ||
@@ -201,7 +201,7 @@ export default function AreasPage() {
                           <span className={styles.dragHandle}>≡</span>
                         </button>
                       </td>
-                      <td className={`${tableStyles.td} ${tableStyles.tdCode}`}>{item.areaCd}</td>
+                      <td className={`${tableStyles.td} ${tableStyles.tdCode}`}>{item.areaCode}</td>
                       <td className={`${tableStyles.td} ${tableStyles.tdStrong}`}>{item.areaName}</td>
                       <td className={`${tableStyles.td} ${tableStyles.tdNumber}`}>{item.displayOrder}</td>
                       <td className={`${tableStyles.td} ${tableStyles.tdStatus}`}>

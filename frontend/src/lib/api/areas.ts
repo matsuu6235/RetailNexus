@@ -11,7 +11,7 @@ export type AreaListResponse = {
 };
 
 export type CreateAreaRequest = {
-  areaCd: string;
+  areaCode: string;
   areaName: string;
 };
 
@@ -25,7 +25,7 @@ export async function getAreas(
   page = 1,
   pageSize = 20,
   search?: {
-    areaCd?: string;
+    areaCode?: string;
     areaName?: string;
     isActive?: "all" | "active" | "inactive";
   }
@@ -34,7 +34,7 @@ export async function getAreas(
   params.set("page", String(page));
   params.set("pageSize", String(pageSize));
 
-  if (search?.areaCd?.trim()) params.set("areaCd", search.areaCd.trim());
+  if (search?.areaCode?.trim()) params.set("areaCode", search.areaCode.trim());
   if (search?.areaName?.trim()) params.set("areaName", search.areaName.trim());
   if (search?.isActive === "active") params.set("isActive", "true");
   if (search?.isActive === "inactive") params.set("isActive", "false");
@@ -43,7 +43,7 @@ export async function getAreas(
 }
 
 export async function getAllAreas(search?: {
-  areaCd?: string;
+  areaCode?: string;
   areaName?: string;
   isActive?: "all" | "active" | "inactive";
 }): Promise<Area[]> {

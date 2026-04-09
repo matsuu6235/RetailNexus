@@ -1,7 +1,7 @@
 import { validation } from "@/lib/messages";
 
 type StoreTypeFormFields = {
-  storeTypeCd: string;
+  storeTypeCode: string;
   storeTypeName: string;
 };
 
@@ -10,12 +10,12 @@ export type StoreTypeFieldErrors = Partial<Record<keyof StoreTypeFormFields, str
 export function validateStoreType(form: StoreTypeFormFields): StoreTypeFieldErrors {
   const errors: StoreTypeFieldErrors = {};
 
-  if (!form.storeTypeCd.trim()) {
-    errors.storeTypeCd = validation.required("店舗種別コード");
-  } else if (!/^\d+$/.test(form.storeTypeCd.trim())) {
-    errors.storeTypeCd = validation.digitsOnly("店舗種別コード");
-  } else if (form.storeTypeCd.trim().length > 2) {
-    errors.storeTypeCd = validation.maxLength("店舗種別コード", 2);
+  if (!form.storeTypeCode.trim()) {
+    errors.storeTypeCode = validation.required("店舗種別コード");
+  } else if (!/^\d+$/.test(form.storeTypeCode.trim())) {
+    errors.storeTypeCode = validation.digitsOnly("店舗種別コード");
+  } else if (form.storeTypeCode.trim().length > 2) {
+    errors.storeTypeCode = validation.maxLength("店舗種別コード", 2);
   }
 
   if (!form.storeTypeName.trim()) {

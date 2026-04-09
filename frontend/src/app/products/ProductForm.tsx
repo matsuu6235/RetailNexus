@@ -155,8 +155,8 @@ export default function ProductForm({ mode, editId, onSave, onCancel }: MasterFo
         >
           <option value="">選択してください</option>
           {categories.map((c) => (
-            <option key={c.productCategoryId} value={c.productCategoryCd}>
-              {c.productCategoryName} ({c.productCategoryCd})
+            <option key={c.productCategoryId} value={c.productCategoryCode}>
+              {c.productCategoryName} ({c.productCategoryCode})
             </option>
           ))}
         </select>

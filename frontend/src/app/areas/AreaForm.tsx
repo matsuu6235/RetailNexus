@@ -10,16 +10,16 @@ export default function AreaForm({ mode, editId, onSave, onCancel }: MasterFormP
     useMasterForm<CreateAreaRequest, AreaFieldErrors>({
       mode,
       editId,
-      initialForm: { areaCd: "", areaName: "" },
+      initialForm: { areaCode: "", areaName: "" },
       entityName: "エリア",
       validator: (f) => validateArea(f),
       load: async (id) => {
         if (!id) return undefined;
         const item = await getAreaById(id);
-        return { form: { areaCd: item.areaCd, areaName: item.areaName }, isActive: item.isActive };
+        return { form: { areaCode: item.areaCode, areaName: item.areaName }, isActive: item.isActive };
       },
       save: async (f) => {
-        const payload = { areaCd: f.areaCd.trim(), areaName: f.areaName.trim() };
+        const payload = { areaCode: f.areaCode.trim(), areaName: f.areaName.trim() };
         if (mode === "create") await createArea(payload);
         else await updateArea(editId!, payload);
       },
@@ -33,9 +33,9 @@ export default function AreaForm({ mode, editId, onSave, onCancel }: MasterFormP
     <form onSubmit={handleSubmit} className={styles.form}>
       <label className={styles.field}>
         <span>エリアコード *</span>
-        <input value={form.areaCd} onChange={(e) => handleChange("areaCd", e.target.value as string)} className={styles.input} />
+        <input value={form.areaCode} onChange={(e) => handleChange("areaCode", e.target.value as string)} className={styles.input} />
         <small className={styles.hint}>2文字以内で入力してください。</small>
-        {fieldErrors.areaCd && <small className={styles.errorText}>{fieldErrors.areaCd}</small>}
+        {fieldErrors.areaCode && <small className={styles.errorText}>{fieldErrors.areaCode}</small>}
       </label>
 
       <label className={styles.field}>

@@ -17,7 +17,7 @@ export type CreateStoreRequest = {
 export type UpdateStoreRequest = CreateStoreRequest;
 
 export type StoreSearchParams = {
-  storeCd?: string;
+  storeCode?: string;
   storeName?: string;
   areaId?: string;
   storeTypeId?: string;
@@ -33,7 +33,7 @@ export async function getStores(
   params.set("page", String(page));
   params.set("pageSize", String(pageSize));
 
-  if (searchParams?.storeCd?.trim()) params.set("storeCd", searchParams.storeCd.trim());
+  if (searchParams?.storeCode?.trim()) params.set("storeCode", searchParams.storeCode.trim());
   if (searchParams?.storeName?.trim()) params.set("storeName", searchParams.storeName.trim());
   if (searchParams?.areaId?.trim()) params.set("areaId", searchParams.areaId);
   if (searchParams?.storeTypeId?.trim()) params.set("storeTypeId", searchParams.storeTypeId);

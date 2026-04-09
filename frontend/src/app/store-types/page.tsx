@@ -57,7 +57,7 @@ export default function StoreTypesPage() {
   }, []);
 
   const filteredItems = items.filter((item) => {
-    const matchCode = !codeFilter.trim() || item.storeTypeCd.includes(codeFilter.trim());
+    const matchCode = !codeFilter.trim() || item.storeTypeCode.includes(codeFilter.trim());
     const matchName = !nameFilter.trim() || item.storeTypeName.includes(nameFilter.trim());
     const matchStatus =
       isActiveFilter === "all" ||
@@ -201,7 +201,7 @@ export default function StoreTypesPage() {
                           <span className={styles.dragHandle}>≡</span>
                         </button>
                       </td>
-                      <td className={`${tableStyles.td} ${tableStyles.tdCode}`}>{item.storeTypeCd}</td>
+                      <td className={`${tableStyles.td} ${tableStyles.tdCode}`}>{item.storeTypeCode}</td>
                       <td className={`${tableStyles.td} ${tableStyles.tdStrong}`}>{item.storeTypeName}</td>
                       <td className={`${tableStyles.td} ${tableStyles.tdNumber}`}>{item.displayOrder}</td>
                       <td className={`${tableStyles.td} ${tableStyles.tdStatus}`}>

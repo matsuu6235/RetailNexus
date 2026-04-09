@@ -16,7 +16,7 @@ export default function ProductCategoryForm({ mode, editId, onSave, onCancel }: 
     useMasterForm<CreateProductCategoryRequest, ProductCategoryFieldErrors>({
       mode,
       editId,
-      initialForm: { productCategoryCd: "", categoryAbbreviation: "", productCategoryName: "" },
+      initialForm: { productCategoryCode: "", categoryAbbreviation: "", productCategoryName: "" },
       entityName: "商品カテゴリ",
       validator: (f) => validateProductCategory(f),
       load: async (id) => {
@@ -24,7 +24,7 @@ export default function ProductCategoryForm({ mode, editId, onSave, onCancel }: 
         const item = await getProductCategoryById(id);
         return {
           form: {
-            productCategoryCd: item.productCategoryCd,
+            productCategoryCode: item.productCategoryCode,
             categoryAbbreviation: item.categoryAbbreviation,
             productCategoryName: item.productCategoryName,
           },
@@ -33,7 +33,7 @@ export default function ProductCategoryForm({ mode, editId, onSave, onCancel }: 
       },
       save: async (f) => {
         const payload = {
-          productCategoryCd: f.productCategoryCd.trim(),
+          productCategoryCode: f.productCategoryCode.trim(),
           categoryAbbreviation: f.categoryAbbreviation.trim(),
           productCategoryName: f.productCategoryName.trim(),
         };
@@ -50,9 +50,9 @@ export default function ProductCategoryForm({ mode, editId, onSave, onCancel }: 
     <form onSubmit={handleSubmit} className={styles.form}>
       <label className={styles.field}>
         <span>商品カテゴリコード *</span>
-        <input value={form.productCategoryCd} onChange={(e) => handleChange("productCategoryCd", e.target.value as string)} className={styles.input} />
+        <input value={form.productCategoryCode} onChange={(e) => handleChange("productCategoryCode", e.target.value as string)} className={styles.input} />
         <small className={styles.hint}>数字3文字以内で入力してください。</small>
-        {fieldErrors.productCategoryCd && <small className={styles.errorText}>{fieldErrors.productCategoryCd}</small>}
+        {fieldErrors.productCategoryCode && <small className={styles.errorText}>{fieldErrors.productCategoryCode}</small>}
       </label>
 
       <label className={styles.field}>

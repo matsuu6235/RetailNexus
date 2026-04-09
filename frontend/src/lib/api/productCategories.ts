@@ -11,7 +11,7 @@ export type ProductCategoryListResponse = {
 };
 
 export type CreateProductCategoryRequest = {
-  productCategoryCd: string;
+  productCategoryCode: string;
   categoryAbbreviation: string;
   productCategoryName: string;
 };
@@ -26,7 +26,7 @@ export async function getProductCategories(
   page = 1,
   pageSize = 20,
   search?: {
-    productCategoryCd?: string;
+    productCategoryCode?: string;
     productCategoryName?: string;
     isActive?: "all" | "active" | "inactive";
   }
@@ -35,8 +35,8 @@ export async function getProductCategories(
   params.set("page", String(page));
   params.set("pageSize", String(pageSize));
 
-  if (search?.productCategoryCd?.trim()) {
-    params.set("productCategoryCd", search.productCategoryCd.trim());
+  if (search?.productCategoryCode?.trim()) {
+    params.set("productCategoryCode", search.productCategoryCode.trim());
   }
 
   if (search?.productCategoryName?.trim()) {
@@ -55,7 +55,7 @@ export async function getProductCategories(
 }
 
 export async function getAllProductCategories(search?: {
-  productCategoryCd?: string;
+  productCategoryCode?: string;
   productCategoryName?: string;
   isActive?: "all" | "active" | "inactive";
 }): Promise<ProductCategory[]> {

@@ -61,7 +61,7 @@ export default function ProductCategoriesPage() {
 
     const filteredItems = items.filter((item) => {
         const matchCode =
-            !codeFilter.trim() || item.productCategoryCd.includes(codeFilter.trim());
+            !codeFilter.trim() || item.productCategoryCode.includes(codeFilter.trim());
         const matchName =
             !nameFilter.trim() || item.productCategoryName.includes(nameFilter.trim());
         const matchStatus =
@@ -240,7 +240,7 @@ export default function ProductCategoriesPage() {
                                                 </button>
                                             </td>
                                             <td className={`${tableStyles.td} ${tableStyles.tdCode}`}>
-                                                {item.productCategoryCd}
+                                                {item.productCategoryCode}
                                             </td>
                                             <td className={`${tableStyles.td} ${tableStyles.tdStrong}`}>
                                                 {item.productCategoryName}

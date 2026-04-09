@@ -1,7 +1,7 @@
 import { validation } from "@/lib/messages";
 
 type AreaFormFields = {
-  areaCd: string;
+  areaCode: string;
   areaName: string;
 };
 
@@ -10,12 +10,12 @@ export type AreaFieldErrors = Partial<Record<keyof AreaFormFields, string>>;
 export function validateArea(form: AreaFormFields): AreaFieldErrors {
   const errors: AreaFieldErrors = {};
 
-  if (!form.areaCd.trim()) {
-    errors.areaCd = validation.required("エリアコード");
-  } else if (!/^\d+$/.test(form.areaCd.trim())) {
-    errors.areaCd = validation.digitsOnly("エリアコード");
-  } else if (form.areaCd.trim().length > 2) {
-    errors.areaCd = validation.maxLength("エリアコード", 2);
+  if (!form.areaCode.trim()) {
+    errors.areaCode = validation.required("エリアコード");
+  } else if (!/^\d+$/.test(form.areaCode.trim())) {
+    errors.areaCode = validation.digitsOnly("エリアコード");
+  } else if (form.areaCode.trim().length > 2) {
+    errors.areaCode = validation.maxLength("エリアコード", 2);
   }
 
   if (!form.areaName.trim()) {

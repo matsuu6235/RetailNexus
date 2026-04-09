@@ -1,6 +1,6 @@
 export type Area = {
     areaId: string;
-    areaCd: string;
+    areaCode: string;
     areaName: string;
     displayOrder: number;
     isActive: boolean;

@@ -2,7 +2,7 @@ import { apiGet, apiPost, apiPut } from "./client";
 import type { StoreType } from "@/types/storeTypes";
 
 export type CreateStoreTypeRequest = {
-  storeTypeCd: string;
+  storeTypeCode: string;
   storeTypeName: string;
 };
 
@@ -13,13 +13,13 @@ export type ReorderStoreTypesRequest = {
 };
 
 export async function getStoreTypes(search?: {
-  storeTypeCd?: string;
+  storeTypeCode?: string;
   storeTypeName?: string;
   isActive?: "all" | "active" | "inactive";
 }): Promise<StoreType[]> {
   const params = new URLSearchParams();
 
-  if (search?.storeTypeCd?.trim()) params.set("storeTypeCd", search.storeTypeCd.trim());
+  if (search?.storeTypeCode?.trim()) params.set("storeTypeCode", search.storeTypeCode.trim());
   if (search?.storeTypeName?.trim()) params.set("storeTypeName", search.storeTypeName.trim());
   if (search?.isActive === "active") params.set("isActive", "true");
   if (search?.isActive === "inactive") params.set("isActive", "false");

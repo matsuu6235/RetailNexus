@@ -1,6 +1,6 @@
 export type StoreType = {
     storeTypeId: string;
-    storeTypeCd: string;
+    storeTypeCode: string;
     storeTypeName: string;
     displayOrder: number;
     isActive: boolean;

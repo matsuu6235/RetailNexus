@@ -66,7 +66,7 @@ export default function ProductsPage() {
 
         if (!cancelled) {
           const categoryMap = new Map(
-            categoryRes.map((category) => [category.productCategoryCd, category.productCategoryName])
+            categoryRes.map((category) => [category.productCategoryCode, category.productCategoryName])
           );
 
           setProducts(
@@ -162,8 +162,8 @@ export default function ProductsPage() {
             >
               <option value="">カテゴリ（すべて）</option>
               {categories.map((c) => (
-                <option key={c.productCategoryId} value={c.productCategoryCd}>
-                  {c.productCategoryName} ({c.productCategoryCd})
+                <option key={c.productCategoryId} value={c.productCategoryCode}>
+                  {c.productCategoryName} ({c.productCategoryCode})
                 </option>
               ))}
             </select>

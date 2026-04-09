@@ -1,7 +1,7 @@
 import { validation } from "@/lib/messages";
 
 type ProductCategoryFormFields = {
-  productCategoryCd: string;
+  productCategoryCode: string;
   categoryAbbreviation: string;
   productCategoryName: string;
 };
@@ -11,12 +11,12 @@ export type ProductCategoryFieldErrors = Partial<Record<keyof ProductCategoryFor
 export function validateProductCategory(form: ProductCategoryFormFields): ProductCategoryFieldErrors {
   const errors: ProductCategoryFieldErrors = {};
 
-  if (!form.productCategoryCd.trim()) {
-    errors.productCategoryCd = validation.required("商品カテゴリコード");
-  } else if (!/^\d+$/.test(form.productCategoryCd.trim())) {
-    errors.productCategoryCd = validation.digitsOnly("商品カテゴリコード");
-  } else if (form.productCategoryCd.trim().length > 3) {
-    errors.productCategoryCd = validation.maxLength("商品カテゴリコード", 3);
+  if (!form.productCategoryCode.trim()) {
+    errors.productCategoryCode = validation.required("商品カテゴリコード");
+  } else if (!/^\d+$/.test(form.productCategoryCode.trim())) {
+    errors.productCategoryCode = validation.digitsOnly("商品カテゴリコード");
+  } else if (form.productCategoryCode.trim().length > 3) {
+    errors.productCategoryCode = validation.maxLength("商品カテゴリコード", 3);
   }
 
   if (!form.categoryAbbreviation.trim()) {

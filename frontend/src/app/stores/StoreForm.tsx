@@ -19,7 +19,7 @@ import styles from "@/components/modal/FormModal.module.css";
 export default function StoreForm({ mode, editId, onSave, onCancel }: MasterFormProps) {
   const [areas, setAreas] = useState<Area[]>([]);
   const [storeTypes, setStoreTypes] = useState<StoreType[]>([]);
-  const [storeCd, setStoreCd] = useState("");
+  const [storeCode, setStoreCd] = useState("");
 
   const { form, loading, submitting, error, fieldErrors, activation, handleChange, handleSubmit } =
     useMasterForm<CreateStoreRequest, StoreFieldErrors>({
@@ -37,7 +37,7 @@ export default function StoreForm({ mode, editId, onSave, onCancel }: MasterForm
           ]);
           setAreas(areaItems);
           setStoreTypes(typeItems);
-          setStoreCd(store.storeCd);
+          setStoreCd(store.storeCode);
           return {
             form: { storeName: store.storeName, areaId: store.areaId, storeTypeId: store.storeTypeId },
             isActive: store.isActive,
@@ -70,7 +70,7 @@ export default function StoreForm({ mode, editId, onSave, onCancel }: MasterForm
           <p className={styles.hint}>登録時に自動採番されます。</p>
         ) : (
           <>
-            <input type="text" value={storeCd} readOnly className={styles.readOnlyInput} />
+            <input type="text" value={storeCode} readOnly className={styles.readOnlyInput} />
             <p className={styles.hint}>店舗コードは変更できません。</p>
           </>
         )}
@@ -98,7 +98,7 @@ export default function StoreForm({ mode, editId, onSave, onCancel }: MasterForm
           <option value="">選択してください</option>
           {areas.map((area) => (
             <option key={area.areaId} value={area.areaId}>
-              {area.areaName} ({area.areaCd})
+              {area.areaName} ({area.areaCode})
             </option>
           ))}
         </select>
@@ -115,7 +115,7 @@ export default function StoreForm({ mode, editId, onSave, onCancel }: MasterForm
           <option value="">選択してください</option>
           {storeTypes.map((storeType) => (
             <option key={storeType.storeTypeId} value={storeType.storeTypeId}>
-              {storeType.storeTypeName} ({storeType.storeTypeCd})
+              {storeType.storeTypeName} ({storeType.storeTypeCode})
             </option>
           ))}
         </select>

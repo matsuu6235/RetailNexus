@@ -16,19 +16,19 @@ export default function StoreTypeForm({ mode, editId, onSave, onCancel }: Master
     useMasterForm<CreateStoreTypeRequest, StoreTypeFieldErrors>({
       mode,
       editId,
-      initialForm: { storeTypeCd: "", storeTypeName: "" },
+      initialForm: { storeTypeCode: "", storeTypeName: "" },
       entityName: "店舗種別",
       validator: (f) => validateStoreType(f),
       load: async (id) => {
         if (!id) return undefined;
         const data = await getStoreTypeById(id);
         return {
-          form: { storeTypeCd: data.storeTypeCd, storeTypeName: data.storeTypeName },
+          form: { storeTypeCode: data.storeTypeCode, storeTypeName: data.storeTypeName },
           isActive: data.isActive,
         };
       },
       save: async (f) => {
-        const payload = { storeTypeCd: f.storeTypeCd.trim(), storeTypeName: f.storeTypeName.trim() };
+        const payload = { storeTypeCode: f.storeTypeCode.trim(), storeTypeName: f.storeTypeName.trim() };
         if (mode === "create") await createStoreType(payload);
         else await updateStoreType(editId!, payload);
       },
@@ -46,13 +46,13 @@ export default function StoreTypeForm({ mode, editId, onSave, onCancel }: Master
         </label>
         <input
           type="text"
-          value={form.storeTypeCd}
-          onChange={(e) => handleChange("storeTypeCd", e.target.value as string)}
+          value={form.storeTypeCode}
+          onChange={(e) => handleChange("storeTypeCode", e.target.value as string)}
           disabled={mode === "edit"}
           className={mode === "edit" ? styles.readOnlyInput : styles.input}
           readOnly={mode === "edit"}
         />
-        {fieldErrors.storeTypeCd && <span className={styles.errorText}>{fieldErrors.storeTypeCd}</span>}
+        {fieldErrors.storeTypeCode && <span className={styles.errorText}>{fieldErrors.storeTypeCode}</span>}
         {mode === "create" && <span className={styles.hint}>2文字以内で入力してください。</span>}
       </div>
 

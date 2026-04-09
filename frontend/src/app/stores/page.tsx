@@ -25,13 +25,13 @@ export default function StoresPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [storeCdInput, setStoreCdInput] = useState("");
+  const [storeCodeInput, setStoreCodeInput] = useState("");
   const [storeNameInput, setStoreNameInput] = useState("");
   const [areaIdInput, setAreaIdInput] = useState("");
   const [storeTypeIdInput, setStoreTypeIdInput] = useState("");
   const [isActiveInput, setIsActiveInput] = useState<"all" | "active" | "inactive">("all");
 
-  const [storeCdFilter, setStoreCdFilter] = useState("");
+  const [storeCodeFilter, setStoreCodeFilter] = useState("");
   const [storeNameFilter, setStoreNameFilter] = useState("");
   const [areaIdFilter, setAreaIdFilter] = useState("");
   const [storeTypeIdFilter, setStoreTypeIdFilter] = useState("");
@@ -75,7 +75,7 @@ export default function StoresPage() {
         setError(null);
 
         const res = await getStores(page, PAGE_SIZE, {
-          storeCd: storeCdFilter,
+          storeCode: storeCodeFilter,
           storeName: storeNameFilter,
           areaId: areaIdFilter,
           storeTypeId: storeTypeIdFilter,
@@ -98,7 +98,7 @@ export default function StoresPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, storeCdFilter, storeNameFilter, areaIdFilter, storeTypeIdFilter, isActiveFilter, refreshKey]);
+  }, [page, storeCodeFilter, storeNameFilter, areaIdFilter, storeTypeIdFilter, isActiveFilter, refreshKey]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const start = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
@@ -126,7 +126,7 @@ export default function StoresPage() {
         <div className={styles.searchGrid}>
           <label className={styles.field}>
             <span className={styles.fieldLabel}>店舗コード</span>
-            <input value={storeCdInput} onChange={(e) => setStoreCdInput(e.target.value)} placeholder="店舗コード" className={styles.input} />
+            <input value={storeCodeInput} onChange={(e) => setStoreCodeInput(e.target.value)} placeholder="店舗コード" className={styles.input} />
           </label>
 
           <label className={styles.field}>
@@ -140,7 +140,7 @@ export default function StoresPage() {
               <option value="">すべて</option>
               {areas.map((area) => (
                 <option key={area.areaId} value={area.areaId}>
-                  {area.areaName} ({area.areaCd})
+                  {area.areaName} ({area.areaCode})
                 </option>
               ))}
             </select>
@@ -152,7 +152,7 @@ export default function StoresPage() {
               <option value="">すべて</option>
               {storeTypes.map((storeType) => (
                 <option key={storeType.storeTypeId} value={storeType.storeTypeId}>
-                  {storeType.storeTypeName} ({storeType.storeTypeCd})
+                  {storeType.storeTypeName} ({storeType.storeTypeCode})
                 </option>
               ))}
             </select>
@@ -172,7 +172,7 @@ export default function StoresPage() {
           <button
             type="button"
             onClick={() => {
-              setStoreCdFilter(storeCdInput);
+              setStoreCodeFilter(storeCodeInput);
               setStoreNameFilter(storeNameInput);
               setAreaIdFilter(areaIdInput);
               setStoreTypeIdFilter(storeTypeIdInput);
@@ -222,7 +222,7 @@ export default function StoresPage() {
 
                     return (
                       <tr key={store.storeId} className={rowClass}>
-                        <td className={`${tableStyles.td} ${tableStyles.tdCode}`}>{store.storeCd}</td>
+                        <td className={`${tableStyles.td} ${tableStyles.tdCode}`}>{store.storeCode}</td>
                         <td className={`${tableStyles.td} ${tableStyles.tdStrong}`}>{store.storeName}</td>
                         <td className={`${tableStyles.td} ${tableStyles.tdMuted}`}>{store.areaName}</td>
                         <td className={`${tableStyles.td} ${tableStyles.tdMuted}`}>{store.storeTypeName}</td>

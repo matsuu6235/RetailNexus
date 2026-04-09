@@ -1,12 +1,12 @@
 export type Store = {
     storeId: string;
-    storeCd: string;
+    storeCode: string;
     storeName: string;
     areaId: string;
-    areaCd: string;
+    areaCode: string;
     areaName: string;
     storeTypeId: string;
-    storeTypeCd: string;
+    storeTypeCode: string;
     storeTypeName: string;
     isActive: boolean;
     updatedAt: string;

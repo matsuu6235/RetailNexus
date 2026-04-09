@@ -1,6 +1,6 @@
 export type ProductCategory = {
     productCategoryId: string;
-    productCategoryCd: string;
+    productCategoryCode: string;
     categoryAbbreviation: string;
     productCategoryName: string;
     displayOrder: number;
