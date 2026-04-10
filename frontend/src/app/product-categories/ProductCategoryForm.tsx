@@ -9,6 +9,7 @@ import {
 } from "@/lib/api/productCategories";
 import { validateProductCategory, type ProductCategoryFieldErrors } from "@/lib/validators/productCategoryValidator";
 import { useMasterForm, type MasterFormProps } from "@/lib/hooks/useMasterForm";
+import ActivationFieldset from "@/components/form/ActivationFieldset";
 import styles from "@/components/modal/FormModal.module.css";
 
 export default function ProductCategoryForm({ mode, editId, onSave, onCancel }: MasterFormProps) {
@@ -81,23 +82,7 @@ export default function ProductCategoryForm({ mode, editId, onSave, onCancel }: 
       </div>
 
       {mode === "edit" && activation.canDelete && (
-        <fieldset className={styles.field} style={{ border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px", marginTop: "8px" }}>
-          <legend style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a", padding: "0 4px" }}>有効状態の変更</legend>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span style={{ fontSize: "13px" }}>
-              現在の状態: <strong>{activation.currentIsActive ? "有効" : "無効"}</strong>
-            </span>
-            <button
-              type="button"
-              onClick={activation.toggle}
-              disabled={activation.changingActivation}
-              className={styles.submitButton}
-              style={activation.currentIsActive ? { backgroundColor: "#dc2626" } : {}}
-            >
-              {activation.changingActivation ? "変更中..." : activation.currentIsActive ? "無効化する" : "有効化する"}
-            </button>
-          </div>
-        </fieldset>
+        <ActivationFieldset currentIsActive={activation.currentIsActive} changingActivation={activation.changingActivation} toggle={activation.toggle} />
       )}
     </form>
   );
