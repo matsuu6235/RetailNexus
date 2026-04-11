@@ -31,6 +31,15 @@ public sealed class StoreRequestRepository : IStoreRequestRepository
                 .ThenInclude(d => d.Product)
             .FirstOrDefaultAsync(x => x.StoreRequestId == id, ct);
 
+    public Task<StoreRequest?> GetByRequestNumberWithDetailsAsync(string requestNumber, CancellationToken ct)
+        => _db.StoreRequests
+            .Include(x => x.FromStore)
+            .Include(x => x.ToStore)
+            .Include(x => x.Approver)
+            .Include(x => x.Details)
+                .ThenInclude(d => d.Product)
+            .FirstOrDefaultAsync(x => x.RequestNumber == requestNumber, ct);
+
     public async Task<IReadOnlyList<StoreRequest>> ListAsync(
         string? requestNumber,
         Guid? fromStoreId,

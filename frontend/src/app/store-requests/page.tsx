@@ -183,7 +183,7 @@ export default function StoreRequestsPage() {
                                                     </span>
                                                 </td>
                                                 <td className={`${tableStyles.td} ${tableStyles.tdAction}`}>
-                                                    <Link href={`/store-requests/${req.storeRequestId}`} className={tableStyles.editButton}>詳細</Link>
+                                                    <Link href={`/store-requests/${req.requestNumber}`} className={tableStyles.editButton}>詳細</Link>
                                                 </td>
                                             </tr>
                                         );

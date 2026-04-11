@@ -2,15 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { fallback } from "@/lib/messages";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
-    getPurchaseOrderById,
+    getPurchaseOrderByNumber,
     submitForApproval,
     approvePurchaseOrder,
     rejectPurchaseOrder,
     changePurchaseOrderStatus,
-    changePurchaseOrderActivation,
 } from "@/lib/api/purchaseOrders";
 import type { PurchaseOrder } from "@/types/purchaseOrders";
 import { hasPermission } from "@/services/authService";
@@ -31,8 +30,7 @@ const purchaseOrderSteps = [
 
 export default function PurchaseOrderDetailPage() {
     const params = useParams();
-    const router = useRouter();
-    const id = params.id as string;
+    const orderNumber = params.orderNumber as string;
 
     const [order, setOrder] = useState<PurchaseOrder | null>(null);
     const [loading, setLoading] = useState(true);
@@ -41,13 +39,12 @@ export default function PurchaseOrderDetailPage() {
 
     const canEdit = hasPermission("purchases.edit");
     const canApprove = hasPermission("purchases.approve");
-    const canDelete = hasPermission("purchases.delete");
 
     const fetchOrder = async () => {
         try {
             setLoading(true);
             setError(null);
-            const data = await getPurchaseOrderById(id);
+            const data = await getPurchaseOrderByNumber(orderNumber);
             setOrder(data);
         } catch (e) {
             setError(e instanceof Error ? e.message : fallback.fetchFailed("発注"));
@@ -56,7 +53,7 @@ export default function PurchaseOrderDetailPage() {
         }
     };
 
-    useEffect(() => { fetchOrder(); }, [id]);
+    useEffect(() => { fetchOrder(); }, [orderNumber]);
 
     const handleAction = async (action: () => Promise<PurchaseOrder | void>) => {
         try {
@@ -166,13 +163,13 @@ export default function PurchaseOrderDetailPage() {
                 </div>
             </div>
 
-            {status >= 2 && <MessageThread purchaseOrderId={id} />}
+            {status >= 2 && <MessageThread purchaseOrderId={order.purchaseOrderId} />}
 
             <div className={styles.actionBar}>
                 {/* 下書き → 承認申請 */}
                 {status === 0 && canEdit && (
                     <button type="button" className={`${styles.actionButton} ${styles.btnPrimary}`} disabled={actionLoading}
-                        onClick={() => handleAction(() => submitForApproval(id))}>
+                        onClick={() => handleAction(() => submitForApproval(order.purchaseOrderId))}>
                         承認申請
                     </button>
                 )}
@@ -181,11 +178,11 @@ export default function PurchaseOrderDetailPage() {
                 {status === 1 && canApprove && (
                     <>
                         <button type="button" className={`${styles.actionButton} ${styles.btnSuccess}`} disabled={actionLoading}
-                            onClick={() => handleAction(() => approvePurchaseOrder(id))}>
+                            onClick={() => handleAction(() => approvePurchaseOrder(order.purchaseOrderId))}>
                             承認
                         </button>
                         <button type="button" className={`${styles.actionButton} ${styles.btnWarning}`} disabled={actionLoading}
-                            onClick={() => handleAction(() => rejectPurchaseOrder(id))}>
+                            onClick={() => handleAction(() => rejectPurchaseOrder(order.purchaseOrderId))}>
                             差戻し
                         </button>
                     </>
@@ -194,7 +191,7 @@ export default function PurchaseOrderDetailPage() {
                 {/* 出荷済 → 入荷済 */}
                 {status === 5 && canEdit && (
                     <button type="button" className={`${styles.actionButton} ${styles.btnSuccess}`} disabled={actionLoading}
-                        onClick={() => handleAction(() => changePurchaseOrderStatus(id, 6))}>
+                        onClick={() => handleAction(() => changePurchaseOrderStatus(order.purchaseOrderId, 6))}>
                         入荷済にする
                     </button>
                 )}
@@ -202,14 +199,14 @@ export default function PurchaseOrderDetailPage() {
                 {/* キャンセル依頼（承認済〜出荷準備中の間） */}
                 {status >= 2 && status <= 4 && canEdit && (
                     <button type="button" className={`${styles.actionButton} ${styles.btnDanger}`} disabled={actionLoading}
-                        onClick={() => handleAction(() => changePurchaseOrderStatus(id, 91))}>
+                        onClick={() => handleAction(() => changePurchaseOrderStatus(order.purchaseOrderId, 91))}>
                         キャンセル依頼
                     </button>
                 )}
 
                 {/* 下書き・差戻し時のみ編集可能 */}
                 {status === 0 && canEdit && (
-                    <Link href={`/purchase-orders/${id}/edit`} className={styles.editLink}>
+                    <Link href={`/purchase-orders/${order.orderNumber}/edit`} className={styles.editLink}>
                         編集
                     </Link>
                 )}

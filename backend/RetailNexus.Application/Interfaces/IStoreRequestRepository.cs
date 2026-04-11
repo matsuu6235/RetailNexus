@@ -7,6 +7,7 @@ public interface IStoreRequestRepository
 {
     Task<StoreRequest?> GetByIdAsync(Guid id, CancellationToken ct);
     Task<StoreRequest?> GetByIdWithDetailsAsync(Guid id, CancellationToken ct);
+    Task<StoreRequest?> GetByRequestNumberWithDetailsAsync(string requestNumber, CancellationToken ct);
     Task<IReadOnlyList<StoreRequest>> ListAsync(
         string? requestNumber,
         Guid? fromStoreId,

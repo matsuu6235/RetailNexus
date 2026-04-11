@@ -78,6 +78,10 @@ export async function getStoreRequestById(id: string): Promise<StoreRequest> {
   return apiGet<StoreRequest>(`/api/store-requests/${id}`);
 }
 
+export async function getStoreRequestByNumber(requestNumber: string): Promise<StoreRequest> {
+  return apiGet<StoreRequest>(`/api/store-requests/by-number/${requestNumber}`);
+}
+
 export async function createStoreRequest(body: CreateStoreRequestRequest): Promise<StoreRequest> {
   return apiPost<CreateStoreRequestRequest, StoreRequest>("/api/store-requests", body);
 }

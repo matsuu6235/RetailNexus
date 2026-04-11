@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { validation, fallback } from "@/lib/messages";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { getStoreRequestById, updateStoreRequest } from "@/lib/api/storeRequests";
+import { getStoreRequestByNumber, updateStoreRequest } from "@/lib/api/storeRequests";
 import { getStores } from "@/lib/api/stores";
 import { getProducts } from "@/lib/api/products";
 import type { Store } from "@/types/stores";
@@ -28,7 +28,8 @@ const today = new Date().toISOString().split("T")[0];
 export default function StoreRequestEditPage() {
     const params = useParams();
     const router = useRouter();
-    const id = params.id as string;
+    const requestNumber = params.requestNumber as string;
+    const [storeRequestId, setStoreRequestId] = useState<string>("");
 
     const [stores, setStores] = useState<Store[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
@@ -55,13 +56,14 @@ export default function StoreRequestEditPage() {
         (async () => {
             try {
                 const [request, storeRes, productRes] = await Promise.all([
-                    getStoreRequestById(id),
+                    getStoreRequestByNumber(requestNumber),
                     getStores(1, 200, { isActive: "active" }),
                     getProducts(1, 200, { isActive: "active" }),
                 ]);
 
                 setStores(storeRes.items);
                 setProducts(productRes.items);
+                setStoreRequestId(request.storeRequestId);
 
                 setForm({
                     fromStoreId: request.fromStoreId,
@@ -84,7 +86,7 @@ export default function StoreRequestEditPage() {
                 setLoading(false);
             }
         })();
-    }, [id]);
+    }, [requestNumber]);
 
     const handleHeaderChange = (field: keyof StoreRequestFormFields, value: string) => {
         const updated = { ...form, [field]: value };
@@ -113,7 +115,7 @@ export default function StoreRequestEditPage() {
             setSubmitting(true);
             setError(null);
 
-            await updateStoreRequest(id, {
+            await updateStoreRequest(storeRequestId, {
                 fromStoreId: form.fromStoreId,
                 toStoreId: form.toStoreId,
                 requestDate: new Date(form.requestDate).toISOString(),
@@ -126,7 +128,7 @@ export default function StoreRequestEditPage() {
                 })),
             });
 
-            router.push(`/store-requests/${id}`);
+            router.push(`/store-requests/${requestNumber}`);
         } catch (e) {
             setError(e instanceof Error ? e.message : fallback.updateFailed("発送依頼"));
         } finally {
@@ -219,7 +221,7 @@ export default function StoreRequestEditPage() {
             </div>
 
             <div className={newStyles.actions}>
-                <Link href={`/store-requests/${id}`} className={newStyles.cancelButton}>キャンセル</Link>
+                <Link href={`/store-requests/${requestNumber}`} className={newStyles.cancelButton}>キャンセル</Link>
                 <button type="button" onClick={handleSubmit} disabled={submitting} className={newStyles.submitButton}>
                     {submitting ? "保存中..." : "保存"}
                 </button>

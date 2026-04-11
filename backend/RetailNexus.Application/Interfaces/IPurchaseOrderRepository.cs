@@ -7,6 +7,7 @@ public interface IPurchaseOrderRepository
 {
     Task<PurchaseOrder?> GetByIdAsync(Guid id, CancellationToken ct);
     Task<PurchaseOrder?> GetByIdWithDetailsAsync(Guid id, CancellationToken ct);
+    Task<PurchaseOrder?> GetByOrderNumberWithDetailsAsync(string orderNumber, CancellationToken ct);
     Task<IReadOnlyList<PurchaseOrder>> ListAsync(
         string? orderNumber,
         Guid? supplierId,

@@ -81,6 +81,10 @@ export async function getPurchaseOrderById(id: string): Promise<PurchaseOrder> {
   return apiGet<PurchaseOrder>(`/api/purchase-orders/${id}`);
 }
 
+export async function getPurchaseOrderByNumber(orderNumber: string): Promise<PurchaseOrder> {
+  return apiGet<PurchaseOrder>(`/api/purchase-orders/by-number/${orderNumber}`);
+}
+
 export async function createPurchaseOrder(body: CreatePurchaseOrderRequest): Promise<PurchaseOrder> {
   return apiPost<CreatePurchaseOrderRequest, PurchaseOrder>("/api/purchase-orders", body);
 }

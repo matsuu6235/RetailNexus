@@ -151,6 +151,14 @@ public sealed class StoreRequestsController : BaseController
         return request is null ? NotFound() : Ok(MapDetail(request));
     }
 
+    [HttpGet("by-number/{requestNumber}")]
+    [RequirePermission("store-requests.view")]
+    public async Task<IActionResult> GetByRequestNumber(string requestNumber, CancellationToken ct)
+    {
+        var request = await _repo.GetByRequestNumberWithDetailsAsync(requestNumber, ct);
+        return request is null ? NotFound() : Ok(MapDetail(request));
+    }
+
     [HttpPost]
     [RequirePermission("store-requests.create")]
     public async Task<IActionResult> Create([FromBody] CreateStoreRequestRequest req, CancellationToken ct)

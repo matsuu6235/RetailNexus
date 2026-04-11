@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { validation, fallback } from "@/lib/messages";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { getPurchaseOrderById, updatePurchaseOrder } from "@/lib/api/purchaseOrders";
+import { getPurchaseOrderByNumber, updatePurchaseOrder } from "@/lib/api/purchaseOrders";
 import { getSuppliers } from "@/lib/api/suppliers";
 import { getStores } from "@/lib/api/stores";
 import { getProducts } from "@/lib/api/products";
@@ -30,7 +30,8 @@ const today = new Date().toISOString().split("T")[0];
 export default function PurchaseOrderEditPage() {
     const params = useParams();
     const router = useRouter();
-    const id = params.id as string;
+    const orderNumber = params.orderNumber as string;
+    const [purchaseOrderId, setPurchaseOrderId] = useState<string>("");
 
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [stores, setStores] = useState<Store[]>([]);
@@ -62,7 +63,7 @@ export default function PurchaseOrderEditPage() {
         (async () => {
             try {
                 const [order, supplierRes, storeRes, productRes] = await Promise.all([
-                    getPurchaseOrderById(id),
+                    getPurchaseOrderByNumber(orderNumber),
                     getSuppliers(1, 200, { isActive: "active" }),
                     getStores(1, 200, { isActive: "active" }),
                     getProducts(1, 200, { isActive: "active" }),
@@ -71,6 +72,7 @@ export default function PurchaseOrderEditPage() {
                 setSuppliers(supplierRes.items);
                 setStores(storeRes.items);
                 setProducts(productRes.items);
+                setPurchaseOrderId(order.purchaseOrderId);
 
                 setForm({
                     supplierId: order.supplierId,
@@ -94,7 +96,7 @@ export default function PurchaseOrderEditPage() {
                 setLoading(false);
             }
         })();
-    }, [id]);
+    }, [orderNumber]);
 
     const handleHeaderChange = (field: keyof PurchaseOrderFormFields, value: string) => {
         const updated = { ...form, [field]: value };
@@ -136,7 +138,7 @@ export default function PurchaseOrderEditPage() {
             setSubmitting(true);
             setError(null);
 
-            await updatePurchaseOrder(id, {
+            await updatePurchaseOrder(purchaseOrderId, {
                 supplierId: form.supplierId,
                 storeId: form.storeId,
                 orderDate: new Date(form.orderDate).toISOString(),
@@ -150,7 +152,7 @@ export default function PurchaseOrderEditPage() {
                 })),
             });
 
-            router.push(`/purchase-orders/${id}`);
+            router.push(`/purchase-orders/${orderNumber}`);
         } catch (e) {
             setError(e instanceof Error ? e.message : fallback.updateFailed("発注"));
         } finally {
@@ -267,7 +269,7 @@ export default function PurchaseOrderEditPage() {
             </div>
 
             <div className={newStyles.actions}>
-                <Link href={`/purchase-orders/${id}`} className={newStyles.cancelButton}>キャンセル</Link>
+                <Link href={`/purchase-orders/${orderNumber}`} className={newStyles.cancelButton}>キャンセル</Link>
                 <button type="button" onClick={handleSubmit} disabled={submitting} className={newStyles.submitButton}>
                     {submitting ? "保存中..." : "保存"}
                 </button>

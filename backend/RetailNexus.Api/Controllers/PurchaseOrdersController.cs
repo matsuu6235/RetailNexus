@@ -155,6 +155,14 @@ public sealed class PurchaseOrdersController : BaseController
         return order is null ? NotFound() : Ok(MapDetail(order));
     }
 
+    [HttpGet("by-number/{orderNumber}")]
+    [RequirePermission("purchases.view")]
+    public async Task<IActionResult> GetByOrderNumber(string orderNumber, CancellationToken ct)
+    {
+        var order = await _repo.GetByOrderNumberWithDetailsAsync(orderNumber, ct);
+        return order is null ? NotFound() : Ok(MapDetail(order));
+    }
+
     [HttpPost]
     [RequirePermission("purchases.create")]
     public async Task<IActionResult> Create([FromBody] CreatePurchaseOrderRequest req, CancellationToken ct)

@@ -101,7 +101,7 @@ export default function StoreRequestNewPage() {
                 })),
             });
 
-            router.push(`/store-requests/${res.storeRequestId}`);
+            router.push(`/store-requests/${res.requestNumber}`);
         } catch (e) {
             setError(e instanceof Error ? e.message : fallback.createFailed("発送依頼"));
         } finally {

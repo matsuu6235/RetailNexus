@@ -124,7 +124,7 @@ export default function PurchaseOrderNewPage() {
                 })),
             });
 
-            router.push(`/purchase-orders/${res.purchaseOrderId}`);
+            router.push(`/purchase-orders/${res.orderNumber}`);
         } catch (e) {
             setError(e instanceof Error ? e.message : fallback.createFailed("発注"));
         } finally {

@@ -31,6 +31,15 @@ public sealed class PurchaseOrderRepository : IPurchaseOrderRepository
                 .ThenInclude(d => d.Product)
             .FirstOrDefaultAsync(x => x.PurchaseOrderId == id, ct);
 
+    public Task<PurchaseOrder?> GetByOrderNumberWithDetailsAsync(string orderNumber, CancellationToken ct)
+        => _db.PurchaseOrders
+            .Include(x => x.Supplier)
+            .Include(x => x.Store)
+            .Include(x => x.Approver)
+            .Include(x => x.Details)
+                .ThenInclude(d => d.Product)
+            .FirstOrDefaultAsync(x => x.OrderNumber == orderNumber, ct);
+
     public async Task<IReadOnlyList<PurchaseOrder>> ListAsync(
         string? orderNumber,
         Guid? supplierId,

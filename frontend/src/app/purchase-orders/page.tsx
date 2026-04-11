@@ -220,7 +220,7 @@ export default function PurchaseOrdersPage() {
                                                     </span>
                                                 </td>
                                                 <td className={`${tableStyles.td} ${tableStyles.tdAction}`}>
-                                                    <Link href={`/purchase-orders/${order.purchaseOrderId}`} className={tableStyles.editButton}>
+                                                    <Link href={`/purchase-orders/${order.orderNumber}`} className={tableStyles.editButton}>
                                                         詳細
                                                     </Link>
                                                 </td>

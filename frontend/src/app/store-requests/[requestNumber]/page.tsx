@@ -5,18 +5,17 @@ import { fallback } from "@/lib/messages";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
-    getStoreRequestById,
+    getStoreRequestByNumber,
     submitStoreRequestForApproval,
     approveStoreRequest,
     rejectStoreRequest,
     changeStoreRequestStatus,
-    changeStoreRequestActivation,
 } from "@/lib/api/storeRequests";
 import type { StoreRequest } from "@/types/storeRequests";
 import { hasPermission } from "@/services/authService";
 import { formatDate, formatDateTime } from "@/lib/utils/formatters";
 import StatusStepBar from "@/components/status-step-bar/StatusStepBar";
-import styles from "../../purchase-orders/[id]/page.module.css";
+import styles from "../../purchase-orders/[orderNumber]/page.module.css";
 
 const storeRequestSteps = [
     { status: 0, label: "下書き" },
@@ -30,7 +29,7 @@ const storeRequestSteps = [
 
 export default function StoreRequestDetailPage() {
     const params = useParams();
-    const id = params.id as string;
+    const requestNumber = params.requestNumber as string;
 
     const [request, setRequest] = useState<StoreRequest | null>(null);
     const [loading, setLoading] = useState(true);
@@ -39,13 +38,12 @@ export default function StoreRequestDetailPage() {
 
     const canEdit = hasPermission("store-requests.edit");
     const canApprove = hasPermission("store-requests.approve");
-    const canDelete = hasPermission("store-requests.delete");
 
     const fetchRequest = async () => {
         try {
             setLoading(true);
             setError(null);
-            const data = await getStoreRequestById(id);
+            const data = await getStoreRequestByNumber(requestNumber);
             setRequest(data);
         } catch (e) {
             setError(e instanceof Error ? e.message : fallback.fetchFailed("発送依頼"));
@@ -54,7 +52,7 @@ export default function StoreRequestDetailPage() {
         }
     };
 
-    useEffect(() => { fetchRequest(); }, [id]);
+    useEffect(() => { fetchRequest(); }, [requestNumber]);
 
     const handleAction = async (action: () => Promise<StoreRequest | void>) => {
         try {
@@ -164,54 +162,54 @@ export default function StoreRequestDetailPage() {
             <div className={styles.actionBar}>
                 {status === 0 && canEdit && (
                     <button type="button" className={`${styles.actionButton} ${styles.btnPrimary}`} disabled={actionLoading}
-                        onClick={() => handleAction(() => submitStoreRequestForApproval(id))}>
+                        onClick={() => handleAction(() => submitStoreRequestForApproval(request.storeRequestId))}>
                         承認申請
                     </button>
                 )}
                 {status === 1 && canApprove && (
                     <>
                         <button type="button" className={`${styles.actionButton} ${styles.btnSuccess}`} disabled={actionLoading}
-                            onClick={() => handleAction(() => approveStoreRequest(id))}>
+                            onClick={() => handleAction(() => approveStoreRequest(request.storeRequestId))}>
                             承認
                         </button>
                         <button type="button" className={`${styles.actionButton} ${styles.btnWarning}`} disabled={actionLoading}
-                            onClick={() => handleAction(() => rejectStoreRequest(id))}>
+                            onClick={() => handleAction(() => rejectStoreRequest(request.storeRequestId))}>
                             差戻し
                         </button>
                     </>
                 )}
                 {status === 2 && canEdit && (
                     <button type="button" className={`${styles.actionButton} ${styles.btnPrimary}`} disabled={actionLoading}
-                        onClick={() => handleAction(() => changeStoreRequestStatus(id, 3))}>
+                        onClick={() => handleAction(() => changeStoreRequestStatus(request.storeRequestId, 3))}>
                         確認済にする
                     </button>
                 )}
                 {status === 3 && canEdit && (
                     <button type="button" className={`${styles.actionButton} ${styles.btnPrimary}`} disabled={actionLoading}
-                        onClick={() => handleAction(() => changeStoreRequestStatus(id, 4))}>
+                        onClick={() => handleAction(() => changeStoreRequestStatus(request.storeRequestId, 4))}>
                         出荷準備中にする
                     </button>
                 )}
                 {status === 4 && canEdit && (
                     <button type="button" className={`${styles.actionButton} ${styles.btnPrimary}`} disabled={actionLoading}
-                        onClick={() => handleAction(() => changeStoreRequestStatus(id, 5))}>
+                        onClick={() => handleAction(() => changeStoreRequestStatus(request.storeRequestId, 5))}>
                         出荷済にする
                     </button>
                 )}
                 {status === 5 && canEdit && (
                     <button type="button" className={`${styles.actionButton} ${styles.btnSuccess}`} disabled={actionLoading}
-                        onClick={() => handleAction(() => changeStoreRequestStatus(id, 6))}>
+                        onClick={() => handleAction(() => changeStoreRequestStatus(request.storeRequestId, 6))}>
                         入荷済にする
                     </button>
                 )}
                 {status >= 2 && status <= 4 && canEdit && (
                     <button type="button" className={`${styles.actionButton} ${styles.btnDanger}`} disabled={actionLoading}
-                        onClick={() => handleAction(() => changeStoreRequestStatus(id, 91))}>
+                        onClick={() => handleAction(() => changeStoreRequestStatus(request.storeRequestId, 91))}>
                         キャンセル依頼
                     </button>
                 )}
                 {status === 0 && canEdit && (
-                    <Link href={`/store-requests/${id}/edit`} className={styles.editLink}>編集</Link>
+                    <Link href={`/store-requests/${request.requestNumber}/edit`} className={styles.editLink}>編集</Link>
                 )}
             </div>
         </main>
