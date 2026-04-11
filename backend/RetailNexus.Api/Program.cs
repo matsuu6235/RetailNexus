@@ -116,6 +116,7 @@ builder.Services.AddScoped<IStoreTypeRepository, StoreTypeRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
+builder.Services.AddScoped<IPurchaseOrderMessageRepository, PurchaseOrderMessageRepository>();
 builder.Services.AddScoped<IStoreRequestRepository, StoreRequestRepository>();
 builder.Services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
 
@@ -129,6 +130,7 @@ builder.Services.AddScoped<IStoreService, StoreService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
+builder.Services.AddScoped<IPurchaseOrderMessageService, PurchaseOrderMessageService>();
 builder.Services.AddScoped<IStoreRequestService, StoreRequestService>();
 
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();

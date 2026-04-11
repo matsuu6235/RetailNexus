@@ -28,6 +28,7 @@ public class PurchaseOrder
     public Store? Store { get; private set; }
     public User? Approver { get; private set; }
     public ICollection<PurchaseOrderDetail> Details { get; private set; } = new List<PurchaseOrderDetail>();
+    public ICollection<PurchaseOrderMessage> Messages { get; private set; } = new List<PurchaseOrderMessage>();
 
     private PurchaseOrder()
     {
