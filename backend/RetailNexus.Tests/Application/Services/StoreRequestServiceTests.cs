@@ -3,6 +3,7 @@ using Moq;
 using RetailNexus.Application.Exceptions;
 using RetailNexus.Application.Features.StoreRequests;
 using RetailNexus.Application.Interfaces;
+using RetailNexus.Application.Interfaces.Services;
 using RetailNexus.Application.Services;
 using RetailNexus.Domain.Entities;
 using RetailNexus.Domain.Enums;
@@ -12,11 +13,12 @@ namespace RetailNexus.Tests.Application.Services;
 public class StoreRequestServiceTests
 {
     private readonly Mock<IStoreRequestRepository> _repoMock = new();
+    private readonly Mock<IInventoryService> _inventoryServiceMock = new();
     private readonly StoreRequestService _service;
 
     public StoreRequestServiceTests()
     {
-        _service = new StoreRequestService(_repoMock.Object);
+        _service = new StoreRequestService(_repoMock.Object, _inventoryServiceMock.Object);
     }
 
     private static StoreRequest CreateDraftRequest(Guid actorId)

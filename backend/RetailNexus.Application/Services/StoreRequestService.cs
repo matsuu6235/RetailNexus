@@ -10,10 +10,12 @@ namespace RetailNexus.Application.Services;
 public class StoreRequestService : IStoreRequestService
 {
     private readonly IStoreRequestRepository _repo;
+    private readonly IInventoryService _inventoryService;
 
-    public StoreRequestService(IStoreRequestRepository repo)
+    public StoreRequestService(IStoreRequestRepository repo, IInventoryService inventoryService)
     {
         _repo = repo;
+        _inventoryService = inventoryService;
     }
 
     public async Task<StoreRequest> CreateAsync(Guid fromStoreId, Guid toStoreId, DateTimeOffset requestDate,
@@ -122,6 +124,42 @@ public class StoreRequestService : IStoreRequestService
 
         storeRequest.SetStatus(status, actorId);
         await _repo.SaveChangesAsync(ct);
+
+        // 出荷済 → 依頼先（ToStore）から出庫
+        if (status == StoreRequestStatus.Shipped)
+        {
+            foreach (var detail in storeRequest.Details)
+            {
+                await _inventoryService.ApplyTransactionAsync(
+                    storeRequest.ToStoreId,
+                    detail.ProductId,
+                    InventoryTransactionType.ShipmentOut,
+                    -detail.Quantity,
+                    DateTimeOffset.UtcNow,
+                    storeRequest.RequestNumber,
+                    null,
+                    actorId,
+                    ct);
+            }
+        }
+
+        // 入荷済 → 依頼元（FromStore）に入庫
+        if (status == StoreRequestStatus.Received)
+        {
+            foreach (var detail in storeRequest.Details)
+            {
+                await _inventoryService.ApplyTransactionAsync(
+                    storeRequest.FromStoreId,
+                    detail.ProductId,
+                    InventoryTransactionType.ShipmentIn,
+                    detail.Quantity,
+                    DateTimeOffset.UtcNow,
+                    storeRequest.RequestNumber,
+                    null,
+                    actorId,
+                    ct);
+            }
+        }
 
         return storeRequest;
     }

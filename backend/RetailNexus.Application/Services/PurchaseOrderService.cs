@@ -10,10 +10,12 @@ namespace RetailNexus.Application.Services;
 public class PurchaseOrderService : IPurchaseOrderService
 {
     private readonly IPurchaseOrderRepository _repo;
+    private readonly IInventoryService _inventoryService;
 
-    public PurchaseOrderService(IPurchaseOrderRepository repo)
+    public PurchaseOrderService(IPurchaseOrderRepository repo, IInventoryService inventoryService)
     {
         _repo = repo;
+        _inventoryService = inventoryService;
     }
 
     public async Task<PurchaseOrder> CreateAsync(Guid supplierId, Guid storeId, DateTimeOffset orderDate,
@@ -123,6 +125,24 @@ public class PurchaseOrderService : IPurchaseOrderService
 
         order.SetStatus(status, actorId);
         await _repo.SaveChangesAsync(ct);
+
+        // 入荷済に変更された場合、在庫を自動増加
+        if (status == PurchaseOrderStatus.Received)
+        {
+            foreach (var detail in order.Details)
+            {
+                await _inventoryService.ApplyTransactionAsync(
+                    order.StoreId,
+                    detail.ProductId,
+                    InventoryTransactionType.PurchaseReceive,
+                    detail.Quantity,
+                    DateTimeOffset.UtcNow,
+                    order.OrderNumber,
+                    null,
+                    actorId,
+                    ct);
+            }
+        }
 
         return order;
     }
