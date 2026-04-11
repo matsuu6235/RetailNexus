@@ -74,3 +74,15 @@ export function getRoles(): string[] {
 export function hasPermission(permission: string): boolean {
   return getPermissions().includes(permission);
 }
+
+export function getLoggedInUserId(): string {
+  if (typeof window === "undefined") return "";
+  const token = localStorage.getItem("accessToken");
+  if (!token) return "";
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.sub ?? "";
+  } catch {
+    return "";
+  }
+}

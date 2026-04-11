@@ -1,0 +1,144 @@
+.container {
+  margin-top: 24px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 12px 0;
+}
+
+.messageList {
+  max-height: 360px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 4px;
+}
+
+.empty {
+  color: #94a3b8;
+  font-size: 13px;
+  text-align: center;
+  padding: 24px 0;
+  margin: 0;
+}
+
+.bubble {
+  max-width: 75%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.self {
+  align-self: flex-end;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.other {
+  align-self: flex-start;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.sender {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.time {
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.body {
+  color: #0f172a;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.error {
+  color: #dc2626;
+  font-size: 13px;
+  margin: 8px 0 0 0;
+}
+
+.inputArea {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  align-items: flex-end;
+}
+
+.textarea {
+  flex: 1;
+  resize: vertical;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1.5;
+  min-height: 40px;
+  max-height: 120px;
+  transition: border-color 0.15s;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.12);
+}
+
+.textarea:disabled {
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
+.sendButton {
+  padding: 8px 20px;
+  background: #4f46e5;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.sendButton:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.sendButton:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.loading {
+  color: #64748b;
+  font-size: 13px;
+  padding: 16px;
+  text-align: center;
+}

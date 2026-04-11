@@ -78,3 +78,12 @@ export type PurchaseOrder = {
   updatedBy: string;
   details: PurchaseOrderDetail[];
 };
+
+export type PurchaseOrderMessage = {
+  purchaseOrderMessageId: string;
+  purchaseOrderId: string;
+  sentBy: string;
+  senderName: string;
+  body: string;
+  createdAt: string;
+};

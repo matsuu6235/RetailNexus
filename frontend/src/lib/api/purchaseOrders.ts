@@ -2,6 +2,7 @@ import { apiGet, apiPost, apiPut } from "./client";
 import type {
   PurchaseOrder,
   PurchaseOrderListItem,
+  PurchaseOrderMessage,
   PurchaseOrderStatus,
 } from "@/types/purchaseOrders";
 
@@ -106,4 +107,14 @@ export async function changePurchaseOrderStatus(id: string, status: PurchaseOrde
 
 export async function changePurchaseOrderActivation(id: string, isActive: boolean): Promise<void> {
   return apiPut<{ isActive: boolean }, void>(`/api/purchase-orders/${id}/activation`, { isActive });
+}
+
+// ── メッセージ ──
+
+export async function getPurchaseOrderMessages(purchaseOrderId: string): Promise<PurchaseOrderMessage[]> {
+  return apiGet<PurchaseOrderMessage[]>(`/api/purchase-orders/${purchaseOrderId}/messages`);
+}
+
+export async function sendPurchaseOrderMessage(purchaseOrderId: string, body: string): Promise<PurchaseOrderMessage> {
+  return apiPost<{ body: string }, PurchaseOrderMessage>(`/api/purchase-orders/${purchaseOrderId}/messages`, { body });
 }

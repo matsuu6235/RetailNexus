@@ -42,4 +42,6 @@ export const fallback = {
   masterFetchFailed: "マスタデータの取得に失敗しました。",
   loginFailed: "ログインに失敗しました。",
   searchFetchFailed: "検索条件の取得に失敗しました。",
+  messageSendFailed: "メッセージの送信に失敗しました。",
+  messageFetchFailed: "メッセージの取得に失敗しました。",
 } as const;

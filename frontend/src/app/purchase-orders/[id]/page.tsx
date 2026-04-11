@@ -16,6 +16,7 @@ import type { PurchaseOrder } from "@/types/purchaseOrders";
 import { hasPermission } from "@/services/authService";
 import { formatDate, formatDateTime, formatYen } from "@/lib/utils/formatters";
 import StatusStepBar from "@/components/status-step-bar/StatusStepBar";
+import MessageThread from "@/components/message-thread/MessageThread";
 import styles from "./page.module.css";
 
 const purchaseOrderSteps = [
@@ -165,6 +166,8 @@ export default function PurchaseOrderDetailPage() {
                 </div>
             </div>
 
+            {status >= 2 && <MessageThread purchaseOrderId={id} />}
+
             <div className={styles.actionBar}>
                 {/* 下書き → 承認申請 */}
                 {status === 0 && canEdit && (
@@ -186,30 +189,6 @@ export default function PurchaseOrderDetailPage() {
                             差戻し
                         </button>
                     </>
-                )}
-
-                {/* 承認済 → 仕入先確認済 */}
-                {status === 2 && canEdit && (
-                    <button type="button" className={`${styles.actionButton} ${styles.btnPrimary}`} disabled={actionLoading}
-                        onClick={() => handleAction(() => changePurchaseOrderStatus(id, 3))}>
-                        仕入先確認済にする
-                    </button>
-                )}
-
-                {/* 仕入先確認済 → 出荷準備中 */}
-                {status === 3 && canEdit && (
-                    <button type="button" className={`${styles.actionButton} ${styles.btnPrimary}`} disabled={actionLoading}
-                        onClick={() => handleAction(() => changePurchaseOrderStatus(id, 4))}>
-                        出荷準備中にする
-                    </button>
-                )}
-
-                {/* 出荷準備中 → 出荷済 */}
-                {status === 4 && canEdit && (
-                    <button type="button" className={`${styles.actionButton} ${styles.btnPrimary}`} disabled={actionLoading}
-                        onClick={() => handleAction(() => changePurchaseOrderStatus(id, 5))}>
-                        出荷済にする
-                    </button>
                 )}
 
                 {/* 出荷済 → 入荷済 */}
