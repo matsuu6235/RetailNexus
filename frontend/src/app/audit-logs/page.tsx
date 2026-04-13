@@ -5,6 +5,7 @@ import { fallback } from "@/lib/messages";
 import { getAuditLogs } from "@/lib/api/auditLogs";
 import type { AuditLog } from "@/types/auditLogs";
 import Modal from "@/components/modal/Modal";
+import Pager from "@/components/pager/Pager";
 import styles from "./page.module.css";
 import tableStyles from "@/components/table/MasterTable.module.css";
 
@@ -195,12 +196,7 @@ export default function AuditLogsPage() {
             </table>
           </div>
 
-          {/* Pagination */}
-          <div className={styles.pagination}>
-            <button type="button" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className={styles.pageButton}>前へ</button>
-            <span className={styles.pageInfo}>{page} / {totalPages}</span>
-            <button type="button" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className={styles.pageButton}>次へ</button>
-          </div>
+          <Pager page={page} totalPages={totalPages} onPageChange={setPage} />
         </div>
       )}
 

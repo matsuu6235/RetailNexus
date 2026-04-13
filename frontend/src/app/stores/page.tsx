@@ -10,6 +10,7 @@ import type { Store } from "@/types/stores";
 import type { Area } from "@/types/areas";
 import type { StoreType } from "@/types/storeTypes";
 import Modal from "@/components/modal/Modal";
+import Pager from "@/components/pager/Pager";
 import StoreForm from "./StoreForm";
 import styles from "./page.module.css";
 import tableStyles from "@/components/table/MasterTable.module.css";
@@ -245,17 +246,7 @@ export default function StoresPage() {
             </div>
           </div>
 
-          <div className={styles.pager}>
-            <span className={styles.pagerText}>ページ {page} / {totalPages}</span>
-            <div className={styles.pagerButtons}>
-              <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className={styles.pagerButton}>
-                前へ
-              </button>
-              <button type="button" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)} className={styles.pagerButton}>
-                次へ
-              </button>
-            </div>
-          </div>
+          <Pager page={page} totalPages={totalPages} onPageChange={setPage} />
         </>
       )}
 

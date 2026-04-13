@@ -10,6 +10,7 @@ import type { ProductCategory } from "@/types/productCategories";
 import Modal from "@/components/modal/Modal";
 import ProductForm from "./ProductForm";
 import { formatYen } from "@/lib/utils/formatters";
+import Pager from "@/components/pager/Pager";
 import styles from "./page.module.css";
 
 const PAGE_SIZE = 20;
@@ -263,28 +264,7 @@ export default function ProductsPage() {
             </div>
           </section>
 
-          <div className={styles.pager}>
-            <span className={styles.pagerText}>ページ {page} / {totalPages}</span>
-            <div className={styles.pagerButtons}>
-              <button
-                type="button"
-                disabled={page <= 1}
-                onClick={() => moveToPage(Math.max(1, page - 1))}
-                className={styles.pagerButton}
-              >
-                前へ
-              </button>
-
-              <button
-                type="button"
-                disabled={page >= totalPages}
-                onClick={() => moveToPage(Math.min(totalPages, page + 1))}
-                className={styles.pagerButton}
-              >
-                次へ
-              </button>
-            </div>
-          </div>
+          <Pager page={page} totalPages={totalPages} onPageChange={moveToPage} />
         </>
       )}
 

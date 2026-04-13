@@ -10,6 +10,7 @@ import { inventoryTransactionTypeLabels } from "@/types/inventories";
 import type { Store } from "@/types/stores";
 import { formatDateTime } from "@/lib/utils/formatters";
 import { hasPermission } from "@/services/authService";
+import Pager from "@/components/pager/Pager";
 import styles from "./page.module.css";
 import tableStyles from "@/components/table/MasterTable.module.css";
 
@@ -209,13 +210,7 @@ export default function InventoryTransactionsPage() {
                         </div>
                     </div>
 
-                    <div className={styles.pager}>
-                        <span className={styles.pagerText}>ページ {page} / {totalPages}</span>
-                        <div className={styles.pagerButtons}>
-                            <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className={styles.pagerButton}>前へ</button>
-                            <button type="button" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)} className={styles.pagerButton}>次へ</button>
-                        </div>
-                    </div>
+                    <Pager page={page} totalPages={totalPages} onPageChange={setPage} />
                 </>
             )}
         </main>
