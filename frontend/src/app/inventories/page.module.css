@@ -90,26 +90,6 @@
     border-radius: 8px;
 }
 
-.pager {
-    margin-top: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.pagerText {
-    color: #475569;
-    font-size: 13px;
-}
-
-.pagerButtons {
-    display: flex;
-    gap: 8px;
-}
-
-.pagerButton {
-    padding: 6px 12px;
-}
 
 .quantityNegative {
     color: #dc2626;
