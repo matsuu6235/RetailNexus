@@ -173,6 +173,17 @@ export default function StoresPage() {
           <button
             type="button"
             onClick={() => {
+              setStoreCodeInput(""); setStoreNameInput(""); setAreaIdInput(""); setStoreTypeIdInput(""); setIsActiveInput("all");
+              setStoreCodeFilter(""); setStoreNameFilter(""); setAreaIdFilter(""); setStoreTypeIdFilter(""); setIsActiveFilter("all");
+              setPage(1);
+            }}
+            className={styles.clearButton}
+          >
+            クリア
+          </button>
+          <button
+            type="button"
+            onClick={() => {
               setStoreCodeFilter(storeCodeInput);
               setStoreNameFilter(storeNameInput);
               setAreaIdFilter(areaIdInput);

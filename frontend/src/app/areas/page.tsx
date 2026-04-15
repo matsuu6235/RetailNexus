@@ -121,6 +121,16 @@ export default function AreasPage() {
           <button
             type="button"
             onClick={() => {
+              setCodeInput(""); setNameInput(""); setIsActiveInput("all");
+              setCodeFilter(""); setNameFilter(""); setIsActiveFilter("all");
+            }}
+            className={styles.clearButton}
+          >
+            クリア
+          </button>
+          <button
+            type="button"
+            onClick={() => {
               setCodeFilter(codeInput);
               setNameFilter(nameInput);
               setIsActiveFilter(isActiveInput);

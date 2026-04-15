@@ -82,6 +82,15 @@
     cursor: pointer;
 }
 
+.clearButton {
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #0f172a;
+    cursor: pointer;
+}
+
 .errorBox {
     padding: 12px;
     border: 1px solid #fecaca;

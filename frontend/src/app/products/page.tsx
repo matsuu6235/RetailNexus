@@ -188,6 +188,17 @@ export default function ProductsPage() {
           <button
             type="button"
             onClick={() => {
+              setSkuInput(""); setJanInput(""); setNameInput(""); setCategoryCodeInput(""); setActiveInput("all");
+              setSkuFilter(""); setJanFilter(""); setNameFilter(""); setCategoryCodeFilter(""); setActiveFilter("all");
+              moveToPage(1);
+            }}
+            className={styles.clearButton}
+          >
+            クリア
+          </button>
+          <button
+            type="button"
+            onClick={() => {
               setSkuFilter(skuInput);
               setNameFilter(nameInput);
               setJanFilter(janInput);

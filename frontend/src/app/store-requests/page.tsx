@@ -141,6 +141,17 @@ export default function StoreRequestsPage() {
                     </label>
                 </div>
                 <div className={styles.searchActions}>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setRequestNumberInput(""); setFromStoreIdInput(""); setToStoreIdInput(""); setStatusInput("");
+                            setRequestDateFromInput(""); setRequestDateToInput(""); setIsActiveInput("all");
+                            setFilters({}); setPage(1);
+                        }}
+                        className={styles.clearButton}
+                    >
+                        クリア
+                    </button>
                     <button type="button" onClick={handleSearch} className={styles.searchButton}>検索</button>
                 </div>
             </section>

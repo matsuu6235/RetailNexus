@@ -94,6 +94,15 @@
   cursor: pointer;
 }
 
+.clearButton {
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  cursor: pointer;
+}
+
 .noticeBox {
   margin-bottom: 16px;
   padding: 14px 16px;

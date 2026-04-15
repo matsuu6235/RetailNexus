@@ -146,6 +146,16 @@ export default function InventoryTransactionsPage() {
                 </div>
 
                 <div className={styles.searchActions}>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setStoreIdInput(""); setTransactionTypeInput(""); setDateFromInput(""); setDateToInput("");
+                            setFilters({}); setPage(1);
+                        }}
+                        className={styles.clearButton}
+                    >
+                        クリア
+                    </button>
                     <button type="button" onClick={handleSearch} className={styles.searchButton}>検索</button>
                 </div>
             </section>

@@ -140,6 +140,17 @@ export default function AuditLogsPage() {
           </label>
         </div>
         <div className={styles.searchActions}>
+          <button
+            type="button"
+            onClick={() => {
+              setFromInput(""); setToInput(""); setUserNameInput(""); setActionInput("all"); setEntityNameInput("all");
+              setFromFilter(""); setToFilter(""); setUserNameFilter(""); setActionFilter("all"); setEntityNameFilter("all");
+              setPage(1);
+            }}
+            className={styles.clearButton}
+          >
+            クリア
+          </button>
           <button type="button" onClick={handleSearch} className={styles.searchButton}>検索</button>
         </div>
       </section>

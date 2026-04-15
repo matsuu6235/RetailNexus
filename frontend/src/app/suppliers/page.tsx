@@ -158,6 +158,17 @@ export default function SuppliersPage() {
                     <button
                         type="button"
                         onClick={() => {
+                            setSupplierCodeInput(""); setSupplierNameInput(""); setPhoneNumberInput(""); setEmailInput(""); setIsActiveInput("all");
+                            setSupplierCodeFilter(""); setSupplierNameFilter(""); setPhoneNumberFilter(""); setEmailFilter(""); setIsActiveFilter("all");
+                            setPage(1);
+                        }}
+                        className={styles.clearButton}
+                    >
+                        クリア
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
                             setSupplierCodeFilter(supplierCodeInput);
                             setSupplierNameFilter(supplierNameInput);
                             setPhoneNumberFilter(phoneNumberInput);

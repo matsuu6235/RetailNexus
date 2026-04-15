@@ -173,6 +173,17 @@ export default function PurchaseOrdersPage() {
                 </div>
 
                 <div className={styles.searchActions}>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setOrderNumberInput(""); setSupplierIdInput(""); setStoreIdInput(""); setStatusInput("");
+                            setOrderDateFromInput(""); setOrderDateToInput(""); setIsActiveInput("all");
+                            setFilters({}); setPage(1);
+                        }}
+                        className={styles.clearButton}
+                    >
+                        クリア
+                    </button>
                     <button type="button" onClick={handleSearch} className={styles.searchButton}>検索</button>
                 </div>
             </section>

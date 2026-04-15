@@ -104,6 +104,16 @@ export default function UsersPage() {
           <button
             type="button"
             onClick={() => {
+              setLoginIdInput(""); setNameInput(""); setIsActiveInput("all");
+              setLoginIdFilter(""); setNameFilter(""); setIsActiveFilter("all");
+            }}
+            className={styles.clearButton}
+          >
+            クリア
+          </button>
+          <button
+            type="button"
+            onClick={() => {
               setLoginIdFilter(loginIdInput);
               setNameFilter(nameInput);
               setIsActiveFilter(isActiveInput);
