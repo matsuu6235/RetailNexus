@@ -98,7 +98,10 @@ export default function ProductCategoriesPage() {
                 </button>
             </header>
 
-            <section className={styles.searchSection}>
+            <form className={styles.searchSection} onSubmit={(e) => {
+                e.preventDefault();
+                setCodeFilter(codeInput); setNameFilter(nameInput); setIsActiveFilter(isActiveInput);
+            }}>
                 <div className={styles.searchGrid}>
                     <label className={styles.field}>
                         <span className={styles.fieldLabel}>商品カテゴリコード</span>
@@ -145,19 +148,11 @@ export default function ProductCategoriesPage() {
                     >
                         クリア
                     </button>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setCodeFilter(codeInput);
-                            setNameFilter(nameInput);
-                            setIsActiveFilter(isActiveInput);
-                        }}
-                        className={styles.searchButton}
-                    >
+                    <button type="submit" className={styles.searchButton}>
                         検索
                     </button>
                 </div>
-            </section>
+            </form>
 
             {drag.isDirty && (
                 <div className={styles.noticeBox}>

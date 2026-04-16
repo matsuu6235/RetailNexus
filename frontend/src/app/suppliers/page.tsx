@@ -98,7 +98,12 @@ export default function SuppliersPage() {
                 </button>
             </header>
 
-            <section className={styles.searchSection}>
+            <form className={styles.searchSection} onSubmit={(e) => {
+                e.preventDefault();
+                setSupplierCodeFilter(supplierCodeInput); setSupplierNameFilter(supplierNameInput);
+                setPhoneNumberFilter(phoneNumberInput); setEmailFilter(emailInput); setIsActiveFilter(isActiveInput);
+                setPage(1);
+            }}>
                 <div className={styles.searchGrid}>
                     <label className={styles.field}>
                         <span className={styles.fieldLabel}>仕入先コード</span>
@@ -166,22 +171,11 @@ export default function SuppliersPage() {
                     >
                         クリア
                     </button>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setSupplierCodeFilter(supplierCodeInput);
-                            setSupplierNameFilter(supplierNameInput);
-                            setPhoneNumberFilter(phoneNumberInput);
-                            setEmailFilter(emailInput);
-                            setIsActiveFilter(isActiveInput);
-                            setPage(1);
-                        }}
-                        className={styles.searchButton}
-                    >
+                    <button type="submit" className={styles.searchButton}>
                         検索
                     </button>
                 </div>
-            </section>
+            </form>
 
             {loading && <p>読み込み中...</p>}
             {error && <div className={styles.errorBox}>{error}</div>}

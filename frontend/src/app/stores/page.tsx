@@ -123,7 +123,12 @@ export default function StoresPage() {
         </button>
       </header>
 
-      <section className={styles.searchSection}>
+      <form className={styles.searchSection} onSubmit={(e) => {
+        e.preventDefault();
+        setStoreCodeFilter(storeCodeInput); setStoreNameFilter(storeNameInput);
+        setAreaIdFilter(areaIdInput); setStoreTypeIdFilter(storeTypeIdInput); setIsActiveFilter(isActiveInput);
+        setPage(1);
+      }}>
         <div className={styles.searchGrid}>
           <label className={styles.field}>
             <span className={styles.fieldLabel}>店舗コード</span>
@@ -181,22 +186,11 @@ export default function StoresPage() {
           >
             クリア
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              setStoreCodeFilter(storeCodeInput);
-              setStoreNameFilter(storeNameInput);
-              setAreaIdFilter(areaIdInput);
-              setStoreTypeIdFilter(storeTypeIdInput);
-              setIsActiveFilter(isActiveInput);
-              setPage(1);
-            }}
-            className={styles.searchButton}
-          >
+          <button type="submit" className={styles.searchButton}>
             検索
           </button>
         </div>
-      </section>
+      </form>
 
       {loading && <p>読み込み中...</p>}
       {error && <div className={styles.errorBox}>{error}</div>}

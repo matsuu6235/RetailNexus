@@ -122,7 +122,12 @@ export default function ProductsPage() {
         </button>
       </header>
 
-      <section className={styles.searchSection}>
+      <form className={styles.searchSection} onSubmit={(e) => {
+        e.preventDefault();
+        setSkuFilter(skuInput); setNameFilter(nameInput); setJanFilter(janInput);
+        setCategoryCodeFilter(categoryCodeInput); setActiveFilter(activeInput);
+        moveToPage(1);
+      }}>
         <div className={styles.searchGrid}>
           <label className={styles.field}>
             <span className={styles.fieldLabel}>商品コード</span>
@@ -196,22 +201,11 @@ export default function ProductsPage() {
           >
             クリア
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              setSkuFilter(skuInput);
-              setNameFilter(nameInput);
-              setJanFilter(janInput);
-              setCategoryCodeFilter(categoryCodeInput);
-              setActiveFilter(activeInput);
-              moveToPage(1);
-            }}
-            className={styles.searchButton}
-          >
+          <button type="submit" className={styles.searchButton}>
             検索
           </button>
         </div>
-      </section>
+      </form>
 
       {loading && <p>読み込み中...</p>}
       {error && <div className={styles.errorBox}>取得に失敗しました: {error}</div>}

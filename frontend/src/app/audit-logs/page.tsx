@@ -110,7 +110,7 @@ export default function AuditLogsPage() {
         </div>
       </header>
 
-      <section className={styles.searchSection}>
+      <form className={styles.searchSection} onSubmit={(e) => { e.preventDefault(); handleSearch(); }}>
         <div className={styles.searchGrid}>
           <label className={styles.field}>
             <span className={styles.fieldLabel}>開始日時</span>
@@ -151,9 +151,9 @@ export default function AuditLogsPage() {
           >
             クリア
           </button>
-          <button type="button" onClick={handleSearch} className={styles.searchButton}>検索</button>
+          <button type="submit" className={styles.searchButton}>検索</button>
         </div>
-      </section>
+      </form>
 
       {loading && <p>読み込み中...</p>}
       {error && <div className={styles.errorBox}>{error}</div>}

@@ -91,7 +91,10 @@ export default function AreasPage() {
         </button>
       </header>
 
-      <section className={styles.searchSection}>
+      <form className={styles.searchSection} onSubmit={(e) => {
+        e.preventDefault();
+        setCodeFilter(codeInput); setNameFilter(nameInput); setIsActiveFilter(isActiveInput);
+      }}>
         <div className={styles.searchGrid}>
           <label className={styles.field}>
             <span className={styles.fieldLabel}>エリアコード</span>
@@ -128,19 +131,11 @@ export default function AreasPage() {
           >
             クリア
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              setCodeFilter(codeInput);
-              setNameFilter(nameInput);
-              setIsActiveFilter(isActiveInput);
-            }}
-            className={styles.searchButton}
-          >
+          <button type="submit" className={styles.searchButton}>
             検索
           </button>
         </div>
-      </section>
+      </form>
 
       {drag.isDirty && (
         <div className={styles.noticeBox}>

@@ -74,7 +74,10 @@ export default function UsersPage() {
         </button>
       </header>
 
-      <section className={styles.searchSection}>
+      <form className={styles.searchSection} onSubmit={(e) => {
+        e.preventDefault();
+        setLoginIdFilter(loginIdInput); setNameFilter(nameInput); setIsActiveFilter(isActiveInput);
+      }}>
         <div className={styles.searchGrid}>
           <label className={styles.field}>
             <span className={styles.fieldLabel}>ログインID</span>
@@ -111,19 +114,11 @@ export default function UsersPage() {
           >
             クリア
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              setLoginIdFilter(loginIdInput);
-              setNameFilter(nameInput);
-              setIsActiveFilter(isActiveInput);
-            }}
-            className={styles.searchButton}
-          >
+          <button type="submit" className={styles.searchButton}>
             検索
           </button>
         </div>
-      </section>
+      </form>
 
       {loading && <p>読み込み中...</p>}
       {error && <div className={styles.errorBox}>{error}</div>}
